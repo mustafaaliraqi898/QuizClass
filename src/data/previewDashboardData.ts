@@ -55,7 +55,7 @@ export const PREVIEW_METRICS: DashboardMetric[] = [
     label: 'إجمالي الأسئلة',
     value: 248,
     unitLabel: 'سؤالاً',
-    detailText: 'موزعة على ٤ مواد دراسية',
+    detailText: 'موزعة على 4 مواد دراسية',
     accentTone: 'indigo',
   },
   {
@@ -91,6 +91,7 @@ export const QUICK_SHORTCUTS: QuickShortcut[] = [
     subtitle: 'اختيار من متعدد أو صح وخطأ مع صور',
     targetSection: 'question-bank',
     accentTone: 'indigo',
+    contextNote: 'الاختصار المختار: نموذج إضافة سؤال جديد (اختيار من متعدد أو صح/خطأ).',
   },
   {
     id: 'shortcut-question-bank',
@@ -98,6 +99,7 @@ export const QUICK_SHORTCUTS: QuickShortcut[] = [
     subtitle: 'تصفح وتصفية الأسئلة حسب المادة والصف',
     targetSection: 'question-bank',
     accentTone: 'sky',
+    contextNote: 'الاختصار المختار: تصفح وتصفية بنك الأسئلة التعليمي.',
   },
   {
     id: 'shortcut-create-quiz',
@@ -138,7 +140,7 @@ export const PREVIEW_RECENT_QUIZZES: RecentQuizItem[] = [
     questionCount: 20,
     participantCount: 28,
     averageScore: 79,
-    dateLabel: 'منذ ٤ أيام',
+    dateLabel: 'منذ 4 أيام',
     status: 'completed',
     pinCode: '731045',
   },

@@ -1,27 +1,13 @@
-import { CheckCircle2, FileEdit, PlayCircle, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useEffect } from 'react';
-import type { NavSectionId, QuizStatus, RecentQuizItem } from '../../types/dashboard';
+import type { NavSectionId, RecentQuizItem } from '../../types/dashboard';
+import { QuizStatusLabel } from '../common/QuizStatusLabel';
 
 interface QuizPreviewDrawerProps {
   quiz: RecentQuizItem | null;
   onClose: () => void;
   onNavigate: (section: NavSectionId) => void;
 }
-
-const STATUS_META: Record<QuizStatus, { label: string; colorClass: string }> = {
-  completed: {
-    label: 'مكتملة',
-    colorClass: 'text-emerald-600 dark:text-emerald-400',
-  },
-  ready: {
-    label: 'جاهزة للتشغيل',
-    colorClass: 'text-indigo-600 dark:text-indigo-400',
-  },
-  draft: {
-    label: 'مسودة',
-    colorClass: 'text-amber-600 dark:text-amber-400',
-  },
-};
 
 export function QuizPreviewDrawer({ quiz, onClose, onNavigate }: QuizPreviewDrawerProps) {
   useEffect(() => {
@@ -38,14 +24,6 @@ export function QuizPreviewDrawer({ quiz, onClose, onNavigate }: QuizPreviewDraw
   if (!quiz) {
     return null;
   }
-
-  const statusMeta = STATUS_META[quiz.status];
-  const StatusIcon =
-    quiz.status === 'completed'
-      ? CheckCircle2
-      : quiz.status === 'ready'
-        ? PlayCircle
-        : FileEdit;
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true">
@@ -82,10 +60,7 @@ export function QuizPreviewDrawer({ quiz, onClose, onNavigate }: QuizPreviewDraw
               <h4 className="font-display text-xl font-extrabold text-slate-900 dark:text-white">
                 {quiz.title}
               </h4>
-              <div className={`inline-flex items-center gap-1.5 text-xs font-bold ${statusMeta.colorClass}`}>
-                <StatusIcon className="h-4 w-4" />
-                <span>{statusMeta.label}</span>
-              </div>
+              <QuizStatusLabel status={quiz.status} />
             </div>
 
             <div className="grid grid-cols-2 gap-3 border-y border-slate-200 py-4 dark:border-slate-800">

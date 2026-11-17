@@ -4,6 +4,7 @@ import type { DashboardMetric } from '../../types/dashboard';
 
 interface StatsGridProps {
   metrics: DashboardMetric[];
+  isPreviewData?: boolean;
 }
 
 const METRIC_ICONS: Record<string, ComponentType<{ className?: string }>> = {
@@ -20,16 +21,18 @@ const TONE_CLASSES: Record<DashboardMetric['accentTone'], string> = {
   amber: 'bg-amber-50 text-amber-600 dark:bg-amber-950/70 dark:text-amber-400',
 };
 
-export function StatsGrid({ metrics }: StatsGridProps) {
+export function StatsGrid({ metrics, isPreviewData = true }: StatsGridProps) {
   return (
     <section aria-label="الإحصائيات المختصرة">
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-display text-base font-bold text-slate-900 dark:text-white">
           نظرة سريعة على النشاط
         </h3>
-        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-          أرقام تجريبية لمعاينة التخطيط
-        </span>
+        {isPreviewData && (
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            أرقام معاينة تجريبية · غير محفوظة في قاعدة بيانات بعد
+          </span>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

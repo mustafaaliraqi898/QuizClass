@@ -3,10 +3,15 @@ import type { ModuleRoadmapInfo, NavSectionId } from '../../types/dashboard';
 
 interface ModuleRoadmapViewProps {
   moduleInfo: ModuleRoadmapInfo;
+  contextNote?: string;
   onNavigate: (section: NavSectionId) => void;
 }
 
-export function ModuleRoadmapView({ moduleInfo, onNavigate }: ModuleRoadmapViewProps) {
+export function ModuleRoadmapView({
+  moduleInfo,
+  contextNote,
+  onNavigate,
+}: ModuleRoadmapViewProps) {
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 dark:border-slate-800 dark:bg-slate-900">
@@ -34,8 +39,9 @@ export function ModuleRoadmapView({ moduleInfo, onNavigate }: ModuleRoadmapViewP
           </button>
         </div>
 
-        <div className="mt-6 rounded-xl border border-indigo-200/70 bg-indigo-50/70 p-4 text-xs font-medium leading-relaxed text-indigo-900 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-200">
-          {moduleInfo.phaseNote}
+        <div className="mt-6 space-y-2 rounded-xl border border-indigo-200/70 bg-indigo-50/70 p-4 text-xs font-medium leading-relaxed text-indigo-900 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-200">
+          {contextNote && <p className="font-bold">{contextNote}</p>}
+          <p>{moduleInfo.phaseNote}</p>
         </div>
       </div>
 

@@ -28,6 +28,7 @@ export function useTheme() {
     } else {
       root.classList.remove('dark');
     }
+    root.style.colorScheme = theme;
     try {
       window.localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch {

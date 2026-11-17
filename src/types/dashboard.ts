@@ -33,6 +33,7 @@ export interface QuickShortcut {
   subtitle: string;
   targetSection: NavSectionId;
   accentTone: 'indigo' | 'emerald' | 'violet' | 'sky';
+  contextNote?: string;
 }
 
 export interface RecentQuizItem {
@@ -54,6 +55,13 @@ export interface TeacherProfile {
   role: string;
   school: string;
   avatarPath: string;
+}
+
+export interface DashboardSnapshot {
+  isPreviewData: boolean;
+  teacher: TeacherProfile;
+  metrics: DashboardMetric[];
+  recentQuizzes: RecentQuizItem[];
 }
 
 export interface ModuleRoadmapInfo {

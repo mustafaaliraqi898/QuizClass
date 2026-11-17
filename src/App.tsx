@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { QuickShortcuts } from './components/dashboard/QuickShortcuts';
 import { RecentQuizzesSection } from './components/dashboard/RecentQuizzesSection';
 import { StatsGrid } from './components/dashboard/StatsGrid';
@@ -15,19 +15,26 @@ import { SettingsPreviewView } from './components/sections/SettingsPreviewView';
 import {
   MODULE_ROADMAP,
   NAVIGATION_ITEMS,
-  PREVIEW_METRICS,
-  PREVIEW_RECENT_QUIZZES,
   QUICK_SHORTCUTS,
-  TEACHER_PROFILE,
 } from './data/previewDashboardData';
+import { useDashboardData } from './hooks/useDashboardData';
+import { useSidebarPreference } from './hooks/useSidebarPreference';
 import { useTheme } from './hooks/useTheme';
 import type { NavSectionId } from './types/dashboard';
 
 export default function App() {
   const { theme, setTheme, toggleTheme } = useTheme();
+  const { sidebarCollapsed, toggleSidebarCollapse } = useSidebarPreference();
+  const { isPreviewData, teacher, metrics, recentQuizzes } = useDashboardData();
+
   const [activeSection, setActiveSection] = useState<NavSectionId>('dashboard');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sectionContextNote, setSectionContextNote] = useState<string | undefined>(undefined);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  const handleNavigate = useCallback((section: NavSectionId, contextNote?: string) => {
+    setActiveSection(section);
+    setSectionContextNote(contextNote);
+  }, []);
 
   const currentNavItem = useMemo(
     () => NAVIGATION_ITEMS.find((item) => item.id === activeSection) ?? NAVIGATION_ITEMS[0],
@@ -40,11 +47,11 @@ export default function App() {
         <Sidebar
           items={NAVIGATION_ITEMS}
           activeSection={activeSection}
-          onSelectSection={setActiveSection}
+          onSelectSection={(section) => handleNavigate(section)}
           collapsed={sidebarCollapsed}
           mobileOpen={mobileSidebarOpen}
           onCloseMobile={() => setMobileSidebarOpen(false)}
-          teacher={TEACHER_PROFILE}
+          teacher={teacher}
         />
 
         <div className="flex min-w-0 flex-1 flex-col">
@@ -53,20 +60,21 @@ export default function App() {
             theme={theme}
             onToggleTheme={toggleTheme}
             sidebarCollapsed={sidebarCollapsed}
-            onToggleSidebarCollapse={() => setSidebarCollapsed((prev) => !prev)}
+            onToggleSidebarCollapse={toggleSidebarCollapse}
             onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
-            onNavigate={setActiveSection}
+            onNavigate={(section) => handleNavigate(section)}
           />
 
           <main className="mx-auto w-full max-w-[1280px] flex-1 space-y-6 px-4 py-6 sm:px-6 lg:px-8">
             {activeSection === 'dashboard' && (
               <>
-                <WelcomeBanner teacher={TEACHER_PROFILE} onNavigate={setActiveSection} />
-                <StatsGrid metrics={PREVIEW_METRICS} />
-                <QuickShortcuts shortcuts={QUICK_SHORTCUTS} onNavigate={setActiveSection} />
+                <WelcomeBanner teacher={teacher} onNavigate={(section) => handleNavigate(section)} />
+                <StatsGrid metrics={metrics} isPreviewData={isPreviewData} />
+                <QuickShortcuts shortcuts={QUICK_SHORTCUTS} onNavigate={handleNavigate} />
                 <RecentQuizzesSection
-                  quizzes={PREVIEW_RECENT_QUIZZES}
-                  onNavigate={setActiveSection}
+                  quizzes={recentQuizzes}
+                  isPreviewData={isPreviewData}
+                  onNavigate={(section) => handleNavigate(section)}
                 />
               </>
             )}
@@ -76,16 +84,17 @@ export default function App() {
                 theme={theme}
                 onSetTheme={setTheme}
                 sidebarCollapsed={sidebarCollapsed}
-                onToggleSidebarCollapse={() => setSidebarCollapsed((prev) => !prev)}
-                teacher={TEACHER_PROFILE}
-                onNavigate={setActiveSection}
+                onToggleSidebarCollapse={toggleSidebarCollapse}
+                teacher={teacher}
+                onNavigate={(section) => handleNavigate(section)}
               />
             )}
 
             {activeSection !== 'dashboard' && activeSection !== 'settings' && (
               <ModuleRoadmapView
                 moduleInfo={MODULE_ROADMAP[activeSection]}
-                onNavigate={setActiveSection}
+                contextNote={sectionContextNote}
+                onNavigate={(section) => handleNavigate(section)}
               />
             )}
           </main>

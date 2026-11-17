@@ -81,7 +81,7 @@ export function TopBar({
           <button
             type="button"
             onClick={() => onNavigate('create-quiz')}
-            className="flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white shadow-xs transition-colors hover:bg-indigo-700 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+            className="flex h-10 items-center gap-1.5 rounded-xl bg-indigo-600 px-3 text-xs font-bold text-white shadow-xs transition-colors hover:bg-indigo-700 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:gap-2 sm:px-4 dark:bg-indigo-500 dark:hover:bg-indigo-400"
           >
             <Plus className="h-4 w-4" />
             <span>مسابقة جديدة</span>

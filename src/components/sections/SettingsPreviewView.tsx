@@ -107,6 +107,7 @@ export function SettingsPreviewView({
                 type="button"
                 role="switch"
                 aria-checked={sidebarCollapsed}
+                aria-label="طي الشريط الجانبي على سطح المكتب"
                 onClick={onToggleSidebarCollapse}
                 className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors ${
                   sidebarCollapsed ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-700'

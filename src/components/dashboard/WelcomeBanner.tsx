@@ -70,7 +70,7 @@ export function WelcomeBanner({ teacher, onNavigate }: WelcomeBannerProps) {
               </div>
               <div className="flex items-center justify-between pt-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
                 <span>اتصال محلي مباشر</span>
-                <span className="tabular-nums">٣٢ مشاركاً</span>
+                <span className="tabular-nums">32 مشاركاً</span>
               </div>
             </div>
           </div>

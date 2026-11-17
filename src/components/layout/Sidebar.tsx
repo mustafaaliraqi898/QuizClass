@@ -103,8 +103,12 @@ export function Sidebar({
         </div>
 
         <div className="border-t border-slate-200 p-3 dark:border-slate-800">
-          <div
-            className={`flex items-center gap-3 rounded-xl p-2 ${
+          <button
+            type="button"
+            onClick={() => handleNavigate('settings')}
+            aria-label="فتح إعدادات الحساب والمظهر"
+            title={isCompact ? `${teacher.name} — الإعدادات` : undefined}
+            className={`flex w-full items-center gap-3 rounded-xl p-2 text-start transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:hover:bg-slate-800/80 ${
               isCompact ? 'justify-center' : ''
             }`}
           >
@@ -130,7 +134,7 @@ export function Sidebar({
                 </p>
               </div>
             )}
-          </div>
+          </button>
         </div>
       </div>
     );
