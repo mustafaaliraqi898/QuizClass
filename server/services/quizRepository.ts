@@ -2,10 +2,12 @@ import crypto from 'node:crypto';
 import type { DatabaseSync, SQLInputValue } from 'node:sqlite';
 import type { StoragePaths } from '../config/storagePaths.ts';
 import type {
+  LinkedQuizSummary,
   QuestionDifficulty,
   QuestionFilterParams,
   QuestionOption,
   QuestionRecord,
+  QuestionSyncResponse,
   QuestionType,
 } from '../../src/types/questionBank.ts';
 import type {
@@ -880,5 +882,254 @@ export class SqliteQuizRepository {
     }
 
     deleteMediaFilesIfUnreferenced(this.db, this.storagePaths, candidatePaths);
+  }
+
+  getLinkedQuizSummaryForQuestion(questionId: string): LinkedQuizSummary {
+    const updatableRows = this.db
+      .prepare(
+        `
+        SELECT DISTINCT q.id, q.title
+        FROM quizzes q
+        INNER JOIN quiz_questions qq ON qq.quiz_id = q.id
+        WHERE qq.source_question_id = ?
+          AND q.lifecycle_status = 'draft'
+        ORDER BY q.created_at DESC
+      `
+      )
+      .all(questionId) as Array<{ id: string; title: string }>;
+
+    const lockedRow = this.db
+      .prepare(
+        `
+        SELECT COUNT(DISTINCT q.id) AS locked_count
+        FROM quizzes q
+        INNER JOIN quiz_questions qq ON qq.quiz_id = q.id
+        WHERE qq.source_question_id = ?
+          AND q.lifecycle_status <> 'draft'
+      `
+      )
+      .get(questionId) as { locked_count: number } | undefined;
+
+    return {
+      updatableQuizCount: updatableRows.length,
+      lockedQuizCount: lockedRow?.locked_count ?? 0,
+      updatableQuizzes: updatableRows.map((row) => ({
+        id: row.id,
+        title: row.title,
+      })),
+    };
+  }
+
+  syncQuestionToLinkedQuizzes(
+    questionId: string,
+    options?: { testBeforeCommitHook?: () => void }
+  ): QuestionSyncResponse {
+    const bankQuestion = this.questionBankRepo.getQuestionById(questionId);
+
+    const targetRows = this.db
+      .prepare(
+        `
+        SELECT qq.id AS quiz_question_id, qq.quiz_id, qq.image_path
+        FROM quiz_questions qq
+        INNER JOIN quizzes q ON q.id = qq.quiz_id
+        WHERE qq.source_question_id = ?
+          AND q.lifecycle_status = 'draft'
+      `
+      )
+      .all(questionId) as Array<{
+      quiz_question_id: string;
+      quiz_id: string;
+      image_path: string | null;
+    }>;
+
+    const lockedRow = this.db
+      .prepare(
+        `
+        SELECT COUNT(DISTINCT q.id) AS locked_count
+        FROM quizzes q
+        INNER JOIN quiz_questions qq ON qq.quiz_id = q.id
+        WHERE qq.source_question_id = ?
+          AND q.lifecycle_status <> 'draft'
+      `
+      )
+      .get(questionId) as { locked_count: number } | undefined;
+
+    const skippedLockedQuizCount = lockedRow?.locked_count ?? 0;
+
+    if (targetRows.length === 0) {
+      return {
+        questionId,
+        updatedQuizCount: 0,
+        updatedQuizQuestionCount: 0,
+        skippedLockedQuizCount,
+        updatedQuizIds: [],
+      };
+    }
+
+    const newlyCopiedFiles: string[] = [];
+    const oldMediaCandidates: string[] = [];
+    const now = new Date().toISOString();
+
+    interface PreparedTargetUpdate {
+      quizQuestionId: string;
+      quizId: string;
+      newQuestionImagePath: string | null;
+      newOptions: PreparedSnapshotOption[];
+    }
+
+    const preparedUpdates: PreparedTargetUpdate[] = [];
+    const touchedQuizIds = new Set<string>();
+
+    try {
+      for (const target of targetRows) {
+        if (target.image_path) {
+          oldMediaCandidates.push(target.image_path);
+        }
+
+        const existingOptionImages = this.db
+          .prepare(
+            `SELECT image_path FROM quiz_question_options WHERE quiz_question_id = ? AND image_path IS NOT NULL`
+          )
+          .all(target.quiz_question_id) as Array<{ image_path: string }>;
+
+        for (const optImg of existingOptionImages) {
+          oldMediaCandidates.push(optImg.image_path);
+        }
+
+        const copiedQuestionImage = copyMediaToQuiz(
+          bankQuestion.imagePath,
+          this.storagePaths
+        );
+        if (copiedQuestionImage) {
+          newlyCopiedFiles.push(copiedQuestionImage);
+        }
+
+        const newOptions: PreparedSnapshotOption[] =
+          bankQuestion.type === 'multiple_choice'
+            ? bankQuestion.options.map((opt, optIdx) => {
+                const copiedOptImg = copyMediaToQuiz(opt.imagePath, this.storagePaths);
+                if (copiedOptImg) {
+                  newlyCopiedFiles.push(copiedOptImg);
+                }
+                return {
+                  optionOrder: optIdx,
+                  optionText: opt.optionText,
+                  imagePath: copiedOptImg,
+                  isCorrect: opt.isCorrect,
+                };
+              })
+            : [];
+
+        preparedUpdates.push({
+          quizQuestionId: target.quiz_question_id,
+          quizId: target.quiz_id,
+          newQuestionImagePath: copiedQuestionImage,
+          newOptions,
+        });
+        touchedQuizIds.add(target.quiz_id);
+      }
+
+      this.db.exec('BEGIN IMMEDIATE');
+      try {
+        const updateSnapshotStmt = this.db.prepare(
+          `
+          UPDATE quiz_questions
+          SET type = ?, prompt = ?, image_path = ?, correct_boolean = ?,
+              subject = ?, grade = ?, topic = ?, difficulty = ?
+          WHERE id = ?
+            AND source_question_id = ?
+            AND quiz_id IN (SELECT id FROM quizzes WHERE lifecycle_status = 'draft')
+        `
+        );
+
+        const deleteOptionsStmt = this.db.prepare(
+          `DELETE FROM quiz_question_options WHERE quiz_question_id = ?`
+        );
+
+        const insertOptionStmt = this.db.prepare(
+          `
+          INSERT INTO quiz_question_options (
+            id, quiz_question_id, option_order, option_text, image_path, is_correct
+          ) VALUES (?, ?, ?, ?, ?, ?)
+        `
+        );
+
+        const updateQuizTimestampStmt = this.db.prepare(
+          `UPDATE quizzes SET updated_at = ? WHERE id = ? AND lifecycle_status = 'draft'`
+        );
+
+        for (const item of preparedUpdates) {
+          const updateRes = updateSnapshotStmt.run(
+            bankQuestion.type,
+            bankQuestion.prompt,
+            item.newQuestionImagePath,
+            bankQuestion.correctBoolean === null
+              ? null
+              : bankQuestion.correctBoolean
+                ? 1
+                : 0,
+            bankQuestion.subject,
+            bankQuestion.grade,
+            bankQuestion.topic,
+            bankQuestion.difficulty,
+            item.quizQuestionId,
+            questionId
+          );
+
+          if (updateRes.changes !== 1) {
+            throw new QuizValidationError(
+              'تعذر تحديث نسخة السؤال في إحدى المسابقات لعدم تطابق المرجع أو تغيّر حالة المسابقة.'
+            );
+          }
+
+          deleteOptionsStmt.run(item.quizQuestionId);
+
+          if (bankQuestion.type === 'multiple_choice') {
+            item.newOptions.forEach((opt, optIdx) => {
+              insertOptionStmt.run(
+                crypto.randomUUID(),
+                item.quizQuestionId,
+                optIdx,
+                opt.optionText,
+                opt.imagePath,
+                opt.isCorrect ? 1 : 0
+              );
+            });
+          }
+        }
+
+        for (const quizId of touchedQuizIds) {
+          updateQuizTimestampStmt.run(now, quizId);
+        }
+
+        if (options?.testBeforeCommitHook) {
+          options.testBeforeCommitHook();
+        }
+
+        this.db.exec('COMMIT');
+      } catch (dbError) {
+        try {
+          this.db.exec('ROLLBACK');
+        } catch {
+          // Ignore rollback failure
+        }
+        throw dbError;
+      }
+    } catch (error) {
+      unlinkMediaFilesDirectly(this.storagePaths, newlyCopiedFiles);
+      throw error;
+    }
+
+    if (oldMediaCandidates.length > 0) {
+      deleteMediaFilesIfUnreferenced(this.db, this.storagePaths, oldMediaCandidates);
+    }
+
+    return {
+      questionId,
+      updatedQuizCount: touchedQuizIds.size,
+      updatedQuizQuestionCount: preparedUpdates.length,
+      skippedLockedQuizCount,
+      updatedQuizIds: Array.from(touchedQuizIds),
+    };
   }
 }

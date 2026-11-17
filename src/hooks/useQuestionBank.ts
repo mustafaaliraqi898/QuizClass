@@ -9,6 +9,8 @@ import type {
   QuestionFilterParams,
   QuestionPayload,
   QuestionRecord,
+  QuestionSyncResponse,
+  QuestionUpdateResult,
 } from '../types/questionBank';
 
 const EMPTY_FACETS: QuestionFacets = {
@@ -139,7 +141,7 @@ export function useQuestionBank(service: QuestionBankService = httpQuestionBankS
   );
 
   const updateQuestion = useCallback(
-    async (id: string, payload: QuestionPayload): Promise<QuestionRecord> => {
+    async (id: string, payload: QuestionPayload): Promise<QuestionUpdateResult> => {
       setIsMutating(true);
       setFeedback(null);
       try {
@@ -147,7 +149,7 @@ export function useQuestionBank(service: QuestionBankService = httpQuestionBankS
         await fetchQuestions(filters);
         setFeedback({
           type: 'success',
-          message: 'تم تحديث السؤال بنجاح.',
+          message: 'تم تعديل السؤال في بنك الأسئلة بنجاح.',
         });
         return updated;
       } finally {
@@ -155,6 +157,18 @@ export function useQuestionBank(service: QuestionBankService = httpQuestionBankS
       }
     },
     [fetchQuestions, filters, service]
+  );
+
+  const syncQuestionToQuizzes = useCallback(
+    async (id: string): Promise<QuestionSyncResponse> => {
+      setIsMutating(true);
+      try {
+        return await service.syncQuestionToQuizzes(id);
+      } finally {
+        setIsMutating(false);
+      }
+    },
+    [service]
   );
 
   const deleteQuestion = useCallback(
@@ -201,10 +215,12 @@ export function useQuestionBank(service: QuestionBankService = httpQuestionBankS
     loadError,
     isMutating,
     feedback,
+    setFeedback,
     clearFeedback,
     refresh,
     createQuestion,
     updateQuestion,
+    syncQuestionToQuizzes,
     deleteQuestion,
     service,
   };

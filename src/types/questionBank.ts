@@ -78,3 +78,26 @@ export interface UploadedMediaAsset {
   mimeType: string;
   sizeBytes: number;
 }
+
+export interface LinkedQuizBrief {
+  id: string;
+  title: string;
+}
+
+export interface LinkedQuizSummary {
+  updatableQuizCount: number;
+  lockedQuizCount: number;
+  updatableQuizzes: LinkedQuizBrief[];
+}
+
+export interface QuestionUpdateResult extends QuestionRecord {
+  linkedQuizSummary?: LinkedQuizSummary;
+}
+
+export interface QuestionSyncResponse {
+  questionId: string;
+  updatedQuizCount: number;
+  updatedQuizQuestionCount: number;
+  skippedLockedQuizCount: number;
+  updatedQuizIds: string[];
+}

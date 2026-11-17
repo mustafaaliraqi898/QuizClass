@@ -1,9 +1,12 @@
 import type {
+  LinkedQuizSummary,
   QuestionBankListResponse,
   QuestionBankStats,
   QuestionFilterParams,
   QuestionPayload,
   QuestionRecord,
+  QuestionSyncResponse,
+  QuestionUpdateResult,
   UploadedMediaAsset,
 } from '../types/questionBank';
 
@@ -13,8 +16,10 @@ export interface QuestionBankService {
     options?: { signal?: AbortSignal }
   ): Promise<QuestionBankListResponse>;
   getQuestionById(id: string): Promise<QuestionRecord>;
+  getLinkedQuizzes(id: string): Promise<LinkedQuizSummary>;
   createQuestion(payload: QuestionPayload): Promise<QuestionRecord>;
-  updateQuestion(id: string, payload: QuestionPayload): Promise<QuestionRecord>;
+  updateQuestion(id: string, payload: QuestionPayload): Promise<QuestionUpdateResult>;
+  syncQuestionToQuizzes(id: string): Promise<QuestionSyncResponse>;
   deleteQuestion(id: string): Promise<void>;
   getStats(): Promise<QuestionBankStats>;
   uploadImage(file: File): Promise<UploadedMediaAsset>;
@@ -72,6 +77,11 @@ export const httpQuestionBankService: QuestionBankService = {
     return parseJsonOrThrow<QuestionRecord>(response);
   },
 
+  async getLinkedQuizzes(id: string): Promise<LinkedQuizSummary> {
+    const response = await fetch(`/api/questions/${encodeURIComponent(id)}/linked-quizzes`);
+    return parseJsonOrThrow<LinkedQuizSummary>(response);
+  },
+
   async createQuestion(payload: QuestionPayload): Promise<QuestionRecord> {
     const response = await fetch('/api/questions', {
       method: 'POST',
@@ -81,13 +91,20 @@ export const httpQuestionBankService: QuestionBankService = {
     return parseJsonOrThrow<QuestionRecord>(response);
   },
 
-  async updateQuestion(id: string, payload: QuestionPayload): Promise<QuestionRecord> {
+  async updateQuestion(id: string, payload: QuestionPayload): Promise<QuestionUpdateResult> {
     const response = await fetch(`/api/questions/${encodeURIComponent(id)}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    return parseJsonOrThrow<QuestionRecord>(response);
+    return parseJsonOrThrow<QuestionUpdateResult>(response);
+  },
+
+  async syncQuestionToQuizzes(id: string): Promise<QuestionSyncResponse> {
+    const response = await fetch(`/api/questions/${encodeURIComponent(id)}/sync-quizzes`, {
+      method: 'POST',
+    });
+    return parseJsonOrThrow<QuestionSyncResponse>(response);
   },
 
   async deleteQuestion(id: string): Promise<void> {

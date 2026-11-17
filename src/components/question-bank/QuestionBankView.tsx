@@ -14,6 +14,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useQuestionBank } from '../../hooks/useQuestionBank';
 import type {
+  LinkedQuizSummary,
   QuestionDifficulty,
   QuestionPayload,
   QuestionRecord,
@@ -22,6 +23,7 @@ import type {
 import { DeleteConfirmModal } from './DeleteConfirmModal';
 import { QuestionDetailsModal } from './QuestionDetailsModal';
 import { QuestionFormModal } from './QuestionFormModal';
+import { QuestionSyncConfirmModal } from './QuestionSyncConfirmModal';
 
 interface QuestionBankViewProps {
   openCreateSignal?: number;
@@ -49,10 +51,12 @@ export function QuestionBankView({
     loadError,
     isMutating,
     feedback,
+    setFeedback,
     clearFeedback,
     refresh,
     createQuestion,
     updateQuestion,
+    syncQuestionToQuizzes,
     deleteQuestion,
     service,
   } = useQuestionBank();
@@ -62,6 +66,11 @@ export function QuestionBankView({
   const [detailsQuestion, setDetailsQuestion] = useState<QuestionRecord | null>(null);
   const [deletingQuestion, setDeletingQuestion] = useState<QuestionRecord | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [pendingSync, setPendingSync] = useState<{
+    question: QuestionRecord;
+    summary: LinkedQuizSummary;
+  } | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   useEffect(() => {
     if (openCreateSignal > 0) {
@@ -92,11 +101,49 @@ export function QuestionBankView({
 
   const handleSaveQuestion = async (payload: QuestionPayload) => {
     if (editingQuestion) {
-      await updateQuestion(editingQuestion.id, payload);
+      const updated = await updateQuestion(editingQuestion.id, payload);
+      if (updated.linkedQuizSummary && updated.linkedQuizSummary.updatableQuizCount > 0) {
+        setSyncError(null);
+        setPendingSync({
+          question: updated,
+          summary: updated.linkedQuizSummary,
+        });
+      }
     } else {
       await createQuestion(payload);
     }
     onQuestionsChanged?.();
+  };
+
+  const handleConfirmSync = async () => {
+    if (!pendingSync) return;
+    setSyncError(null);
+    try {
+      const result = await syncQuestionToQuizzes(pendingSync.question.id);
+      setPendingSync(null);
+      setFeedback({
+        type: 'success',
+        message: `تم تعديل السؤال في بنك الأسئلة وتحديث نسخه في ${result.updatedQuizCount} ${
+          result.updatedQuizCount === 1 ? 'مسابقة' : 'مسابقات'
+        } بنجاح.`,
+      });
+      onQuestionsChanged?.();
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'تعذر تحديث المسابقات المرتبطة بهذا السؤال.';
+      setSyncError(message);
+    }
+  };
+
+  const handleKeepCurrentSnapshots = () => {
+    setSyncError(null);
+    setPendingSync(null);
+    setFeedback({
+      type: 'success',
+      message: 'تم تعديل السؤال في بنك الأسئلة بنجاح مع الاحتفاظ بالنسخ الحالية داخل المسابقات.',
+    });
   };
 
   const handleConfirmDelete = async () => {
@@ -526,6 +573,14 @@ export function QuestionBankView({
           setDeletingQuestion(null);
         }}
         onConfirm={handleConfirmDelete}
+      />
+
+      <QuestionSyncConfirmModal
+        pendingSync={pendingSync}
+        isSyncing={isMutating}
+        errorMessage={syncError}
+        onKeepCurrent={handleKeepCurrentSnapshots}
+        onConfirmSync={handleConfirmSync}
       />
     </div>
   );

@@ -22,9 +22,16 @@ import {
   SqliteQuestionBankRepository,
 } from '../services/questionBankRepository.ts';
 
+import {
+  QuizNotFoundError,
+  QuizValidationError,
+  SqliteQuizRepository,
+} from '../services/quizRepository.ts';
+
 export function createQuestionBankRouter(db: DatabaseSync, storagePaths: StoragePaths) {
   const router = express.Router();
   const repository = new SqliteQuestionBankRepository(db, storagePaths);
+  const quizRepository = new SqliteQuizRepository(db, storagePaths);
 
   const upload = multer({
     storage: multer.memoryStorage(),
@@ -84,6 +91,17 @@ export function createQuestionBankRouter(db: DatabaseSync, storagePaths: Storage
     }
   });
 
+  router.get('/questions/:id/linked-quizzes', (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const questionId = String(req.params.id);
+      repository.getQuestionById(questionId);
+      const summary = quizRepository.getLinkedQuizSummaryForQuestion(questionId);
+      res.json(summary);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.post('/questions', (req: Request, res: Response, next: NextFunction) => {
     try {
       const created = repository.createQuestion(req.body);
@@ -96,7 +114,20 @@ export function createQuestionBankRouter(db: DatabaseSync, storagePaths: Storage
   router.put('/questions/:id', (req: Request, res: Response, next: NextFunction) => {
     try {
       const updated = repository.updateQuestion(String(req.params.id), req.body);
-      res.json(updated);
+      const linkedQuizSummary = quizRepository.getLinkedQuizSummaryForQuestion(updated.id);
+      res.json({
+        ...updated,
+        linkedQuizSummary,
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post('/questions/:id/sync-quizzes', (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = quizRepository.syncQuestionToLinkedQuizzes(String(req.params.id));
+      res.json(result);
     } catch (error) {
       next(error);
     }
@@ -195,6 +226,8 @@ export function createQuestionBankRouter(db: DatabaseSync, storagePaths: Storage
     if (
       error instanceof QuestionValidationError ||
       error instanceof QuestionNotFoundError ||
+      error instanceof QuizValidationError ||
+      error instanceof QuizNotFoundError ||
       error instanceof MediaValidationError
     ) {
       res.status(error.statusCode).json({ error: error.message });

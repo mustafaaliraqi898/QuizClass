@@ -48,6 +48,7 @@ export function initializeDatabase(dbFilePath: string): DatabaseSync {
       grade TEXT,
       description TEXT,
       default_time_seconds INTEGER NOT NULL DEFAULT 30 CHECK (default_time_seconds BETWEEN 5 AND 600),
+      lifecycle_status TEXT NOT NULL DEFAULT 'draft' CHECK (lifecycle_status IN ('draft', 'started', 'completed')),
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
@@ -83,8 +84,17 @@ export function initializeDatabase(dbFilePath: string): DatabaseSync {
 
     CREATE INDEX IF NOT EXISTS idx_quizzes_created_at ON quizzes(created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_quiz_questions_quiz_id ON quiz_questions(quiz_id, question_order);
+    CREATE INDEX IF NOT EXISTS idx_quiz_questions_source_id ON quiz_questions(source_question_id);
     CREATE INDEX IF NOT EXISTS idx_quiz_question_options_qq_id ON quiz_question_options(quiz_question_id, option_order);
   `);
+
+  const quizColumns = db.prepare('PRAGMA table_info(quizzes)').all() as Array<{ name: string }>;
+  const hasLifecycleStatus = quizColumns.some((col) => col.name === 'lifecycle_status');
+  if (!hasLifecycleStatus) {
+    db.exec(
+      `ALTER TABLE quizzes ADD COLUMN lifecycle_status TEXT NOT NULL DEFAULT 'draft' CHECK (lifecycle_status IN ('draft', 'started', 'completed'));`
+    );
+  }
 
   return db;
 }
