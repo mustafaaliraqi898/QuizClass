@@ -13,7 +13,7 @@ function startLocalServer() {
   process.env.NODE_ENV = 'production';
   process.env.PORT = String(PORT);
   process.env.QUIZCLASS_DATA_DIR = path.join(app.getPath('userData'), 'app-data');
-  process.chdir(app.getAppPath());
+  process.env.QUIZCLASS_APP_ROOT = app.getAppPath();
 
   // The bundled server starts Express + Socket.IO on 0.0.0.0.
   // Requiring it keeps it inside Electron's bundled Node runtime; no Node.js
