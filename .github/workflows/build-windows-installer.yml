@@ -3,6 +3,8 @@ name: Build QuizClass Windows Installer
 on:
   workflow_dispatch:
   push:
+    branches:
+      - 'feature/electron-windows-installer'
     tags:
       - 'v*'
 
