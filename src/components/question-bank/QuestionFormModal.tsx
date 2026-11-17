@@ -1,5 +1,5 @@
 import { CheckCircle2, Loader2, Plus, Trash2, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
   QuestionDifficulty,
   QuestionPayload,
@@ -109,6 +109,16 @@ export function QuestionFormModal({
     }
   }, [isOpen, editingQuestion]);
 
+  const handleCancel = useCallback(async () => {
+    if (isSaving) return;
+    const pendingUploads = Array.from(newlyUploadedPathsRef.current);
+    newlyUploadedPathsRef.current.clear();
+    for (const path of pendingUploads) {
+      void onCleanupUnusedImage(path).catch(() => {});
+    }
+    onClose();
+  }, [isSaving, onCleanupUnusedImage, onClose]);
+
   useEffect(() => {
     if (!isOpen) return;
     const handleKey = (e: KeyboardEvent) => {
@@ -118,7 +128,7 @@ export function QuestionFormModal({
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  });
+  }, [isOpen, isSaving, handleCancel]);
 
   if (!isOpen) return null;
 
@@ -133,16 +143,6 @@ export function QuestionFormModal({
       newlyUploadedPathsRef.current.delete(previousPath);
       void onCleanupUnusedImage(previousPath).catch(() => {});
     }
-  };
-
-  const handleCancel = async () => {
-    if (isSaving) return;
-    const pendingUploads = Array.from(newlyUploadedPathsRef.current);
-    newlyUploadedPathsRef.current.clear();
-    for (const path of pendingUploads) {
-      void onCleanupUnusedImage(path).catch(() => {});
-    }
-    onClose();
   };
 
   const handleSetCorrectOption = (targetKey: string) => {

@@ -7,6 +7,7 @@ import type {
   QuestionFilterParams,
   QuestionType,
 } from '../../src/types/questionBank.ts';
+import { localAdminGuard } from '../middleware/localAdminGuard.ts';
 import {
   deleteMediaFilesIfUnreferenced,
   MAX_IMAGE_SIZE_BYTES,
@@ -32,6 +33,8 @@ export function createQuestionBankRouter(db: DatabaseSync, storagePaths: Storage
       files: 1,
     },
   });
+
+  router.use('/questions', localAdminGuard);
 
   router.get('/questions/stats', (_req: Request, res: Response, next: NextFunction) => {
     try {
@@ -110,6 +113,7 @@ export function createQuestionBankRouter(db: DatabaseSync, storagePaths: Storage
 
   router.post(
     '/media/upload',
+    localAdminGuard,
     (req: Request, res: Response, next: NextFunction) => {
       upload.single('image')(req, res, (err: unknown) => {
         if (err instanceof multer.MulterError) {
@@ -150,7 +154,7 @@ export function createQuestionBankRouter(db: DatabaseSync, storagePaths: Storage
     }
   );
 
-  router.delete('/media', (req: Request, res: Response, next: NextFunction) => {
+  router.delete('/media', localAdminGuard, (req: Request, res: Response, next: NextFunction) => {
     try {
       const imagePath =
         typeof req.body?.imagePath === 'string'
@@ -182,6 +186,7 @@ export function createQuestionBankRouter(db: DatabaseSync, storagePaths: Storage
       res.status(404).json({ error: 'الصورة المطلوبة غير موجودة.' });
       return;
     }
+    res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     res.sendFile(filePath);
   });

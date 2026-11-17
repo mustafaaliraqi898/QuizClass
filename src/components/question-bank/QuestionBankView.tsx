@@ -75,6 +75,7 @@ export function QuestionBankView({
     (filters.type !== undefined && filters.type !== 'all') ||
     (filters.subject !== undefined && filters.subject !== 'all') ||
     (filters.grade !== undefined && filters.grade !== 'all') ||
+    (filters.topic !== undefined && filters.topic !== 'all') ||
     (filters.difficulty !== undefined && filters.difficulty !== 'all');
 
   const handleOpenCreate = () => {
@@ -140,7 +141,7 @@ export function QuestionBankView({
         </div>
 
         <div className="mt-5 grid grid-cols-1 gap-3 border-t border-slate-200 pt-5 md:grid-cols-12 dark:border-slate-800">
-          <div className="relative md:col-span-4">
+          <div className="relative md:col-span-12 lg:col-span-4">
             <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="search"
@@ -154,7 +155,7 @@ export function QuestionBankView({
             />
           </div>
 
-          <div className="md:col-span-2">
+          <div className="md:col-span-3 lg:col-span-2">
             <select
               aria-label="تصفية حسب نوع السؤال"
               value={filters.type ?? 'all'}
@@ -172,7 +173,7 @@ export function QuestionBankView({
             </select>
           </div>
 
-          <div className="md:col-span-2">
+          <div className="md:col-span-3 lg:col-span-2">
             <select
               aria-label="تصفية حسب المادة"
               value={filters.subject ?? 'all'}
@@ -190,7 +191,7 @@ export function QuestionBankView({
             </select>
           </div>
 
-          <div className="md:col-span-2">
+          <div className="md:col-span-3 lg:col-span-2">
             <select
               aria-label="تصفية حسب الصف"
               value={filters.grade ?? 'all'}
@@ -208,7 +209,25 @@ export function QuestionBankView({
             </select>
           </div>
 
-          <div className="flex items-center gap-2 md:col-span-2">
+          <div className="md:col-span-3 lg:col-span-2">
+            <select
+              aria-label="تصفية حسب الموضوع"
+              value={filters.topic ?? 'all'}
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, topic: e.target.value }))
+              }
+              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
+            >
+              <option value="all">جميع المواضيع</option>
+              {facets.topics.map((topic) => (
+                <option key={topic} value={topic}>
+                  {topic}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2 md:col-span-12 lg:col-span-12">
             <select
               aria-label="تصفية حسب مستوى الصعوبة"
               value={filters.difficulty ?? 'all'}
@@ -218,9 +237,9 @@ export function QuestionBankView({
                   difficulty: e.target.value as QuestionDifficulty | 'all',
                 }))
               }
-              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
+              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:bg-white focus:outline-none sm:w-52 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
             >
-              <option value="all">كل المستويات</option>
+              <option value="all">كل مستويات الصعوبة</option>
               <option value="easy">سهل</option>
               <option value="medium">متوسط</option>
               <option value="hard">صعب</option>
@@ -232,9 +251,10 @@ export function QuestionBankView({
                 onClick={resetFilters}
                 title="إعادة تعيين التصفيات"
                 aria-label="إعادة تعيين التصفيات"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
               >
                 <X className="h-4 w-4" />
+                <span>إعادة ضبط</span>
               </button>
             )}
           </div>

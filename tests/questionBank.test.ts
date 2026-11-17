@@ -5,18 +5,21 @@ import path from 'node:path';
 import { after, before, describe, it } from 'node:test';
 import type { AddressInfo } from 'node:net';
 import type { Server } from 'node:http';
+import type { DatabaseSync } from 'node:sqlite';
 import { createServerApp } from '../server/app.ts';
 import { resolveStoragePaths, type StoragePaths } from '../server/config/storagePaths.ts';
 import { initializeDatabase } from '../server/db/database.ts';
-import type { DatabaseSync } from 'node:sqlite';
+import { localAdminGuard } from '../server/middleware/localAdminGuard.ts';
 
-// Minimal valid 1x1 PNG buffer
 const VALID_PNG_BUFFER = Buffer.from(
   '89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000a49444154789c63000100000500010d0a2db40000000049454e44ae426082',
   'hex'
 );
 
-// Minimal valid RIFF/WEBP header buffer
+const VALID_JPEG_BUFFER = Buffer.from([
+  0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01, 0xff, 0xd9,
+]);
+
 const VALID_WEBP_BUFFER = Buffer.concat([
   Buffer.from('RIFF', 'ascii'),
   Buffer.from([0x18, 0x00, 0x00, 0x00]),
@@ -25,7 +28,7 @@ const VALID_WEBP_BUFFER = Buffer.concat([
   Buffer.from([0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]),
 ]);
 
-describe('QuizClass Question Bank (SQLite + Local Media Integration)', () => {
+describe('QuizClass Question Bank Audit & Integration Suite', () => {
   let tempDataDir: string;
   let storagePaths: StoragePaths;
   let db: DatabaseSync;
@@ -51,8 +54,15 @@ describe('QuizClass Question Bank (SQLite + Local Media Integration)', () => {
     db.close();
   }
 
+  async function uploadImageBuffer(buffer: Buffer, mime: string, filename: string) {
+    const form = new FormData();
+    form.append('image', new Blob([new Uint8Array(buffer)], { type: mime }), filename);
+    const res = await fetch(`${baseUrl}/api/media/upload`, { method: 'POST', body: form });
+    return res;
+  }
+
   before(async () => {
-    tempDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'quizclass-test-'));
+    tempDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'quizclass-audit-'));
     storagePaths = resolveStoragePaths(tempDataDir);
     await startAppWithExistingDb();
   });
@@ -61,22 +71,41 @@ describe('QuizClass Question Bank (SQLite + Local Media Integration)', () => {
     try {
       await stopAppAndDb();
     } catch {
-      // Already closed in error-handling test
+      // Ignore if already closed
     }
     fs.rmSync(tempDataDir, { recursive: true, force: true });
   });
 
-  it('starts with an empty SQLite database (no fake/default questions)', async () => {
-    const res = await fetch(`${baseUrl}/api/questions`);
-    assert.equal(res.status, 200);
-    const data = await res.json();
-    assert.equal(data.questions.length, 0);
-    assert.equal(data.stats.totalQuestions, 0);
-    assert.deepEqual(data.facets.subjects, []);
+  it('1. starts with an empty SQLite database and zero stats', async () => {
+    const [listRes, statsRes] = await Promise.all([
+      fetch(`${baseUrl}/api/questions`),
+      fetch(`${baseUrl}/api/questions/stats`),
+    ]);
+    assert.equal(listRes.status, 200);
+    assert.equal(statsRes.status, 200);
+
+    const listData = await listRes.json();
+    const statsData = await statsRes.json();
+    assert.equal(listData.questions.length, 0);
+    assert.equal(statsData.totalQuestions, 0);
+    assert.equal(statsData.multipleChoiceCount, 0);
+    assert.equal(statsData.trueFalseCount, 0);
+    assert.equal(statsData.subjectCount, 0);
   });
 
-  it('rejects invalid payloads (missing prompt or missing/multiple correct answers)', async () => {
-    const noPrompt = await fetch(`${baseUrl}/api/questions`, {
+  it('2. enforces strict data integrity & input validation without leaking internals', async () => {
+    // Malformed JSON
+    const badJsonRes = await fetch(`${baseUrl}/api/questions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{ invalid json',
+    });
+    assert.equal(badJsonRes.status, 400);
+    const badJsonBody = await badJsonRes.json();
+    assert.ok(badJsonBody.error && !JSON.stringify(badJsonBody).includes('SyntaxError'));
+
+    // Empty prompt
+    const emptyPrompt = await fetch(`${baseUrl}/api/questions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -86,234 +115,352 @@ describe('QuizClass Question Bank (SQLite + Local Media Integration)', () => {
         correctBoolean: true,
       }),
     });
-    assert.equal(noPrompt.status, 400);
+    assert.equal(emptyPrompt.status, 400);
 
-    const noCorrectMc = await fetch(`${baseUrl}/api/questions`, {
+    // MC with fewer than 2 options
+    const oneOption = await fetch(`${baseUrl}/api/questions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         type: 'multiple_choice',
-        prompt: 'ما عاصمة الأردن؟',
+        prompt: 'سؤال',
         imagePath: null,
         correctBoolean: null,
-        options: [
-          { optionText: 'عمّان', imagePath: null, isCorrect: false },
-          { optionText: 'إربد', imagePath: null, isCorrect: false },
-        ],
+        options: [{ optionText: 'أ', imagePath: null, isCorrect: true }],
       }),
     });
-    assert.equal(noCorrectMc.status, 400);
+    assert.equal(oneOption.status, 400);
 
-    const twoCorrectMc = await fetch(`${baseUrl}/api/questions`, {
+    // MC with more than 6 options
+    const sevenOptions = await fetch(`${baseUrl}/api/questions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         type: 'multiple_choice',
-        prompt: 'ما عاصمة الأردن؟',
+        prompt: 'سؤال',
         imagePath: null,
         correctBoolean: null,
-        options: [
-          { optionText: 'عمّان', imagePath: null, isCorrect: true },
-          { optionText: 'إربد', imagePath: null, isCorrect: true },
-        ],
+        options: Array.from({ length: 7 }, (_, i) => ({
+          optionText: `خيار ${i + 1}`,
+          imagePath: null,
+          isCorrect: i === 0,
+        })),
       }),
     });
-    assert.equal(twoCorrectMc.status, 400);
-  });
+    assert.equal(sevenOptions.status, 400);
 
-  it('creates questions without classifications and persists them across DB restart', async () => {
-    const createMc = await fetch(`${baseUrl}/api/questions`, {
+    // MC with 0 or 2 correct answers
+    const zeroCorrect = await fetch(`${baseUrl}/api/questions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         type: 'multiple_choice',
-        prompt: 'ما وحدة قياس القوة في النظام الدولي؟',
+        prompt: 'سؤال',
         imagePath: null,
         correctBoolean: null,
         options: [
-          { optionText: 'النيوتن', imagePath: null, isCorrect: true },
-          { optionText: 'الجول', imagePath: null, isCorrect: false },
-          { optionText: 'الواط', imagePath: null, isCorrect: false },
-          { optionText: 'الباسكال', imagePath: null, isCorrect: false },
+          { optionText: 'أ', imagePath: null, isCorrect: false },
+          { optionText: 'ب', imagePath: null, isCorrect: false },
         ],
       }),
     });
-    assert.equal(createMc.status, 201);
-    const mcCreated = await createMc.json();
-    assert.equal(mcCreated.subject, null);
-    assert.equal(mcCreated.options.length, 4);
+    assert.equal(zeroCorrect.status, 400);
 
-    const createTf = await fetch(`${baseUrl}/api/questions`, {
+    const twoCorrect = await fetch(`${baseUrl}/api/questions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'multiple_choice',
+        prompt: 'سؤال',
+        imagePath: null,
+        correctBoolean: null,
+        options: [
+          { optionText: 'أ', imagePath: null, isCorrect: true },
+          { optionText: 'ب', imagePath: null, isCorrect: true },
+        ],
+      }),
+    });
+    assert.equal(twoCorrect.status, 400);
+
+    // Non-existent imagePath reference rejected
+    const missingMedia = await fetch(`${baseUrl}/api/questions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         type: 'true_false',
-        prompt: 'يدور القمر حول الأرض.',
-        imagePath: null,
+        prompt: 'سؤال بصورة مفقودة',
+        imagePath: 'questions/00000000-0000-4000-8000-000000000000.png',
         correctBoolean: true,
-        subject: 'العلوم',
-        grade: 'الصف السابع',
-        topic: 'الفضاء',
-        difficulty: 'easy',
       }),
     });
-    assert.equal(createTf.status, 201);
+    assert.equal(missingMedia.status, 400);
+  });
 
-    // Simulate full application shutdown and restart
+  it('3. creates MC and TF questions, preserves data across restart, and updates stats accurately', async () => {
+    // MC without any classifications (optionality check)
+    const mcRes = await fetch(`${baseUrl}/api/questions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'multiple_choice',
+        prompt: 'نسبة الماء على سطح الأرض تقارب 71% تقريباً، أي المحيطات أكبر؟',
+        imagePath: null,
+        correctBoolean: null,
+        options: [
+          { optionText: 'المحيط الهادئ', imagePath: null, isCorrect: true },
+          { optionText: 'المحيط الأطلسي', imagePath: null, isCorrect: false },
+          { optionText: 'المحيط الهندي', imagePath: null, isCorrect: false },
+          { optionText: 'المحيط المتجمد', imagePath: null, isCorrect: false },
+        ],
+      }),
+    });
+    assert.equal(mcRes.status, 201);
+    const mcQuestion = await mcRes.json();
+    assert.equal(mcQuestion.subject, null);
+    assert.equal(mcQuestion.grade, null);
+    assert.equal(mcQuestion.topic, null);
+    assert.equal(mcQuestion.difficulty, null);
+    assert.equal(mcQuestion.options.length, 4);
+
+    // TF with full optional classifications
+    const tfRes = await fetch(`${baseUrl}/api/questions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'true_false',
+        prompt: 'تتسارع الأجسام الساقطة سقوطاً حراً بعجلة ثابتة.',
+        imagePath: null,
+        correctBoolean: true,
+        subject: 'الفيزياء',
+        grade: 'الصف العاشر',
+        topic: 'السقوط الحر',
+        difficulty: 'medium',
+      }),
+    });
+    assert.equal(tfRes.status, 201);
+
+    // Full server + SQLite close & reopen simulation
     await stopAppAndDb();
     await startAppWithExistingDb();
 
-    const listRes = await fetch(`${baseUrl}/api/questions`);
-    assert.equal(listRes.status, 200);
-    const listData = await listRes.json();
-    assert.equal(listData.stats.totalQuestions, 2);
-    assert.equal(listData.stats.multipleChoiceCount, 1);
-    assert.equal(listData.stats.trueFalseCount, 1);
-    assert.deepEqual(listData.facets.subjects, ['العلوم']);
+    const statsRes = await fetch(`${baseUrl}/api/questions/stats`);
+    const stats = await statsRes.json();
+    assert.equal(stats.totalQuestions, 2);
+    assert.equal(stats.multipleChoiceCount, 1);
+    assert.equal(stats.trueFalseCount, 1);
+    assert.equal(stats.subjectCount, 1);
   });
 
-  it('uploads valid PNG/WEBP images, rejects invalid files, and attaches images to question & options', async () => {
-    // Invalid fake text file pretending to be PNG
-    const invalidForm = new FormData();
-    invalidForm.append(
-      'image',
-      new Blob([Buffer.from('not-a-real-image')], { type: 'image/png' }),
+  it('4. validates PNG/JPEG/WEBP uploads, blocks bad/oversized files & path traversal, and protects shared images', async () => {
+    // Reject unsupported MIME
+    const svgRes = await uploadImageBuffer(
+      Buffer.from('<svg></svg>'),
+      'image/svg+xml',
+      'bad.svg'
+    );
+    assert.equal(svgRes.status, 400);
+
+    // Reject fake magic bytes
+    const fakePngRes = await uploadImageBuffer(
+      Buffer.from('fake-png-content'),
+      'image/png',
       'fake.png'
     );
-    const invalidRes = await fetch(`${baseUrl}/api/media/upload`, {
-      method: 'POST',
-      body: invalidForm,
-    });
-    assert.equal(invalidRes.status, 400);
+    assert.equal(fakePngRes.status, 400);
 
-    // Upload question PNG
-    const qForm = new FormData();
-    qForm.append('image', new Blob([VALID_PNG_BUFFER], { type: 'image/png' }), 'q.png');
-    const qUploadRes = await fetch(`${baseUrl}/api/media/upload`, {
-      method: 'POST',
-      body: qForm,
-    });
-    assert.equal(qUploadRes.status, 201);
-    const qAsset = await qUploadRes.json();
-    assert.ok(qAsset.imagePath.startsWith('questions/'));
+    // Reject > 5MB
+    const bigBuffer = Buffer.alloc(5 * 1024 * 1024 + 100, 0x41);
+    const bigRes = await uploadImageBuffer(bigBuffer, 'image/png', 'huge.png');
+    assert.equal(bigRes.status, 413);
 
-    // Upload option WEBP
-    const optForm = new FormData();
-    optForm.append('image', new Blob([VALID_WEBP_BUFFER], { type: 'image/webp' }), 'o.webp');
-    const optUploadRes = await fetch(`${baseUrl}/api/media/upload`, {
-      method: 'POST',
-      body: optForm,
-    });
-    assert.equal(optUploadRes.status, 201);
-    const optAsset = await optUploadRes.json();
+    // Path traversal blocked
+    const traversalRes = await fetch(`${baseUrl}/api/media/questions/..%2Fquizclass.sqlite`);
+    assert.equal(traversalRes.status, 404);
 
-    // Verify serving uploaded file
-    const serveRes = await fetch(`${baseUrl}${qAsset.imageUrl}`);
-    assert.equal(serveRes.status, 200);
+    // Upload valid PNG, JPEG, WEBP
+    const [pngRes, jpgRes, webpRes] = await Promise.all([
+      uploadImageBuffer(VALID_PNG_BUFFER, 'image/png', 'q.png'),
+      uploadImageBuffer(VALID_JPEG_BUFFER, 'image/jpeg', 'o1.jpg'),
+      uploadImageBuffer(VALID_WEBP_BUFFER, 'image/webp', 'o2.webp'),
+    ]);
+    assert.equal(pngRes.status, 201);
+    assert.equal(jpgRes.status, 201);
+    assert.equal(webpRes.status, 201);
 
-    // Create question with question image + image-only option + text+image option
-    const createRes = await fetch(`${baseUrl}/api/questions`, {
+    const pngAsset = await pngRes.json();
+    const jpgAsset = await jpgRes.json();
+    const webpAsset = await webpRes.json();
+
+    // Verify served with nosniff header
+    const servedImg = await fetch(`${baseUrl}${pngAsset.imageUrl}`);
+    assert.equal(servedImg.status, 200);
+    assert.equal(servedImg.headers.get('x-content-type-options'), 'nosniff');
+
+    // Create MC with PNG on question, JPEG+text on option 1, WEBP-only on option 2
+    const q1Res = await fetch(`${baseUrl}/api/questions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         type: 'multiple_choice',
-        prompt: 'اختر الشكل الصحيح للخلية النباتية',
-        imagePath: qAsset.imagePath,
+        prompt: 'سؤال مصوّر مع خيارات مصوّرة',
+        imagePath: pngAsset.imagePath,
         correctBoolean: null,
         subject: 'الأحياء',
-        grade: 'الصف العاشر',
-        difficulty: 'medium',
+        grade: 'الصف التاسع',
+        topic: 'الخلية',
+        difficulty: 'hard',
         options: [
-          { optionText: 'الشكل الأول', imagePath: optAsset.imagePath, isCorrect: true },
-          { optionText: null, imagePath: optAsset.imagePath, isCorrect: false },
+          { optionText: 'نواة الخلية', imagePath: jpgAsset.imagePath, isCorrect: true },
+          { optionText: null, imagePath: webpAsset.imagePath, isCorrect: false },
         ],
       }),
     });
-    assert.equal(createRes.status, 201);
-    const created = await createRes.json();
-    assert.equal(created.imagePath, qAsset.imagePath);
-    assert.equal(created.options[0].imagePath, optAsset.imagePath);
+    assert.equal(q1Res.status, 201);
+    const q1 = await q1Res.json();
 
-    // Create a second question sharing qAsset.imagePath to verify shared-image protection
-    const sharedRes = await fetch(`${baseUrl}/api/questions`, {
+    // Create second question sharing pngAsset.imagePath
+    const q2Res = await fetch(`${baseUrl}/api/questions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         type: 'true_false',
-        prompt: 'سؤال آخر يشارك نفس الصورة',
-        imagePath: qAsset.imagePath,
+        prompt: 'سؤال مشترك الصورة',
+        imagePath: pngAsset.imagePath,
         correctBoolean: false,
       }),
     });
-    assert.equal(sharedRes.status, 201);
-    const sharedQ = await sharedRes.json();
+    assert.equal(q2Res.status, 201);
+    const q2 = await q2Res.json();
 
-    // Delete the first question: qAsset must remain on disk (still used by sharedQ),
-    // while optAsset must be removed from disk (no longer referenced).
-    const delRes = await fetch(`${baseUrl}/api/questions/${created.id}`, {
-      method: 'DELETE',
-    });
-    assert.equal(delRes.status, 204);
+    // Restart server & DB and verify images still exist and serve properly
+    await stopAppAndDb();
+    await startAppWithExistingDb();
+    const afterRestartImg = await fetch(`${baseUrl}${pngAsset.imageUrl}`);
+    assert.equal(afterRestartImg.status, 200);
 
-    const qFilePath = path.join(storagePaths.mediaDir, qAsset.imagePath);
-    const optFilePath = path.join(storagePaths.mediaDir, optAsset.imagePath);
-    assert.equal(fs.existsSync(qFilePath), true, 'Shared image must NOT be deleted');
-    assert.equal(fs.existsSync(optFilePath), false, 'Unreferenced option image must be deleted');
-
-    // Now delete sharedQ -> qAsset has 0 references and must be cleaned up
-    const delShared = await fetch(`${baseUrl}/api/questions/${sharedQ.id}`, {
-      method: 'DELETE',
-    });
-    assert.equal(delShared.status, 204);
-    assert.equal(fs.existsSync(qFilePath), false, 'Unreferenced question image must be deleted');
-  });
-
-  it('updates questions, filters by search and classifications, and handles delete + DB errors cleanly', async () => {
-    const listRes = await fetch(`${baseUrl}/api/questions?subject=${encodeURIComponent('العلوم')}`);
-    const listData = await listRes.json();
-    assert.equal(listData.questions.length, 1);
-    const target = listData.questions[0];
-
-    const updateRes = await fetch(`${baseUrl}/api/questions/${target.id}`, {
+    // Replace q1's option 1 image (jpg -> webp) via PUT: jpg must be deleted, webp & png remain
+    const updateQ1Res = await fetch(`${baseUrl}/api/questions/${q1.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        type: 'true_false',
-        prompt: 'يدور القمر حول كوكب الأرض في مدار إهليلجي.',
-        imagePath: null,
-        correctBoolean: true,
-        subject: 'الفيزياء الفلكية',
-        grade: 'الصف السابع',
-        topic: 'حركة الأجرام',
-        difficulty: 'medium',
+        type: 'multiple_choice',
+        prompt: 'سؤال مصوّر محدث',
+        imagePath: pngAsset.imagePath,
+        correctBoolean: null,
+        subject: 'الأحياء',
+        grade: 'الصف التاسع',
+        topic: 'الخلية',
+        difficulty: 'hard',
+        options: [
+          { optionText: 'نواة الخلية المحدثة', imagePath: webpAsset.imagePath, isCorrect: true },
+          { optionText: 'غشاء الخلية', imagePath: null, isCorrect: false },
+        ],
       }),
     });
-    assert.equal(updateRes.status, 200);
-    const updated = await updateRes.json();
-    assert.equal(updated.subject, 'الفيزياء الفلكية');
-    assert.equal(updated.difficulty, 'medium');
-
-    const searchRes = await fetch(
-      `${baseUrl}/api/questions?search=${encodeURIComponent('إهليلجي')}&difficulty=medium`
+    assert.equal(updateQ1Res.status, 200);
+    assert.equal(
+      fs.existsSync(path.join(storagePaths.mediaDir, jpgAsset.imagePath)),
+      false,
+      'Replaced unshared option image must be deleted from disk'
     );
-    const searchData = await searchRes.json();
-    assert.equal(searchData.questions.length, 1);
-    assert.equal(searchData.questions[0].id, target.id);
+    assert.equal(
+      fs.existsSync(path.join(storagePaths.mediaDir, webpAsset.imagePath)),
+      true
+    );
 
-    // Delete and verify 404 afterwards
-    const deleteRes = await fetch(`${baseUrl}/api/questions/${target.id}`, {
-      method: 'DELETE',
+    // Delete q1: pngAsset MUST survive because q2 uses it; webpAsset MUST be deleted
+    const delQ1 = await fetch(`${baseUrl}/api/questions/${q1.id}`, { method: 'DELETE' });
+    assert.equal(delQ1.status, 204);
+    assert.equal(
+      fs.existsSync(path.join(storagePaths.mediaDir, pngAsset.imagePath)),
+      true,
+      'Shared image must NOT be deleted'
+    );
+    assert.equal(
+      fs.existsSync(path.join(storagePaths.mediaDir, webpAsset.imagePath)),
+      false,
+      'Unreferenced option image must be deleted'
+    );
+
+    // Delete q2: now pngAsset has 0 refs and must be cleaned up
+    const delQ2 = await fetch(`${baseUrl}/api/questions/${q2.id}`, { method: 'DELETE' });
+    assert.equal(delQ2.status, 204);
+    assert.equal(
+      fs.existsSync(path.join(storagePaths.mediaDir, pngAsset.imagePath)),
+      false
+    );
+  });
+
+  it('5. accurately filters by LIKE-escaped search, type, subject, grade, topic, and difficulty, and updates stats on delete', async () => {
+    // Search with literal '%' character should match ONLY the question containing '71%'
+    const percentSearchRes = await fetch(
+      `${baseUrl}/api/questions?search=${encodeURIComponent('71%')}`
+    );
+    const percentData = await percentSearchRes.json();
+    assert.equal(percentData.questions.length, 1);
+    assert.ok(percentData.questions[0].prompt.includes('71%'));
+
+    // Filter by topic + difficulty + grade + subject + type
+    const combinedFilterRes = await fetch(
+      `${baseUrl}/api/questions?type=true_false&subject=${encodeURIComponent(
+        'الفيزياء'
+      )}&grade=${encodeURIComponent('الصف العاشر')}&topic=${encodeURIComponent(
+        'السقوط الحر'
+      )}&difficulty=medium`
+    );
+    const combinedData = await combinedFilterRes.json();
+    assert.equal(combinedData.questions.length, 1);
+
+    // Delete all remaining questions and verify stats return to 0
+    const allRes = await fetch(`${baseUrl}/api/questions`);
+    const allData = await allRes.json();
+    for (const q of allData.questions) {
+      const del = await fetch(`${baseUrl}/api/questions/${q.id}`, { method: 'DELETE' });
+      assert.equal(del.status, 204);
+    }
+
+    const finalStatsRes = await fetch(`${baseUrl}/api/questions/stats`);
+    const finalStats = await finalStatsRes.json();
+    assert.equal(finalStats.totalQuestions, 0);
+    assert.equal(finalStats.subjectCount, 0);
+  });
+
+  it('6. blocks unauthorized LAN device requests to admin endpoints and handles DB failure cleanly', async () => {
+    // Test localAdminGuard directly against simulated LAN IP (192.168.1.50)
+    let statusCode = 200;
+    let bodySent: unknown = null;
+    let nextCalled = false;
+
+    const fakeReq = {
+      socket: { remoteAddress: '192.168.1.50' },
+      headers: { host: '192.168.1.10:3000' },
+    } as unknown as Parameters<typeof localAdminGuard>[0];
+
+    const fakeRes = {
+      status(code: number) {
+        statusCode = code;
+        return this;
+      },
+      json(payload: unknown) {
+        bodySent = payload;
+        return this;
+      },
+    } as unknown as Parameters<typeof localAdminGuard>[1];
+
+    localAdminGuard(fakeReq, fakeRes, () => {
+      nextCalled = true;
     });
-    assert.equal(deleteRes.status, 204);
 
-    const missingRes = await fetch(`${baseUrl}/api/questions/${target.id}`);
-    assert.equal(missingRes.status, 404);
+    assert.equal(nextCalled, false);
+    assert.equal(statusCode, 403);
+    assert.ok(bodySent && typeof (bodySent as { error: string }).error === 'string');
 
-    // Simulate DB failure when reading
+    // Simulate closed SQLite DB failure
     db.close();
-    const dbErrRes = await fetch(`${baseUrl}/api/questions`);
-    assert.equal(dbErrRes.status, 500);
-    const errPayload = await dbErrRes.json();
-    assert.ok(typeof errPayload.error === 'string' && errPayload.error.length > 0);
+    const errRes = await fetch(`${baseUrl}/api/questions`);
+    assert.equal(errRes.status, 500);
+    const errJson = await errRes.json();
+    assert.ok(typeof errJson.error === 'string');
+    assert.equal(JSON.stringify(errJson).includes('ERR_INVALID_STATE'), false);
   });
 });

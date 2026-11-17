@@ -8,7 +8,10 @@ import type {
 } from '../types/questionBank';
 
 export interface QuestionBankService {
-  listQuestions(filters?: QuestionFilterParams): Promise<QuestionBankListResponse>;
+  listQuestions(
+    filters?: QuestionFilterParams,
+    options?: { signal?: AbortSignal }
+  ): Promise<QuestionBankListResponse>;
   getQuestionById(id: string): Promise<QuestionRecord>;
   createQuestion(payload: QuestionPayload): Promise<QuestionRecord>;
   updateQuestion(id: string, payload: QuestionPayload): Promise<QuestionRecord>;
@@ -44,7 +47,10 @@ async function parseJsonOrThrow<T>(response: Response): Promise<T> {
 }
 
 export const httpQuestionBankService: QuestionBankService = {
-  async listQuestions(filters: QuestionFilterParams = {}): Promise<QuestionBankListResponse> {
+  async listQuestions(
+    filters: QuestionFilterParams = {},
+    options?: { signal?: AbortSignal }
+  ): Promise<QuestionBankListResponse> {
     const params = new URLSearchParams();
     if (filters.search?.trim()) params.set('search', filters.search.trim());
     if (filters.type && filters.type !== 'all') params.set('type', filters.type);
@@ -57,7 +63,7 @@ export const httpQuestionBankService: QuestionBankService = {
 
     const queryString = params.toString();
     const url = queryString ? `/api/questions?${queryString}` : '/api/questions';
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: options?.signal });
     return parseJsonOrThrow<QuestionBankListResponse>(response);
   },
 

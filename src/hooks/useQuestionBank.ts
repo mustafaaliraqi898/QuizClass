@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   httpQuestionBankService,
   type QuestionBankService,
@@ -33,6 +33,7 @@ export function useQuestionBank(service: QuestionBankService = httpQuestionBankS
     type: 'all',
     subject: 'all',
     grade: 'all',
+    topic: 'all',
     difficulty: 'all',
   });
 
@@ -44,23 +45,64 @@ export function useQuestionBank(service: QuestionBankService = httpQuestionBankS
     message: string;
   } | null>(null);
 
+  const activeAbortRef = useRef<AbortController | null>(null);
+  const requestSeqRef = useRef<number>(0);
+
   const fetchQuestions = useCallback(
     async (activeFilters: QuestionFilterParams) => {
+      activeAbortRef.current?.abort();
+      const controller = new AbortController();
+      activeAbortRef.current = controller;
+      const reqId = ++requestSeqRef.current;
+
       setIsLoading(true);
       setLoadError(null);
       try {
-        const result = await service.listQuestions(activeFilters);
+        const result = await service.listQuestions(activeFilters, {
+          signal: controller.signal,
+        });
+        if (reqId !== requestSeqRef.current) return;
+
         setQuestions(result.questions);
         setFacets(result.facets);
         setStats(result.stats);
+
+        // Reset stale classification filters if the last matching item was deleted/updated
+        const nextSubjectInvalid =
+          activeFilters.subject &&
+          activeFilters.subject !== 'all' &&
+          !result.facets.subjects.includes(activeFilters.subject);
+        const nextGradeInvalid =
+          activeFilters.grade &&
+          activeFilters.grade !== 'all' &&
+          !result.facets.grades.includes(activeFilters.grade);
+        const nextTopicInvalid =
+          activeFilters.topic &&
+          activeFilters.topic !== 'all' &&
+          !result.facets.topics.includes(activeFilters.topic);
+
+        if (nextSubjectInvalid || nextGradeInvalid || nextTopicInvalid) {
+          setFilters((prev) => ({
+            ...prev,
+            subject: nextSubjectInvalid ? 'all' : prev.subject,
+            grade: nextGradeInvalid ? 'all' : prev.grade,
+            topic: nextTopicInvalid ? 'all' : prev.topic,
+          }));
+        }
       } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return;
+        }
+        if (reqId !== requestSeqRef.current) return;
         const message =
           error instanceof Error
             ? error.message
             : 'تعذر تحميل الأسئلة من قاعدة البيانات المحلية.';
         setLoadError(message);
       } finally {
-        setIsLoading(false);
+        if (reqId === requestSeqRef.current) {
+          setIsLoading(false);
+        }
       }
     },
     [service]
@@ -68,6 +110,9 @@ export function useQuestionBank(service: QuestionBankService = httpQuestionBankS
 
   useEffect(() => {
     void fetchQuestions(filters);
+    return () => {
+      activeAbortRef.current?.abort();
+    };
   }, [fetchQuestions, filters]);
 
   const refresh = useCallback(async () => {
@@ -86,11 +131,6 @@ export function useQuestionBank(service: QuestionBankService = httpQuestionBankS
           message: 'تم حفظ السؤال في بنك الأسئلة بنجاح.',
         });
         return created;
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : 'تعذر حفظ السؤال في قاعدة البيانات.';
-        setFeedback({ type: 'error', message });
-        throw error;
       } finally {
         setIsMutating(false);
       }
@@ -110,11 +150,6 @@ export function useQuestionBank(service: QuestionBankService = httpQuestionBankS
           message: 'تم تحديث السؤال بنجاح.',
         });
         return updated;
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : 'تعذر تحديث السؤال في قاعدة البيانات.';
-        setFeedback({ type: 'error', message });
-        throw error;
       } finally {
         setIsMutating(false);
       }
@@ -133,11 +168,6 @@ export function useQuestionBank(service: QuestionBankService = httpQuestionBankS
           type: 'success',
           message: 'تم حذف السؤال من بنك الأسئلة.',
         });
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : 'تعذر حذف السؤال من قاعدة البيانات.';
-        setFeedback({ type: 'error', message });
-        throw error;
       } finally {
         setIsMutating(false);
       }
@@ -151,6 +181,7 @@ export function useQuestionBank(service: QuestionBankService = httpQuestionBankS
       type: 'all',
       subject: 'all',
       grade: 'all',
+      topic: 'all',
       difficulty: 'all',
     });
   }, []);

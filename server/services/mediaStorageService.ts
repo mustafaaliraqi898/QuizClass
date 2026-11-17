@@ -163,6 +163,18 @@ export function resolveSafeQuestionMediaFile(
   return resolved;
 }
 
+export function assertMediaFileExists(
+  relativePath: string | null,
+  storagePaths: StoragePaths
+): void {
+  if (!relativePath) return;
+  const filename = path.posix.basename(relativePath);
+  const resolved = resolveSafeQuestionMediaFile(filename, storagePaths);
+  if (!resolved) {
+    throw new MediaValidationError('ملف الصورة المرفق غير موجود في مجلد البيانات المحلي.');
+  }
+}
+
 export function countMediaReferences(db: DatabaseSync, relativePath: string): number {
   const row = db
     .prepare(

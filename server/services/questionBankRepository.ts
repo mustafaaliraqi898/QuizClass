@@ -13,6 +13,7 @@ import type {
   QuestionType,
 } from '../../src/types/questionBank.ts';
 import {
+  assertMediaFileExists,
   deleteMediaFilesIfUnreferenced,
   mediaRelativePathToUrl,
   normalizeMediaRelativePath,
@@ -60,13 +61,34 @@ export class QuestionNotFoundError extends Error {
   }
 }
 
-function cleanOptionalText(value: string | null | undefined): string | null {
+const MAX_PROMPT_LENGTH = 2000;
+const MAX_OPTION_TEXT_LENGTH = 500;
+const MAX_CLASSIFICATION_LENGTH = 120;
+
+function cleanOptionalText(
+  value: string | null | undefined,
+  fieldLabel?: string,
+  maxLength = MAX_CLASSIFICATION_LENGTH
+): string | null {
   if (typeof value !== 'string') return null;
   const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
+  if (trimmed.length === 0) return null;
+  if (fieldLabel && trimmed.length > maxLength) {
+    throw new QuestionValidationError(
+      `الحقل (${fieldLabel}) يتجاوز الحد الأقصى المسموح به (${maxLength} حرفاً).`
+    );
+  }
+  return trimmed;
 }
 
-function validateAndNormalizePayload(payload: QuestionPayload): {
+function escapeSqlLikePattern(value: string): string {
+  return value.replace(/[\\%_]/g, (ch) => `\\${ch}`);
+}
+
+function validateAndNormalizePayload(
+  payload: QuestionPayload,
+  storagePaths: StoragePaths
+): {
   type: QuestionType;
   prompt: string;
   imagePath: string | null;
@@ -93,11 +115,18 @@ function validateAndNormalizePayload(payload: QuestionPayload): {
   if (prompt.length === 0) {
     throw new QuestionValidationError('يرجى إدخال نص السؤال قبل الحفظ.');
   }
+  if (prompt.length > MAX_PROMPT_LENGTH) {
+    throw new QuestionValidationError(
+      `نص السؤال يتجاوز الحد الأقصى المسموح به (${MAX_PROMPT_LENGTH} حرفاً).`
+    );
+  }
 
   const imagePath = normalizeMediaRelativePath(payload.imagePath);
-  const subject = cleanOptionalText(payload.subject);
-  const grade = cleanOptionalText(payload.grade);
-  const topic = cleanOptionalText(payload.topic);
+  assertMediaFileExists(imagePath, storagePaths);
+
+  const subject = cleanOptionalText(payload.subject, 'المادة الدراسية');
+  const grade = cleanOptionalText(payload.grade, 'الصف الدراسي');
+  const topic = cleanOptionalText(payload.topic, 'الموضوع');
 
   let difficulty: QuestionDifficulty | null = null;
   if (payload.difficulty !== undefined && payload.difficulty !== null && payload.difficulty !== ('' as unknown)) {
@@ -139,8 +168,13 @@ function validateAndNormalizePayload(payload: QuestionPayload): {
   }
 
   const normalizedOptions = payload.options.map((opt, index) => {
-    const optionText = cleanOptionalText(opt?.optionText);
+    const optionText = cleanOptionalText(
+      opt?.optionText,
+      `الاختيار رقم ${index + 1}`,
+      MAX_OPTION_TEXT_LENGTH
+    );
     const optImagePath = normalizeMediaRelativePath(opt?.imagePath);
+    assertMediaFileExists(optImagePath, storagePaths);
     if (!optionText && !optImagePath) {
       throw new QuestionValidationError(
         `الاختيار رقم ${index + 1} فارغ؛ يرجى إدخال نص أو إرفاق صورة للاختيار.`
@@ -273,16 +307,16 @@ export class SqliteQuestionBankRepository {
 
     const search = cleanOptionalText(filters.search);
     if (search) {
-      const pattern = `%${search}%`;
+      const pattern = `%${escapeSqlLikePattern(search)}%`;
       whereClauses.push(
         `(
-          prompt LIKE ?
-          OR COALESCE(subject, '') LIKE ?
-          OR COALESCE(grade, '') LIKE ?
-          OR COALESCE(topic, '') LIKE ?
+          prompt LIKE ? ESCAPE '\\'
+          OR COALESCE(subject, '') LIKE ? ESCAPE '\\'
+          OR COALESCE(grade, '') LIKE ? ESCAPE '\\'
+          OR COALESCE(topic, '') LIKE ? ESCAPE '\\'
           OR EXISTS (
             SELECT 1 FROM question_options qo
-            WHERE qo.question_id = questions.id AND COALESCE(qo.option_text, '') LIKE ?
+            WHERE qo.question_id = questions.id AND COALESCE(qo.option_text, '') LIKE ? ESCAPE '\\'
           )
         )`
       );
@@ -296,19 +330,19 @@ export class SqliteQuestionBankRepository {
 
     const subject = cleanOptionalText(filters.subject);
     if (subject && subject !== 'all') {
-      whereClauses.push('subject = ?');
+      whereClauses.push('TRIM(subject) = ?');
       params.push(subject);
     }
 
     const grade = cleanOptionalText(filters.grade);
     if (grade && grade !== 'all') {
-      whereClauses.push('grade = ?');
+      whereClauses.push('TRIM(grade) = ?');
       params.push(grade);
     }
 
     const topic = cleanOptionalText(filters.topic);
     if (topic && topic !== 'all') {
-      whereClauses.push('topic = ?');
+      whereClauses.push('TRIM(topic) = ?');
       params.push(topic);
     }
 
@@ -367,7 +401,7 @@ export class SqliteQuestionBankRepository {
   }
 
   createQuestion(payload: QuestionPayload): QuestionRecord {
-    const normalized = validateAndNormalizePayload(payload);
+    const normalized = validateAndNormalizePayload(payload, this.storagePaths);
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
 
@@ -432,7 +466,7 @@ export class SqliteQuestionBankRepository {
 
   updateQuestion(id: string, payload: QuestionPayload): QuestionRecord {
     const existing = this.getQuestionById(id);
-    const normalized = validateAndNormalizePayload(payload);
+    const normalized = validateAndNormalizePayload(payload, this.storagePaths);
     const now = new Date().toISOString();
 
     const oldMediaPaths = [
