@@ -26,6 +26,25 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Prepare optional Windows code-signing certificate
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE_BASE64: ${{ secrets.WINDOWS_CERTIFICATE_BASE64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          if (-not [string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE_BASE64)) {
+            $certificatePath = Join-Path $env:RUNNER_TEMP 'quizclass-code-signing.p12'
+            [System.IO.File]::WriteAllBytes(
+              $certificatePath,
+              [System.Convert]::FromBase64String($env:WINDOWS_CERTIFICATE_BASE64)
+            )
+            "CSC_LINK=$certificatePath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            "CSC_KEY_PASSWORD=$env:WINDOWS_CERTIFICATE_PASSWORD" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            Write-Host 'Code-signing certificate configured.'
+          } else {
+            Write-Host 'No signing certificate configured; producing an unsigned test build.'
+          }
+
       - name: Build Windows installer
         run: npm run electron:build
 
