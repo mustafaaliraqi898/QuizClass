@@ -1,23 +1,33 @@
-const { app, BrowserWindow, dialog, Menu } = require('electron');
+const { app, dialog, Menu, Tray, shell } = require('electron');
 const path = require('node:path');
 
 const PORT = Number(process.env.PORT || 3000);
 const LOCAL_URL = `http://127.0.0.1:${PORT}`;
-let mainWindow;
 let serverStarted = false;
+let tray = null;
+let isQuitting = false;
+
+// Prevent multiple local servers if the user clicks the desktop shortcut twice.
+const hasSingleInstanceLock = app.requestSingleInstanceLock();
+if (!hasSingleInstanceLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    void openBrowser();
+  });
+}
 
 function startLocalServer() {
   if (serverStarted) return;
-  // Keep all user data outside the installation directory so updates/uninstalls
-  // do not overwrite the SQLite database or uploaded media.
+
+  // Keep user data outside the installation directory so updates do not
+  // overwrite the SQLite database or uploaded media.
   process.env.NODE_ENV = 'production';
   process.env.PORT = String(PORT);
   process.env.QUIZCLASS_DATA_DIR = path.join(app.getPath('userData'), 'app-data');
   process.env.QUIZCLASS_APP_ROOT = app.getAppPath();
 
-  // The bundled server starts Express + Socket.IO on 0.0.0.0.
-  // Requiring it keeps it inside Electron's bundled Node runtime; no Node.js
-  // installation is required on the user's computer.
+  // Electron includes its own Node runtime; no separate Node.js install needed.
   require(path.join(app.getAppPath(), 'electron', 'server.cjs'));
   serverStarted = true;
 }
@@ -32,59 +42,77 @@ async function waitForServer(timeoutMs = 30000) {
       await new Promise((resolve) => setTimeout(resolve, 300));
     }
   }
-  throw new Error('تعذر تشغيل خادم QuizClass المحلي. تحقق من عدم استخدام المنفذ 3000 من برنامج آخر ثم أعد المحاولة.');
+
+  throw new Error(
+    'تعذر تشغيل خادم QuizClass المحلي. تحقق من عدم استخدام المنفذ 3000 من برنامج آخر ثم أعد المحاولة.'
+  );
 }
 
-async function createWindow() {
-  startLocalServer();
-  await waitForServer();
+async function openBrowser() {
+  try {
+    await waitForServer();
+    await shell.openExternal(LOCAL_URL);
+  } catch (error) {
+    dialog.showErrorBox(
+      'تعذر تشغيل QuizClass',
+      error.message || 'حدث خطأ غير متوقع أثناء تشغيل البرنامج.'
+    );
+  }
+}
 
-  mainWindow = new BrowserWindow({
-    width: 1440,
-    height: 920,
-    minWidth: 1024,
-    minHeight: 700,
-    show: false,
-    title: 'QuizClass',
-    backgroundColor: '#0f172a',
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      sandbox: true
-    }
-  });
-
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    // Keep the teacher interface inside the desktop app. Student devices
-    // connect independently through the LAN address and browser.
-    if (!url.startsWith(LOCAL_URL)) return { action: 'deny' };
-    return { action: 'allow' };
-  });
-
-  await mainWindow.loadURL(LOCAL_URL);
-  mainWindow.once('ready-to-show', () => mainWindow && mainWindow.show());
-  mainWindow.on('closed', () => { mainWindow = null; });
+async function createTray() {
+  try {
+    const icon = await app.getFileIcon(process.execPath, { size: 'small' });
+    tray = new Tray(icon);
+    tray.setToolTip('QuizClass يعمل في الخلفية');
+    tray.setContextMenu(Menu.buildFromTemplate([
+      {
+        label: 'فتح QuizClass',
+        click: () => { void openBrowser(); }
+      },
+      { type: 'separator' },
+      {
+        label: 'إغلاق QuizClass',
+        click: () => {
+          isQuitting = true;
+          app.quit();
+        }
+      }
+    ]));
+    tray.on('double-click', () => { void openBrowser(); });
+  } catch (error) {
+    // The browser app remains usable even if Windows cannot create a tray icon.
+    console.warn('QuizClass tray icon could not be created:', error);
+  }
 }
 
 app.whenReady().then(async () => {
-  Menu.setApplicationMenu(null);
   try {
-    await createWindow();
+    app.setAppUserModelId('com.quizclass.desktop');
+    startLocalServer();
+    await waitForServer();
+    await createTray();
+    await shell.openExternal(LOCAL_URL);
   } catch (error) {
-    console.error('QuizClass startup failed:', error);
-    dialog.showErrorBox('تعذر تشغيل QuizClass', error.message || 'حدث خطأ غير متوقع أثناء تشغيل التطبيق.');
+    dialog.showErrorBox(
+      'تعذر تشغيل QuizClass',
+      error.message || 'حدث خطأ غير متوقع أثناء تشغيل البرنامج.'
+    );
+    isQuitting = true;
     app.quit();
   }
+});
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow().catch((error) => {
-        dialog.showErrorBox('تعذر تشغيل QuizClass', error.message || 'حدث خطأ غير متوقع.');
-      });
-    }
-  });
+app.on('before-quit', () => {
+  isQuitting = true;
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+  // There are no application windows: the local server stays available
+  // until the user chooses "إغلاق QuizClass" from the system tray.
+});
+
+app.on('will-quit', () => {
+  tray?.destroy();
+  tray = null;
 });
