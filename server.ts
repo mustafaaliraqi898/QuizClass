@@ -1,11 +1,17 @@
 import 'dotenv/config';
 import express from 'express';
 import fs from 'node:fs';
+import http from 'node:http';
 import path from 'node:path';
-import { createServer as createViteServer } from 'vite';
+import { createServer as createViteServer, type ViteDevServer } from 'vite';
 import { createServerApp } from './server/app.ts';
 import { resolveStoragePaths } from './server/config/storagePaths.ts';
 import { initializeDatabase } from './server/db/database.ts';
+import {
+  attachLiveSessionSocket,
+  type LiveSessionBroadcastHub,
+  NOOP_LIVE_SESSION_HUB,
+} from './server/services/liveSessionSocket.ts';
 
 const PORT = Number(process.env.PORT ?? 3000);
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
@@ -14,7 +20,20 @@ async function startServer() {
   const storagePaths = resolveStoragePaths();
   const db = initializeDatabase(storagePaths.dbFilePath);
 
-  const app = createServerApp(db, storagePaths);
+  let liveSocketHub: LiveSessionBroadcastHub = NOOP_LIVE_SESSION_HUB;
+  const hubProxy: LiveSessionBroadcastHub = {
+    broadcastTeacherSessionUpdate: (sessionId, requestOrigin) =>
+      liveSocketHub.broadcastTeacherSessionUpdate(sessionId, requestOrigin),
+    broadcastStudentSessionStatus: (sessionId) =>
+      liveSocketHub.broadcastStudentSessionStatus(sessionId),
+    close: () => liveSocketHub.close(),
+  };
+
+  const app = createServerApp(db, storagePaths, hubProxy);
+  const httpServer = http.createServer(app);
+  liveSocketHub = attachLiveSessionSocket(httpServer, db, storagePaths);
+
+  let vite: ViteDevServer | undefined;
 
   if (IS_PRODUCTION) {
     const distDir = path.resolve(process.cwd(), 'dist');
@@ -28,19 +47,28 @@ async function startServer() {
       }
     });
   } else {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
+    vite = await createViteServer({
+      server: {
+        middlewareMode: true,
+        ws: { server: httpServer },
+      },
       appType: 'spa',
     });
     app.use(vite.middlewares);
   }
 
-  const server = app.listen(PORT, '0.0.0.0', () => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`QuizClass server running on http://0.0.0.0:${PORT}`);
   });
 
   const shutdown = () => {
-    server.close(() => {
+    void liveSocketHub.close().catch(() => {
+      // Ignore Socket.IO close errors on shutdown
+    });
+    void vite?.close().catch(() => {
+      // Ignore Vite close errors on shutdown
+    });
+    httpServer.close(() => {
       try {
         db.close();
       } catch {

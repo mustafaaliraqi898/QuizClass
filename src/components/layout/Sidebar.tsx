@@ -3,6 +3,7 @@ import {
   BookOpen,
   LayoutDashboard,
   PlusCircle,
+  Radio,
   Settings,
   Trophy,
   X,
@@ -26,6 +27,7 @@ const SECTION_ICONS: Record<NavSectionId, ComponentType<{ className?: string }>>
   'question-bank': BookOpen,
   'create-quiz': PlusCircle,
   quizzes: Trophy,
+  'live-session': Radio,
   reports: BarChart3,
   settings: Settings,
 };

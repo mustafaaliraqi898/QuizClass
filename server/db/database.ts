@@ -86,6 +86,113 @@ export function initializeDatabase(dbFilePath: string): DatabaseSync {
     CREATE INDEX IF NOT EXISTS idx_quiz_questions_quiz_id ON quiz_questions(quiz_id, question_order);
     CREATE INDEX IF NOT EXISTS idx_quiz_questions_source_id ON quiz_questions(source_question_id);
     CREATE INDEX IF NOT EXISTS idx_quiz_question_options_qq_id ON quiz_question_options(quiz_question_id, option_order);
+
+    CREATE TABLE IF NOT EXISTS live_sessions (
+      id TEXT PRIMARY KEY,
+      quiz_id TEXT NOT NULL,
+      quiz_title TEXT NOT NULL,
+      quiz_subject TEXT,
+      quiz_grade TEXT,
+      pin_code TEXT NOT NULL,
+      host_token TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'waiting' CHECK (status IN ('waiting', 'running', 'completed', 'cancelled')),
+      current_question_index INTEGER NOT NULL DEFAULT -1,
+      question_started_at TEXT,
+      created_at TEXT NOT NULL,
+      started_at TEXT,
+      ended_at TEXT,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_live_sessions_active_pin
+      ON live_sessions(pin_code)
+      WHERE status IN ('waiting', 'running');
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_live_sessions_active_quiz
+      ON live_sessions(quiz_id)
+      WHERE status IN ('waiting', 'running');
+
+    CREATE INDEX IF NOT EXISTS idx_live_sessions_created_at ON live_sessions(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_live_sessions_status ON live_sessions(status);
+
+    CREATE TABLE IF NOT EXISTS live_session_questions (
+      id TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL,
+      source_quiz_question_id TEXT,
+      source_question_id TEXT,
+      question_order INTEGER NOT NULL,
+      type TEXT NOT NULL CHECK (type IN ('multiple_choice', 'true_false')),
+      prompt TEXT NOT NULL,
+      image_path TEXT,
+      correct_boolean INTEGER CHECK (correct_boolean IS NULL OR correct_boolean IN (0, 1)),
+      subject TEXT,
+      grade TEXT,
+      topic TEXT,
+      difficulty TEXT CHECK (difficulty IS NULL OR difficulty IN ('easy', 'medium', 'hard')),
+      time_limit_seconds INTEGER NOT NULL CHECK (time_limit_seconds BETWEEN 5 AND 600),
+      points INTEGER NOT NULL DEFAULT 1000,
+      FOREIGN KEY (session_id) REFERENCES live_sessions(id) ON DELETE CASCADE,
+      UNIQUE (session_id, question_order)
+    );
+
+    CREATE TABLE IF NOT EXISTS live_session_question_options (
+      id TEXT PRIMARY KEY,
+      session_question_id TEXT NOT NULL,
+      option_order INTEGER NOT NULL,
+      option_text TEXT,
+      image_path TEXT,
+      is_correct INTEGER NOT NULL DEFAULT 0 CHECK (is_correct IN (0, 1)),
+      FOREIGN KEY (session_question_id) REFERENCES live_session_questions(id) ON DELETE CASCADE,
+      UNIQUE (session_question_id, option_order)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_live_session_questions_session_id
+      ON live_session_questions(session_id, question_order);
+    CREATE INDEX IF NOT EXISTS idx_live_session_question_options_sq_id
+      ON live_session_question_options(session_question_id, option_order);
+
+    CREATE TABLE IF NOT EXISTS live_session_participants (
+      id TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL,
+      display_name TEXT NOT NULL,
+      normalized_name TEXT NOT NULL,
+      reconnect_token TEXT NOT NULL,
+      connection_status TEXT NOT NULL DEFAULT 'connected' CHECK (connection_status IN ('connected', 'disconnected')),
+      total_score INTEGER NOT NULL DEFAULT 0,
+      correct_count INTEGER NOT NULL DEFAULT 0,
+      rank_position INTEGER,
+      joined_at TEXT NOT NULL,
+      last_seen_at TEXT NOT NULL,
+      disconnected_at TEXT,
+      FOREIGN KEY (session_id) REFERENCES live_sessions(id) ON DELETE CASCADE,
+      UNIQUE (session_id, normalized_name)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_live_session_participants_session_id
+      ON live_session_participants(session_id, joined_at ASC);
+
+    CREATE TABLE IF NOT EXISTS live_session_answers (
+      id TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL,
+      session_question_id TEXT NOT NULL,
+      participant_id TEXT NOT NULL,
+      selected_option_id TEXT,
+      selected_boolean INTEGER CHECK (selected_boolean IS NULL OR selected_boolean IN (0, 1)),
+      is_correct INTEGER NOT NULL DEFAULT 0 CHECK (is_correct IN (0, 1)),
+      response_time_ms INTEGER,
+      points_awarded INTEGER NOT NULL DEFAULT 0,
+      answered_at TEXT NOT NULL,
+      FOREIGN KEY (session_id) REFERENCES live_sessions(id) ON DELETE CASCADE,
+      FOREIGN KEY (session_question_id) REFERENCES live_session_questions(id) ON DELETE CASCADE,
+      FOREIGN KEY (participant_id) REFERENCES live_session_participants(id) ON DELETE CASCADE,
+      UNIQUE (session_question_id, participant_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_live_session_answers_session_id
+      ON live_session_answers(session_id);
+    CREATE INDEX IF NOT EXISTS idx_live_session_answers_participant_id
+      ON live_session_answers(participant_id);
   `);
 
   const quizColumns = db.prepare('PRAGMA table_info(quizzes)').all() as Array<{ name: string }>;

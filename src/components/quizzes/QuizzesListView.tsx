@@ -5,6 +5,8 @@ import {
   Clock,
   Edit3,
   Eye,
+  Loader2,
+  Play,
   Plus,
   RefreshCw,
   Search,
@@ -23,6 +25,8 @@ interface QuizzesListViewProps {
   onClearExternalNotice?: () => void;
   onCreateQuiz: () => void;
   onEditQuiz: (quizId: string) => void;
+  onLaunchLive?: (quizId: string) => void;
+  launchingQuizId?: string | null;
   onQuizzesChanged?: () => void;
 }
 
@@ -31,6 +35,8 @@ export function QuizzesListView({
   onClearExternalNotice,
   onCreateQuiz,
   onEditQuiz,
+  onLaunchLive,
+  launchingQuizId = null,
   onQuizzesChanged,
 }: QuizzesListViewProps) {
   const {
@@ -262,11 +268,18 @@ export function QuizzesListView({
       ) : (
         <div className="space-y-3">
           {filteredQuizzes.map((quiz) => {
+            const lifecycleLabel =
+              quiz.lifecycleStatus === 'started'
+                ? 'تم تشغيلها'
+                : quiz.lifecycleStatus === 'completed'
+                  ? 'مكتملة'
+                  : 'مسودة';
             const metaParts = [
               quiz.subject,
               quiz.grade,
               `${quiz.questionCount} سؤالاً`,
               `المدة الكلية: ${formatDurationArabic(quiz.totalDurationSeconds)}`,
+              `الحالة: ${lifecycleLabel}`,
               `أُنشئت ${formatQuizDate(quiz.createdAt)}`,
             ].filter((part): part is string => Boolean(part));
 
@@ -315,6 +328,22 @@ export function QuizzesListView({
                   </div>
 
                   <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    {onLaunchLive && (
+                      <button
+                        type="button"
+                        disabled={launchingQuizId === quiz.id || quiz.questionCount === 0}
+                        onClick={() => onLaunchLive(quiz.id)}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-emerald-600 px-3 text-xs font-bold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-emerald-500 dark:hover:bg-emerald-400"
+                      >
+                        {launchingQuizId === quiz.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Play className="h-3.5 w-3.5" />
+                        )}
+                        <span>تشغيل مباشر</span>
+                      </button>
+                    )}
+
                     <button
                       type="button"
                       onClick={() => void handleOpenPreview(quiz.id)}
@@ -363,6 +392,7 @@ export function QuizzesListView({
           setIsPreviewLoading(false);
         }}
         onEdit={(quizId) => onEditQuiz(quizId)}
+        onLaunchLive={onLaunchLive}
       />
 
       <QuizDeleteConfirmModal

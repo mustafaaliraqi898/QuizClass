@@ -260,11 +260,20 @@ export function countMediaReferences(db: DatabaseSync, relativePath: string): nu
         (SELECT COUNT(*) FROM questions WHERE image_path = ?) +
         (SELECT COUNT(*) FROM question_options WHERE image_path = ?) +
         (SELECT COUNT(*) FROM quiz_questions WHERE image_path = ?) +
-        (SELECT COUNT(*) FROM quiz_question_options WHERE image_path = ?)
+        (SELECT COUNT(*) FROM quiz_question_options WHERE image_path = ?) +
+        (SELECT COUNT(*) FROM live_session_questions WHERE image_path = ?) +
+        (SELECT COUNT(*) FROM live_session_question_options WHERE image_path = ?)
       ) AS total_refs
     `
     )
-    .get(relativePath, relativePath, relativePath, relativePath) as
+    .get(
+      relativePath,
+      relativePath,
+      relativePath,
+      relativePath,
+      relativePath,
+      relativePath
+    ) as
     | { total_refs: number }
     | undefined;
 

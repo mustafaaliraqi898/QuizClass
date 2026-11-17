@@ -4,6 +4,22 @@ import fs from 'fs';
 import path from 'path';
 import {defineConfig} from 'vite';
 
+function resolveAllowedPreviewHosts(): string[] {
+  const hosts = ['.run.app', '.googleusercontent.com'];
+  const appUrl = process.env.APP_URL;
+  if (appUrl) {
+    try {
+      const {hostname} = new URL(appUrl);
+      if (hostname && !hosts.includes(hostname)) {
+        hosts.unshift(hostname);
+      }
+    } catch {
+      // Ignore malformed APP_URL values
+    }
+  }
+  return hosts;
+}
+
 export default defineConfig(() => {
   return {
     plugins: [
@@ -34,6 +50,7 @@ export default defineConfig(() => {
       },
     },
     server: {
+      allowedHosts: resolveAllowedPreviewHosts(),
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modify—file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',

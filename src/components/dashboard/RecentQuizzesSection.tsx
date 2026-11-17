@@ -12,6 +12,7 @@ interface RecentQuizzesSectionProps {
   onRetry?: () => void;
   onNavigate: (section: NavSectionId) => void;
   onEditQuiz?: (quizId: string) => void;
+  onLaunchLive?: (quizId: string) => void;
 }
 
 export function RecentQuizzesSection({
@@ -21,6 +22,7 @@ export function RecentQuizzesSection({
   onRetry,
   onNavigate,
   onEditQuiz,
+  onLaunchLive,
 }: RecentQuizzesSectionProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedQuiz, setSelectedQuiz] = useState<QuizSummary | null>(null);
@@ -256,6 +258,7 @@ export function RecentQuizzesSection({
         onClose={() => setSelectedQuiz(null)}
         onNavigate={onNavigate}
         onEditQuiz={onEditQuiz}
+        onLaunchLive={onLaunchLive}
       />
     </section>
   );

@@ -33,6 +33,8 @@ export interface QuizQuestionSnapshot {
   options: QuizQuestionSnapshotOption[];
 }
 
+export type QuizLifecycleStatus = 'draft' | 'started' | 'completed';
+
 export interface QuizSummary {
   id: string;
   title: string;
@@ -40,6 +42,7 @@ export interface QuizSummary {
   grade: string | null;
   description: string | null;
   defaultTimeSeconds: number;
+  lifecycleStatus: QuizLifecycleStatus;
   questionCount: number;
   totalDurationSeconds: number;
   createdAt: string;

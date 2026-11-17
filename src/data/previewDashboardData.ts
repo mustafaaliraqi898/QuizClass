@@ -36,6 +36,11 @@ export const NAVIGATION_ITEMS: NavItem[] = [
     description: 'سجل المسابقات الجاهزة والمنتهية',
   },
   {
+    id: 'live-session',
+    label: 'البث المباشر',
+    description: 'تشغيل المسابقة واستقبال الطلاب عبر Wi-Fi',
+  },
+  {
     id: 'reports',
     label: 'النتائج والتقارير',
     description: 'تحليل درجات الطلاب وترتيبهم',
@@ -103,7 +108,7 @@ export const QUICK_SHORTCUTS: QuickShortcut[] = [
 ];
 
 export const MODULE_ROADMAP: Record<
-  Exclude<NavSectionId, 'dashboard' | 'settings'>,
+  Exclude<NavSectionId, 'dashboard' | 'settings' | 'live-session'>,
   ModuleRoadmapInfo
 > = {
   'question-bank': {

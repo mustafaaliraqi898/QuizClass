@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, Edit3, Loader2, X } from 'lucide-react';
+import { CheckCircle2, Clock, Edit3, Loader2, Play, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { httpQuizService } from '../../services/quizService';
 import type { NavSectionId } from '../../types/dashboard';
@@ -10,6 +10,7 @@ interface QuizPreviewDrawerProps {
   onClose: () => void;
   onNavigate: (section: NavSectionId) => void;
   onEditQuiz?: (quizId: string) => void;
+  onLaunchLive?: (quizId: string) => void;
 }
 
 export function QuizPreviewDrawer({
@@ -17,6 +18,7 @@ export function QuizPreviewDrawer({
   onClose,
   onNavigate,
   onEditQuiz,
+  onLaunchLive,
 }: QuizPreviewDrawerProps) {
   const [fullQuiz, setFullQuiz] = useState<QuizRecord | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -204,6 +206,21 @@ export function QuizPreviewDrawer({
         </div>
 
         <div className="flex items-center gap-3 border-t border-slate-200 px-6 py-4 dark:border-slate-800">
+          {onLaunchLive && (
+            <button
+              type="button"
+              disabled={quiz.questionCount === 0}
+              onClick={() => {
+                const targetId = quiz.id;
+                onClose();
+                onLaunchLive(targetId);
+              }}
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60 dark:bg-emerald-500 dark:hover:bg-emerald-400"
+            >
+              <Play className="h-3.5 w-3.5" />
+              <span>تشغيل مباشر</span>
+            </button>
+          )}
           {onEditQuiz ? (
             <button
               type="button"

@@ -1,8 +1,17 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
 import type { DatabaseSync } from 'node:sqlite';
 import type { StoragePaths } from './config/storagePaths.ts';
+import { createLiveSessionRouter } from './routes/liveSessionRoutes.ts';
 import { createQuestionBankRouter } from './routes/questionBankRoutes.ts';
 import { createQuizRouter } from './routes/quizRoutes.ts';
+import {
+  LiveSessionNotFoundError,
+  LiveSessionValidationError,
+} from './services/liveSessionRepository.ts';
+import {
+  type LiveSessionBroadcastHub,
+  NOOP_LIVE_SESSION_HUB,
+} from './services/liveSessionSocket.ts';
 import { MediaValidationError } from './services/mediaStorageService.ts';
 import {
   QuestionNotFoundError,
@@ -10,7 +19,11 @@ import {
 } from './services/questionBankRepository.ts';
 import { QuizNotFoundError, QuizValidationError } from './services/quizRepository.ts';
 
-export function createServerApp(db: DatabaseSync, storagePaths: StoragePaths) {
+export function createServerApp(
+  db: DatabaseSync,
+  storagePaths: StoragePaths,
+  liveSocketHub: LiveSessionBroadcastHub = NOOP_LIVE_SESSION_HUB
+) {
   const app = express();
 
   app.disable('x-powered-by');
@@ -22,6 +35,7 @@ export function createServerApp(db: DatabaseSync, storagePaths: StoragePaths) {
   app.use(express.json({ limit: '1mb' }));
   app.use('/api', createQuestionBankRouter(db, storagePaths));
   app.use('/api', createQuizRouter(db, storagePaths));
+  app.use('/api', createLiveSessionRouter(db, storagePaths, liveSocketHub));
 
   // Global error handler catching JSON parse errors and internal server errors without leaking stack traces
   app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
@@ -35,6 +49,8 @@ export function createServerApp(db: DatabaseSync, storagePaths: StoragePaths) {
       error instanceof QuestionNotFoundError ||
       error instanceof QuizValidationError ||
       error instanceof QuizNotFoundError ||
+      error instanceof LiveSessionValidationError ||
+      error instanceof LiveSessionNotFoundError ||
       error instanceof MediaValidationError
     ) {
       res.status(error.statusCode).json({ error: error.message });

@@ -5,6 +5,7 @@ export type NavSectionId =
   | 'question-bank'
   | 'create-quiz'
   | 'quizzes'
+  | 'live-session'
   | 'reports'
   | 'settings';
 
@@ -70,7 +71,7 @@ export interface DashboardSnapshot {
 }
 
 export interface ModuleRoadmapInfo {
-  id: Exclude<NavSectionId, 'dashboard' | 'settings'>;
+  id: Exclude<NavSectionId, 'dashboard' | 'settings' | 'live-session'>;
   title: string;
   subtitle: string;
   phaseNote: string;

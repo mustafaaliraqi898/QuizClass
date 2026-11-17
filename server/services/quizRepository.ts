@@ -37,6 +37,7 @@ interface QuizRow {
   grade: string | null;
   description: string | null;
   default_time_seconds: number;
+  lifecycle_status: 'draft' | 'started' | 'completed';
   created_at: string;
   updated_at: string;
   question_count?: number;
@@ -192,6 +193,7 @@ function mapQuizSummaryRow(row: QuizRow): QuizSummary {
     grade: row.grade,
     description: row.description,
     defaultTimeSeconds: row.default_time_seconds,
+    lifecycleStatus: row.lifecycle_status ?? 'draft',
     questionCount: row.question_count ?? 0,
     totalDurationSeconds: row.total_duration_seconds ?? 0,
     createdAt: row.created_at,
@@ -289,6 +291,7 @@ export class SqliteQuizRepository {
           q.grade,
           q.description,
           q.default_time_seconds,
+          q.lifecycle_status,
           q.created_at,
           q.updated_at,
           COUNT(qq.id) AS question_count,
@@ -318,6 +321,7 @@ export class SqliteQuizRepository {
           q.grade,
           q.description,
           q.default_time_seconds,
+          q.lifecycle_status,
           q.created_at,
           q.updated_at,
           COUNT(qq.id) AS question_count,
@@ -775,8 +779,24 @@ export class SqliteQuizRepository {
     return this.getQuizById(quizId);
   }
 
+  private assertNoActiveLiveSession(quizId: string, actionLabel: string): void {
+    const active = this.db
+      .prepare(
+        `SELECT id FROM live_sessions WHERE quiz_id = ? AND status IN ('waiting', 'running') LIMIT 1`
+      )
+      .get(quizId) as { id: string } | undefined;
+
+    if (active) {
+      throw new QuizValidationError(
+        `لا يمكن ${actionLabel} أثناء وجود جلسة مباشرة نشطة لها. أنهِ الجلسة الحالية أو ألغِها أولاً.`,
+        409
+      );
+    }
+  }
+
   updateQuiz(id: string, payload: QuizPayload): QuizRecord {
     const existing = this.getQuizById(id);
+    this.assertNoActiveLiveSession(id, 'تعديل المسابقة');
     const validated = this.validateHeaderFields(payload);
     const now = new Date().toISOString();
 
@@ -857,6 +877,7 @@ export class SqliteQuizRepository {
 
   deleteQuiz(id: string): void {
     const existing = this.getQuizById(id);
+    this.assertNoActiveLiveSession(id, 'حذف المسابقة');
     const candidatePaths: Array<string | null> = [];
     for (const q of existing.questions) {
       candidatePaths.push(q.imagePath);
