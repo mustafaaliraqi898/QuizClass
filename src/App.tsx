@@ -11,6 +11,8 @@ import { WelcomeBanner } from './components/dashboard/WelcomeBanner';
 import { Sidebar } from './components/layout/Sidebar';
 import { TopBar } from './components/layout/TopBar';
 import { QuestionBankView } from './components/question-bank/QuestionBankView';
+import { CreateQuizView } from './components/quizzes/CreateQuizView';
+import { QuizzesListView } from './components/quizzes/QuizzesListView';
 import { ModuleRoadmapView } from './components/sections/ModuleRoadmapView';
 import { SettingsPreviewView } from './components/sections/SettingsPreviewView';
 import {
@@ -22,28 +24,60 @@ import { useDashboardData } from './hooks/useDashboardData';
 import { useSidebarPreference } from './hooks/useSidebarPreference';
 import { useTheme } from './hooks/useTheme';
 import type { NavSectionId } from './types/dashboard';
+import type { QuizRecord } from './types/quiz';
 
 export default function App() {
   const { theme, setTheme, toggleTheme } = useTheme();
   const { sidebarCollapsed, toggleSidebarCollapse } = useSidebarPreference();
-  const { isPreviewData, teacher, metrics, recentQuizzes, refreshDashboard } =
-    useDashboardData();
+  const {
+    isPreviewData,
+    teacher,
+    metrics,
+    recentQuizzes,
+    quizzesError,
+    isLoading: isDashboardLoading,
+    refreshDashboard,
+  } = useDashboardData();
 
   const [activeSection, setActiveSection] = useState<NavSectionId>('dashboard');
   const [sectionContextNote, setSectionContextNote] = useState<string | undefined>(undefined);
   const [openCreateQuestionSignal, setOpenCreateQuestionSignal] = useState(0);
+  const [editingQuizId, setEditingQuizId] = useState<string | null>(null);
+  const [quizzesNotice, setQuizzesNotice] = useState<string | null>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const handleNavigate = useCallback(
     (section: NavSectionId, contextNote?: string, shortcutId?: string) => {
       setActiveSection(section);
       setSectionContextNote(contextNote);
+      if (section === 'create-quiz') {
+        setEditingQuizId(null);
+      }
       if (section === 'question-bank' && shortcutId === 'shortcut-add-question') {
         setOpenCreateQuestionSignal((prev) => prev + 1);
       }
       if (section === 'dashboard') {
         void refreshDashboard();
       }
+    },
+    [refreshDashboard]
+  );
+
+  const handleEditQuiz = useCallback((quizId: string) => {
+    setEditingQuizId(quizId);
+    setActiveSection('create-quiz');
+  }, []);
+
+  const handleQuizSaved = useCallback(
+    (savedQuiz: QuizRecord, wasEditing: boolean) => {
+      setEditingQuizId(null);
+      setQuizzesNotice(
+        wasEditing
+          ? `تم تحديث المسابقة «${savedQuiz.title}» وحفظ التعديلات في قاعدة البيانات المحلية.`
+          : `تم حفظ المسابقة «${savedQuiz.title}» (${savedQuiz.questionCount} سؤالاً) بنجاح.`
+      );
+      setActiveSection('quizzes');
+      void refreshDashboard();
     },
     [refreshDashboard]
   );
@@ -85,8 +119,11 @@ export default function App() {
                 <QuickShortcuts shortcuts={QUICK_SHORTCUTS} onNavigate={handleNavigate} />
                 <RecentQuizzesSection
                   quizzes={recentQuizzes}
-                  isPreviewData={isPreviewData}
+                  isLoading={isDashboardLoading}
+                  errorMessage={quizzesError}
+                  onRetry={() => void refreshDashboard()}
                   onNavigate={(section) => handleNavigate(section)}
+                  onEditQuiz={handleEditQuiz}
                 />
               </>
             )}
@@ -95,6 +132,28 @@ export default function App() {
               <QuestionBankView
                 openCreateSignal={openCreateQuestionSignal}
                 onQuestionsChanged={() => void refreshDashboard()}
+              />
+            )}
+
+            {activeSection === 'create-quiz' && (
+              <CreateQuizView
+                editingQuizId={editingQuizId}
+                onSaved={handleQuizSaved}
+                onCancel={() => {
+                  setEditingQuizId(null);
+                  setActiveSection('quizzes');
+                }}
+                onOpenQuestionBank={() => handleNavigate('question-bank')}
+              />
+            )}
+
+            {activeSection === 'quizzes' && (
+              <QuizzesListView
+                externalNotice={quizzesNotice}
+                onClearExternalNotice={() => setQuizzesNotice(null)}
+                onCreateQuiz={() => handleNavigate('create-quiz')}
+                onEditQuiz={handleEditQuiz}
+                onQuizzesChanged={() => void refreshDashboard()}
               />
             )}
 
@@ -109,15 +168,13 @@ export default function App() {
               />
             )}
 
-            {activeSection !== 'dashboard' &&
-              activeSection !== 'settings' &&
-              activeSection !== 'question-bank' && (
-                <ModuleRoadmapView
-                  moduleInfo={MODULE_ROADMAP[activeSection]}
-                  contextNote={sectionContextNote}
-                  onNavigate={(section) => handleNavigate(section)}
-                />
-              )}
+            {activeSection === 'reports' && (
+              <ModuleRoadmapView
+                moduleInfo={MODULE_ROADMAP.reports}
+                contextNote={sectionContextNote}
+                onNavigate={(section) => handleNavigate(section)}
+              />
+            )}
           </main>
         </div>
       </div>

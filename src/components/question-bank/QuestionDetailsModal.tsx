@@ -5,8 +5,8 @@ import type { QuestionDifficulty, QuestionRecord } from '../../types/questionBan
 interface QuestionDetailsModalProps {
   question: QuestionRecord | null;
   onClose: () => void;
-  onEdit: (question: QuestionRecord) => void;
-  onDelete: (question: QuestionRecord) => void;
+  onEdit?: (question: QuestionRecord) => void;
+  onDelete?: (question: QuestionRecord) => void;
 }
 
 const DIFFICULTY_LABELS: Record<QuestionDifficulty, string> = {
@@ -195,29 +195,33 @@ export function QuestionDetailsModal({
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-6 py-4 dark:border-slate-800">
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onEdit(question);
-              }}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white transition-colors hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400"
-            >
-              <Edit3 className="h-4 w-4" />
-              <span>تعديل السؤال</span>
-            </button>
+            {onEdit && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onEdit(question);
+                }}
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white transition-colors hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+              >
+                <Edit3 className="h-4 w-4" />
+                <span>تعديل السؤال</span>
+              </button>
+            )}
 
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onDelete(question);
-              }}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-4 text-xs font-bold text-red-700 transition-colors hover:bg-red-100 dark:border-red-900/60 dark:bg-red-950/50 dark:text-red-300 dark:hover:bg-red-950"
-            >
-              <Trash2 className="h-4 w-4" />
-              <span>حذف</span>
-            </button>
+            {onDelete && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onDelete(question);
+                }}
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-4 text-xs font-bold text-red-700 transition-colors hover:bg-red-100 dark:border-red-900/60 dark:bg-red-950/50 dark:text-red-300 dark:hover:bg-red-950"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>حذف</span>
+              </button>
+            )}
           </div>
 
           <button

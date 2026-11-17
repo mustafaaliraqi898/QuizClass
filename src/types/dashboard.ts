@@ -1,3 +1,5 @@
+import type { QuizSummary } from './quiz';
+
 export type NavSectionId =
   | 'dashboard'
   | 'question-bank'
@@ -63,7 +65,8 @@ export interface DashboardSnapshot {
   isPreviewData: boolean;
   teacher: TeacherProfile;
   metrics: DashboardMetric[];
-  recentQuizzes: RecentQuizItem[];
+  recentQuizzes: QuizSummary[];
+  quizzesError: string | null;
 }
 
 export interface ModuleRoadmapInfo {

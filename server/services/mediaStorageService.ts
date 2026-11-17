@@ -57,18 +57,33 @@ function detectImageSignature(buffer: Buffer): 'png' | 'jpeg' | 'webp' | null {
   return null;
 }
 
-export function normalizeMediaRelativePath(imagePath: string | null | undefined): string | null {
+export type MediaScope = 'questions' | 'quizzes';
+
+export function normalizeMediaRelativePath(
+  imagePath: string | null | undefined,
+  allowedScope: MediaScope | 'any' = 'questions'
+): string | null {
   if (!imagePath) return null;
   const trimmed = imagePath.trim();
   if (!trimmed) return null;
 
-  // Enforce strict relative path under "questions/<filename>"
-  if (!trimmed.startsWith('questions/')) {
+  const matchedPrefix =
+    trimmed.startsWith('questions/')
+      ? 'questions'
+      : trimmed.startsWith('quizzes/')
+        ? 'quizzes'
+        : null;
+
+  if (!matchedPrefix) {
+    throw new MediaValidationError('مسار الصورة غير صالح.');
+  }
+
+  if (allowedScope !== 'any' && matchedPrefix !== allowedScope) {
     throw new MediaValidationError('مسار الصورة غير صالح.');
   }
 
   const filename = path.posix.basename(trimmed);
-  if (`questions/${filename}` !== trimmed) {
+  if (`${matchedPrefix}/${filename}` !== trimmed) {
     throw new MediaValidationError('مسار الصورة غير صالح.');
   }
 
@@ -76,7 +91,7 @@ export function normalizeMediaRelativePath(imagePath: string | null | undefined)
     throw new MediaValidationError('اسم أو صيغة ملف الصورة غير صالحة.');
   }
 
-  return `questions/${filename}`;
+  return `${matchedPrefix}/${filename}`;
 }
 
 export function mediaRelativePathToUrl(imagePath: string | null): string | null {
@@ -138,7 +153,8 @@ export function saveUploadedQuestionImage(
   };
 }
 
-export function resolveSafeQuestionMediaFile(
+export function resolveSafeMediaFile(
+  scope: MediaScope,
   filename: string,
   storagePaths: StoragePaths
 ): string | null {
@@ -147,10 +163,10 @@ export function resolveSafeQuestionMediaFile(
     return null;
   }
 
-  const resolved = path.resolve(storagePaths.questionsMediaDir, safeBase);
-  const rootWithSep = storagePaths.questionsMediaDir.endsWith(path.sep)
-    ? storagePaths.questionsMediaDir
-    : `${storagePaths.questionsMediaDir}${path.sep}`;
+  const targetDir =
+    scope === 'quizzes' ? storagePaths.quizzesMediaDir : storagePaths.questionsMediaDir;
+  const resolved = path.resolve(targetDir, safeBase);
+  const rootWithSep = targetDir.endsWith(path.sep) ? targetDir : `${targetDir}${path.sep}`;
 
   if (!resolved.startsWith(rootWithSep)) {
     return null;
@@ -163,15 +179,76 @@ export function resolveSafeQuestionMediaFile(
   return resolved;
 }
 
+export function resolveSafeQuestionMediaFile(
+  filename: string,
+  storagePaths: StoragePaths
+): string | null {
+  return resolveSafeMediaFile('questions', filename, storagePaths);
+}
+
+export function resolveSafeQuizMediaFile(
+  filename: string,
+  storagePaths: StoragePaths
+): string | null {
+  return resolveSafeMediaFile('quizzes', filename, storagePaths);
+}
+
 export function assertMediaFileExists(
   relativePath: string | null,
-  storagePaths: StoragePaths
+  storagePaths: StoragePaths,
+  allowedScope: MediaScope | 'any' = 'questions'
 ): void {
   if (!relativePath) return;
-  const filename = path.posix.basename(relativePath);
-  const resolved = resolveSafeQuestionMediaFile(filename, storagePaths);
+  const normalized = normalizeMediaRelativePath(relativePath, allowedScope);
+  if (!normalized) return;
+  const scope: MediaScope = normalized.startsWith('quizzes/') ? 'quizzes' : 'questions';
+  const filename = path.posix.basename(normalized);
+  const resolved = resolveSafeMediaFile(scope, filename, storagePaths);
   if (!resolved) {
     throw new MediaValidationError('ملف الصورة المرفق غير موجود في مجلد البيانات المحلي.');
+  }
+}
+
+export function copyMediaToQuiz(
+  sourceRelativePath: string | null | undefined,
+  storagePaths: StoragePaths
+): string | null {
+  const normalized = normalizeMediaRelativePath(sourceRelativePath, 'any');
+  if (!normalized) return null;
+
+  const sourceScope: MediaScope = normalized.startsWith('quizzes/') ? 'quizzes' : 'questions';
+  const sourceFilename = path.posix.basename(normalized);
+  const sourceFullPath = resolveSafeMediaFile(sourceScope, sourceFilename, storagePaths);
+
+  if (!sourceFullPath) {
+    throw new MediaValidationError('ملف الصورة المرفق بالسؤال غير موجود لنسخه إلى المسابقة.');
+  }
+
+  const ext = path.extname(sourceFilename).toLowerCase() || '.png';
+  const destFilename = `${crypto.randomUUID()}${ext}`;
+  const destFullPath = path.join(storagePaths.quizzesMediaDir, destFilename);
+  fs.copyFileSync(sourceFullPath, destFullPath);
+
+  return `quizzes/${destFilename}`;
+}
+
+export function unlinkMediaFilesDirectly(
+  storagePaths: StoragePaths,
+  relativePaths: Array<string | null | undefined>
+): void {
+  for (const relPath of relativePaths) {
+    try {
+      const normalized = normalizeMediaRelativePath(relPath, 'any');
+      if (!normalized) continue;
+      const scope: MediaScope = normalized.startsWith('quizzes/') ? 'quizzes' : 'questions';
+      const filename = path.posix.basename(normalized);
+      const resolved = resolveSafeMediaFile(scope, filename, storagePaths);
+      if (resolved && fs.existsSync(resolved)) {
+        fs.unlinkSync(resolved);
+      }
+    } catch {
+      // Ignore cleanup errors during rollback
+    }
   }
 }
 
@@ -181,11 +258,15 @@ export function countMediaReferences(db: DatabaseSync, relativePath: string): nu
       `
       SELECT (
         (SELECT COUNT(*) FROM questions WHERE image_path = ?) +
-        (SELECT COUNT(*) FROM question_options WHERE image_path = ?)
+        (SELECT COUNT(*) FROM question_options WHERE image_path = ?) +
+        (SELECT COUNT(*) FROM quiz_questions WHERE image_path = ?) +
+        (SELECT COUNT(*) FROM quiz_question_options WHERE image_path = ?)
       ) AS total_refs
     `
     )
-    .get(relativePath, relativePath) as { total_refs: number } | undefined;
+    .get(relativePath, relativePath, relativePath, relativePath) as
+    | { total_refs: number }
+    | undefined;
 
   return row?.total_refs ?? 0;
 }
@@ -203,12 +284,15 @@ export function deleteMediaFilesIfUnreferenced(
 
   for (const relPath of uniquePaths) {
     try {
-      const normalized = normalizeMediaRelativePath(relPath);
+      const normalized = normalizeMediaRelativePath(relPath, 'any');
       if (!normalized) continue;
       const refs = countMediaReferences(db, normalized);
       if (refs === 0) {
+        const scope: MediaScope = normalized.startsWith('quizzes/') ? 'quizzes' : 'questions';
         const filename = path.posix.basename(normalized);
-        const fullPath = path.join(storagePaths.questionsMediaDir, filename);
+        const targetDir =
+          scope === 'quizzes' ? storagePaths.quizzesMediaDir : storagePaths.questionsMediaDir;
+        const fullPath = path.join(targetDir, filename);
         if (fs.existsSync(fullPath)) {
           fs.unlinkSync(fullPath);
         }

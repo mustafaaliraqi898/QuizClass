@@ -4,7 +4,6 @@ import type {
   NavItem,
   NavSectionId,
   QuickShortcut,
-  RecentQuizItem,
   TeacherProfile,
 } from '../types/dashboard';
 
@@ -48,17 +47,8 @@ export const NAVIGATION_ITEMS: NavItem[] = [
   },
 ];
 
-// بيانات عرض تجريبية للأقسام التي لم تُبنَ بعد (المسابقات والاختبارات والنتائج)
+// بيانات عرض تجريبية للأقسام التي لم تُبنَ بعد (الاختبارات الفردية والنتائج)
 export const PREVIEW_METRICS: DashboardMetric[] = [
-  {
-    id: 'total-competitions',
-    label: 'عدد المسابقات',
-    value: 18,
-    unitLabel: 'مسابقة',
-    detailText: 'معاينة تصميم · لم يُنفذ نظام المسابقات بعد',
-    accentTone: 'emerald',
-    dataSource: 'preview',
-  },
   {
     id: 'total-tests',
     label: 'عدد الاختبارات',
@@ -109,74 +99,6 @@ export const QUICK_SHORTCUTS: QuickShortcut[] = [
     subtitle: 'مراجعة أداء الطلاب وترتيب المتصدرين',
     targetSection: 'reports',
     accentTone: 'violet',
-  },
-];
-
-export const PREVIEW_RECENT_QUIZZES: RecentQuizItem[] = [
-  {
-    id: 'qz-101',
-    title: 'مراجعة قوانين نيوتن للحركة',
-    subject: 'الفيزياء',
-    grade: 'الصف العاشر',
-    mode: 'live',
-    questionCount: 15,
-    participantCount: 32,
-    averageScore: 86,
-    dateLabel: 'منذ يومين',
-    status: 'completed',
-    pinCode: '482910',
-  },
-  {
-    id: 'qz-102',
-    title: 'اختبار المعادلات الخطية والدوال',
-    subject: 'الرياضيات',
-    grade: 'الصف التاسع',
-    mode: 'individual',
-    questionCount: 20,
-    participantCount: 28,
-    averageScore: 79,
-    dateLabel: 'منذ 4 أيام',
-    status: 'completed',
-    pinCode: '731045',
-  },
-  {
-    id: 'qz-103',
-    title: 'التفاعلات الكيميائية والروابط',
-    subject: 'الكيمياء',
-    grade: 'الصف الحادي عشر',
-    mode: 'live',
-    questionCount: 12,
-    participantCount: 0,
-    averageScore: null,
-    dateLabel: 'جاهزة للتشغيل',
-    status: 'ready',
-    pinCode: '915204',
-  },
-  {
-    id: 'qz-104',
-    title: 'تحدي البلاغة والإعراب التطبيقي',
-    subject: 'اللغة العربية',
-    grade: 'الصف العاشر',
-    mode: 'live',
-    questionCount: 18,
-    participantCount: 35,
-    averageScore: 91,
-    dateLabel: 'الأسبوع الماضي',
-    status: 'completed',
-    pinCode: '604318',
-  },
-  {
-    id: 'qz-105',
-    title: 'الجهاز الدوري وتنفس الخلايا',
-    subject: 'الأحياء',
-    grade: 'الصف التاسع',
-    mode: 'individual',
-    questionCount: 10,
-    participantCount: 0,
-    averageScore: null,
-    dateLabel: 'قيد الإعداد',
-    status: 'draft',
-    pinCode: '—',
   },
 ];
 

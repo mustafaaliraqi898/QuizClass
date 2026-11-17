@@ -4,11 +4,7 @@ import {
   type DashboardRepository,
 } from '../services/dashboardRepository';
 import type { DashboardSnapshot } from '../types/dashboard';
-import {
-  PREVIEW_METRICS,
-  PREVIEW_RECENT_QUIZZES,
-  TEACHER_PROFILE,
-} from '../data/previewDashboardData';
+import { PREVIEW_METRICS, TEACHER_PROFILE } from '../data/previewDashboardData';
 
 const INITIAL_SNAPSHOT: DashboardSnapshot = {
   isPreviewData: true,
@@ -23,9 +19,19 @@ const INITIAL_SNAPSHOT: DashboardSnapshot = {
       accentTone: 'indigo',
       dataSource: 'database',
     },
+    {
+      id: 'total-competitions',
+      label: 'عدد المسابقات',
+      value: null,
+      unitLabel: '',
+      detailText: 'جارٍ التحميل من قاعدة البيانات...',
+      accentTone: 'emerald',
+      dataSource: 'database',
+    },
     ...PREVIEW_METRICS,
   ],
-  recentQuizzes: PREVIEW_RECENT_QUIZZES,
+  recentQuizzes: [],
+  quizzesError: null,
 };
 
 export function useDashboardData(

@@ -6,6 +6,7 @@ export interface StoragePaths {
   dbFilePath: string;
   mediaDir: string;
   questionsMediaDir: string;
+  quizzesMediaDir: string;
 }
 
 export function resolveStoragePaths(customDataDir?: string): StoragePaths {
@@ -16,15 +17,18 @@ export function resolveStoragePaths(customDataDir?: string): StoragePaths {
 
   const mediaDir = path.join(dataDir, 'media');
   const questionsMediaDir = path.join(mediaDir, 'questions');
+  const quizzesMediaDir = path.join(mediaDir, 'quizzes');
   const dbFilePath = path.join(dataDir, 'quizclass.sqlite');
 
   fs.mkdirSync(dataDir, { recursive: true });
   fs.mkdirSync(questionsMediaDir, { recursive: true });
+  fs.mkdirSync(quizzesMediaDir, { recursive: true });
 
   return {
     dataDir,
     dbFilePath,
     mediaDir,
     questionsMediaDir,
+    quizzesMediaDir,
   };
 }

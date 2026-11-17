@@ -30,7 +30,7 @@ export function StatsGrid({ metrics, isPreviewData = true }: StatsGridProps) {
         </h3>
         {isPreviewData && (
           <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            إجمالي الأسئلة من قاعدة البيانات المحلية · بقية البطاقات لمعاينة التصميم
+            إجمالي الأسئلة وعدد المسابقات من قاعدة البيانات المحلية · بقية البطاقات لمعاينة التصميم
           </span>
         )}
       </div>

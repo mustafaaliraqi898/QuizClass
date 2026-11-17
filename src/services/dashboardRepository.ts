@@ -1,25 +1,27 @@
 import type { DashboardMetric, DashboardSnapshot } from '../types/dashboard';
-import {
-  PREVIEW_METRICS,
-  PREVIEW_RECENT_QUIZZES,
-  TEACHER_PROFILE,
-} from '../data/previewDashboardData';
+import { PREVIEW_METRICS, TEACHER_PROFILE } from '../data/previewDashboardData';
 import { httpQuestionBankService } from './questionBankService';
+import { httpQuizService } from './quizService';
+import type { QuizSummary } from '../types/quiz';
 
 export interface DashboardRepository {
   getSnapshot(): Promise<DashboardSnapshot>;
 }
 
 /**
- * يدمج إجمالي الأسئلة الحقيقي من SQLite مع معاينات الأقسام التي لم تُنفذ بعد.
- * عند فشل قراءة قاعدة البيانات، يعرض حالة خطأ واضحة دون الرجوع إلى أي رقم وهمي.
+ * يدمج الإحصائيات وقائمة المسابقات الحقيقية من SQLite مع معاينات الأقسام التي لم تُنفذ بعد.
+ * عند فشل قراءة قاعدة البيانات، يعرض حالة خطأ واضحة دون الرجوع إلى أي بيانات وهمية.
  */
 export const hybridDashboardRepository: DashboardRepository = {
   async getSnapshot(): Promise<DashboardSnapshot> {
-    let questionMetric: DashboardMetric;
+    const [questionResult, quizzesResult] = await Promise.allSettled([
+      httpQuestionBankService.getStats(),
+      httpQuizService.listQuizzes(),
+    ]);
 
-    try {
-      const stats = await httpQuestionBankService.getStats();
+    let questionMetric: DashboardMetric;
+    if (questionResult.status === 'fulfilled') {
+      const stats = questionResult.value;
       questionMetric = {
         id: 'total-questions',
         label: 'إجمالي الأسئلة',
@@ -34,7 +36,7 @@ export const hybridDashboardRepository: DashboardRepository = {
         accentTone: 'indigo',
         dataSource: 'database',
       };
-    } catch {
+    } else {
       questionMetric = {
         id: 'total-questions',
         label: 'إجمالي الأسئلة',
@@ -47,11 +49,48 @@ export const hybridDashboardRepository: DashboardRepository = {
       };
     }
 
+    let competitionMetric: DashboardMetric;
+    let recentQuizzes: QuizSummary[] = [];
+    let quizzesError: string | null = null;
+
+    if (quizzesResult.status === 'fulfilled') {
+      const { quizzes, stats } = quizzesResult.value;
+      recentQuizzes = quizzes.slice(0, 6);
+      competitionMetric = {
+        id: 'total-competitions',
+        label: 'عدد المسابقات',
+        value: stats.totalQuizzes,
+        unitLabel: 'مسابقة',
+        detailText:
+          stats.totalQuizzes === 0
+            ? 'لا توجد مسابقات بعد · أنشئ أول مسابقة'
+            : `محفوظة محلياً · تضم ${stats.totalQuizQuestions} سؤالاً`,
+        accentTone: 'emerald',
+        dataSource: 'database',
+      };
+    } else {
+      quizzesError =
+        quizzesResult.reason instanceof Error
+          ? quizzesResult.reason.message
+          : 'تعذر تحميل المسابقات من قاعدة البيانات المحلية.';
+      competitionMetric = {
+        id: 'total-competitions',
+        label: 'عدد المسابقات',
+        value: null,
+        unitLabel: '',
+        detailText: 'تعذر قراءة العدد من قاعدة البيانات المحلية',
+        accentTone: 'emerald',
+        dataSource: 'database',
+        hasError: true,
+      };
+    }
+
     return {
       isPreviewData: true,
       teacher: TEACHER_PROFILE,
-      metrics: [questionMetric, ...PREVIEW_METRICS],
-      recentQuizzes: PREVIEW_RECENT_QUIZZES,
+      metrics: [questionMetric, competitionMetric, ...PREVIEW_METRICS],
+      recentQuizzes,
+      quizzesError,
     };
   },
 };
