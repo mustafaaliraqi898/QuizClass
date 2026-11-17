@@ -18,6 +18,27 @@ User data is stored under Electron's per-user application data directory
 (`QuizClass/app-data`), not in the installation folder. This keeps the SQLite
 database and uploaded media separate from application updates.
 
+## Windows code signing
+
+Unsigned test builds can be blocked by Windows Smart App Control or show publisher
+warnings. A successful build does not mean Windows has verified the publisher.
+
+For signed release builds, obtain a code-signing certificate from a trusted
+certificate authority. Store the certificate as a password-protected PKCS#12
+(`.p12` or `.pfx`) file, then add these repository Actions secrets:
+
+- `WINDOWS_CERTIFICATE_BASE64`: Base64 encoding of the complete certificate file.
+- `WINDOWS_CERTIFICATE_PASSWORD`: The certificate's export password.
+
+The workflow decodes the certificate only on the temporary GitHub Actions runner
+and passes it to electron-builder through its standard `CSC_LINK` and
+`CSC_KEY_PASSWORD` environment variables. Never commit the certificate, its
+password, or a decoded certificate file to the repository.
+
+A certificate allows Windows to verify the publisher and signature. Smart App
+Control/reputation decisions can still depend on Microsoft's trust and reputation
+systems; signing alone is not a promise that every warning disappears immediately.
+
 ## Important
 
 The installer build does not itself configure Windows Firewall or turn on the
