@@ -11,8 +11,11 @@ Python, Visual Studio, or development tools installed.
 3. Download the `QuizClass-Windows-Installer` artifact from the completed run.
 
 The installer packages the React/Vite interface and the local Express + Socket.IO
-server inside Electron. The server listens on the LAN interfaces on port 3000 so
-student phones can join through the laptop's Wi-Fi hotspot.
+server inside Electron. When QuizClass is launched from its desktop shortcut, it starts
+the local server in the background and opens the teacher interface in the default browser.
+A system-tray menu lets the teacher reopen QuizClass or exit the local server. The server
+listens on the LAN interfaces on port 3000 so student phones can join through the laptop's
+Wi-Fi hotspot.
 
 User data is stored under Electron's per-user application data directory
 (`QuizClass/app-data`), not in the installation folder. This keeps the SQLite
