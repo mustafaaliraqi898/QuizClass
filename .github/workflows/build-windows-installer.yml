@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - 'feature/electron-windows-installer'
+      - 'feature/browser-launcher'
     tags:
       - 'v*'
 
