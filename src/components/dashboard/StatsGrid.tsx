@@ -30,7 +30,7 @@ export function StatsGrid({ metrics, isPreviewData = true }: StatsGridProps) {
         </h3>
         {isPreviewData && (
           <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            أرقام معاينة تجريبية · غير محفوظة في قاعدة بيانات بعد
+            إجمالي الأسئلة من قاعدة البيانات المحلية · بقية البطاقات لمعاينة التصميم
           </span>
         )}
       </div>
@@ -49,12 +49,20 @@ export function StatsGrid({ metrics, isPreviewData = true }: StatsGridProps) {
                     {metric.label}
                   </p>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="font-display tabular-nums text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                      {metric.value}
+                    <span
+                      className={`font-display tabular-nums text-3xl font-extrabold tracking-tight ${
+                        metric.hasError
+                          ? 'text-red-600 dark:text-red-400'
+                          : 'text-slate-900 dark:text-white'
+                      }`}
+                    >
+                      {metric.value === null ? '—' : metric.value}
                     </span>
-                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                      {metric.unitLabel}
-                    </span>
+                    {metric.unitLabel && (
+                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                        {metric.unitLabel}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -68,7 +76,13 @@ export function StatsGrid({ metrics, isPreviewData = true }: StatsGridProps) {
                 </div>
               </div>
 
-              <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+              <p
+                className={`mt-3 text-xs ${
+                  metric.hasError
+                    ? 'font-bold text-red-600 dark:text-red-400'
+                    : 'text-slate-500 dark:text-slate-400'
+                }`}
+              >
                 {metric.detailText}
               </p>
             </div>

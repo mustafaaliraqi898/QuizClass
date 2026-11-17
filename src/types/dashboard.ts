@@ -21,10 +21,12 @@ export interface NavItem {
 export interface DashboardMetric {
   id: string;
   label: string;
-  value: number;
+  value: number | null;
   unitLabel: string;
   detailText: string;
   accentTone: 'indigo' | 'emerald' | 'sky' | 'amber';
+  dataSource: 'database' | 'preview';
+  hasError?: boolean;
 }
 
 export interface QuickShortcut {

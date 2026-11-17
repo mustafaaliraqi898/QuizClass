@@ -1,28 +1,56 @@
-import type { DashboardSnapshot } from '../types/dashboard';
+import type { DashboardMetric, DashboardSnapshot } from '../types/dashboard';
 import {
   PREVIEW_METRICS,
   PREVIEW_RECENT_QUIZZES,
   TEACHER_PROFILE,
 } from '../data/previewDashboardData';
+import { httpQuestionBankService } from './questionBankService';
 
-/**
- * واجهة مستودع بيانات لوحة التحكم.
- * تسمح باستبدال مصدر البيانات التجريبي لاحقاً بمصدر SQLite عبر Electron IPC أو الخادم المحلي
- * دون تعديل مكونات واجهة المستخدم.
- */
 export interface DashboardRepository {
   getSnapshot(): Promise<DashboardSnapshot>;
 }
 
 /**
- * مزود بيانات المعاينة للمرحلة الأولى (لا يمثل بيانات محفوظة فعلياً في قاعدة بيانات).
+ * يدمج إجمالي الأسئلة الحقيقي من SQLite مع معاينات الأقسام التي لم تُنفذ بعد.
+ * عند فشل قراءة قاعدة البيانات، يعرض حالة خطأ واضحة دون الرجوع إلى أي رقم وهمي.
  */
-export const previewDashboardRepository: DashboardRepository = {
+export const hybridDashboardRepository: DashboardRepository = {
   async getSnapshot(): Promise<DashboardSnapshot> {
+    let questionMetric: DashboardMetric;
+
+    try {
+      const stats = await httpQuestionBankService.getStats();
+      questionMetric = {
+        id: 'total-questions',
+        label: 'إجمالي الأسئلة',
+        value: stats.totalQuestions,
+        unitLabel: 'سؤالاً',
+        detailText:
+          stats.totalQuestions === 0
+            ? 'قاعدة البيانات فارغة · أضف أول سؤال'
+            : stats.subjectCount > 0
+              ? `محفوظة محلياً · موزعة على ${stats.subjectCount} مواد`
+              : 'محفوظة فعلياً في قاعدة البيانات المحلية',
+        accentTone: 'indigo',
+        dataSource: 'database',
+      };
+    } catch {
+      questionMetric = {
+        id: 'total-questions',
+        label: 'إجمالي الأسئلة',
+        value: null,
+        unitLabel: '',
+        detailText: 'تعذر قراءة العدد من قاعدة البيانات المحلية',
+        accentTone: 'indigo',
+        dataSource: 'database',
+        hasError: true,
+      };
+    }
+
     return {
       isPreviewData: true,
       teacher: TEACHER_PROFILE,
-      metrics: PREVIEW_METRICS,
+      metrics: [questionMetric, ...PREVIEW_METRICS],
       recentQuizzes: PREVIEW_RECENT_QUIZZES,
     };
   },

@@ -48,39 +48,34 @@ export const NAVIGATION_ITEMS: NavItem[] = [
   },
 ];
 
-// بيانات عرض تجريبية لمعاينة تصميم لوحة التحكم في المرحلة الأولى فقط
+// بيانات عرض تجريبية للأقسام التي لم تُبنَ بعد (المسابقات والاختبارات والنتائج)
 export const PREVIEW_METRICS: DashboardMetric[] = [
-  {
-    id: 'total-questions',
-    label: 'إجمالي الأسئلة',
-    value: 248,
-    unitLabel: 'سؤالاً',
-    detailText: 'موزعة على 4 مواد دراسية',
-    accentTone: 'indigo',
-  },
   {
     id: 'total-competitions',
     label: 'عدد المسابقات',
     value: 18,
     unitLabel: 'مسابقة',
-    detailText: 'مسابقات تفاعلية جماعية',
+    detailText: 'معاينة تصميم · لم يُنفذ نظام المسابقات بعد',
     accentTone: 'emerald',
+    dataSource: 'preview',
   },
   {
     id: 'total-tests',
     label: 'عدد الاختبارات',
     value: 12,
     unitLabel: 'اختباراً',
-    detailText: 'اختبارات تقييمية فردية',
+    detailText: 'معاينة تصميم · لم يُنفذ نظام الاختبارات بعد',
     accentTone: 'sky',
+    dataSource: 'preview',
   },
   {
     id: 'total-students',
     label: 'عدد الطلاب المشاركين',
     value: 340,
     unitLabel: 'طالباً',
-    detailText: 'إجمالي المشاركات الصفية',
+    detailText: 'معاينة تصميم · لم يُنفذ نظام الطلاب بعد',
     accentTone: 'amber',
+    dataSource: 'preview',
   },
 ];
 

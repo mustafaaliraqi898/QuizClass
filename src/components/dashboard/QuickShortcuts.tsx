@@ -4,7 +4,7 @@ import type { NavSectionId, QuickShortcut } from '../../types/dashboard';
 
 interface QuickShortcutsProps {
   shortcuts: QuickShortcut[];
-  onNavigate: (section: NavSectionId, contextNote?: string) => void;
+  onNavigate: (section: NavSectionId, contextNote?: string, shortcutId?: string) => void;
 }
 
 const SHORTCUT_ICONS: Record<string, ComponentType<{ className?: string }>> = {
@@ -41,7 +41,9 @@ export function QuickShortcuts({ shortcuts, onNavigate }: QuickShortcutsProps) {
             <button
               key={shortcut.id}
               type="button"
-              onClick={() => onNavigate(shortcut.targetSection, shortcut.contextNote)}
+              onClick={() =>
+                onNavigate(shortcut.targetSection, shortcut.contextNote, shortcut.id)
+              }
               className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 text-start transition-all duration-150 hover:border-indigo-300 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-700"
             >
               <div className="flex w-full items-start justify-between gap-3">

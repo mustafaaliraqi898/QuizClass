@@ -10,6 +10,7 @@ import { StatsGrid } from './components/dashboard/StatsGrid';
 import { WelcomeBanner } from './components/dashboard/WelcomeBanner';
 import { Sidebar } from './components/layout/Sidebar';
 import { TopBar } from './components/layout/TopBar';
+import { QuestionBankView } from './components/question-bank/QuestionBankView';
 import { ModuleRoadmapView } from './components/sections/ModuleRoadmapView';
 import { SettingsPreviewView } from './components/sections/SettingsPreviewView';
 import {
@@ -25,16 +26,27 @@ import type { NavSectionId } from './types/dashboard';
 export default function App() {
   const { theme, setTheme, toggleTheme } = useTheme();
   const { sidebarCollapsed, toggleSidebarCollapse } = useSidebarPreference();
-  const { isPreviewData, teacher, metrics, recentQuizzes } = useDashboardData();
+  const { isPreviewData, teacher, metrics, recentQuizzes, refreshDashboard } =
+    useDashboardData();
 
   const [activeSection, setActiveSection] = useState<NavSectionId>('dashboard');
   const [sectionContextNote, setSectionContextNote] = useState<string | undefined>(undefined);
+  const [openCreateQuestionSignal, setOpenCreateQuestionSignal] = useState(0);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  const handleNavigate = useCallback((section: NavSectionId, contextNote?: string) => {
-    setActiveSection(section);
-    setSectionContextNote(contextNote);
-  }, []);
+  const handleNavigate = useCallback(
+    (section: NavSectionId, contextNote?: string, shortcutId?: string) => {
+      setActiveSection(section);
+      setSectionContextNote(contextNote);
+      if (section === 'question-bank' && shortcutId === 'shortcut-add-question') {
+        setOpenCreateQuestionSignal((prev) => prev + 1);
+      }
+      if (section === 'dashboard') {
+        void refreshDashboard();
+      }
+    },
+    [refreshDashboard]
+  );
 
   const currentNavItem = useMemo(
     () => NAVIGATION_ITEMS.find((item) => item.id === activeSection) ?? NAVIGATION_ITEMS[0],
@@ -79,6 +91,13 @@ export default function App() {
               </>
             )}
 
+            {activeSection === 'question-bank' && (
+              <QuestionBankView
+                openCreateSignal={openCreateQuestionSignal}
+                onQuestionsChanged={() => void refreshDashboard()}
+              />
+            )}
+
             {activeSection === 'settings' && (
               <SettingsPreviewView
                 theme={theme}
@@ -90,13 +109,15 @@ export default function App() {
               />
             )}
 
-            {activeSection !== 'dashboard' && activeSection !== 'settings' && (
-              <ModuleRoadmapView
-                moduleInfo={MODULE_ROADMAP[activeSection]}
-                contextNote={sectionContextNote}
-                onNavigate={(section) => handleNavigate(section)}
-              />
-            )}
+            {activeSection !== 'dashboard' &&
+              activeSection !== 'settings' &&
+              activeSection !== 'question-bank' && (
+                <ModuleRoadmapView
+                  moduleInfo={MODULE_ROADMAP[activeSection]}
+                  contextNote={sectionContextNote}
+                  onNavigate={(section) => handleNavigate(section)}
+                />
+              )}
           </main>
         </div>
       </div>
