@@ -1,0 +1,6 @@
+{
+  "name": "QuizClass",
+  "description": "منصة تعليمية تفاعلية لإنشاء وإدارة المسابقات والاختبارات الصفية للمعلمين والطلاب.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

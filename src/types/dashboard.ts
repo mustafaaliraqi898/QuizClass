@@ -1,0 +1,69 @@
+export type NavSectionId =
+  | 'dashboard'
+  | 'question-bank'
+  | 'create-quiz'
+  | 'quizzes'
+  | 'reports'
+  | 'settings';
+
+export type ThemeMode = 'light' | 'dark';
+
+export type QuizMode = 'live' | 'individual';
+
+export type QuizStatus = 'completed' | 'ready' | 'draft';
+
+export interface NavItem {
+  id: NavSectionId;
+  label: string;
+  description: string;
+}
+
+export interface DashboardMetric {
+  id: string;
+  label: string;
+  value: number;
+  unitLabel: string;
+  detailText: string;
+  accentTone: 'indigo' | 'emerald' | 'sky' | 'amber';
+}
+
+export interface QuickShortcut {
+  id: string;
+  title: string;
+  subtitle: string;
+  targetSection: NavSectionId;
+  accentTone: 'indigo' | 'emerald' | 'violet' | 'sky';
+}
+
+export interface RecentQuizItem {
+  id: string;
+  title: string;
+  subject: string;
+  grade: string;
+  mode: QuizMode;
+  questionCount: number;
+  participantCount: number;
+  averageScore: number | null;
+  dateLabel: string;
+  status: QuizStatus;
+  pinCode: string;
+}
+
+export interface TeacherProfile {
+  name: string;
+  role: string;
+  school: string;
+  avatarPath: string;
+}
+
+export interface ModuleRoadmapInfo {
+  id: Exclude<NavSectionId, 'dashboard' | 'settings'>;
+  title: string;
+  subtitle: string;
+  phaseNote: string;
+  plannedCapabilities: {
+    title: string;
+    detail: string;
+  }[];
+  architectureHint: string;
+}
