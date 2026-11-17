@@ -75,5 +75,6 @@
       "createStartMenuShortcut": true,
       "shortcutName": "QuizClass"
     }
-  }
+  },
+  "main": "electron/main.cjs"
 }
