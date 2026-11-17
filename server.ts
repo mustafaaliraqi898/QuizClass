@@ -3,7 +3,7 @@ import express from 'express';
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
-import { createServer as createViteServer, type ViteDevServer } from 'vite';
+import type { ViteDevServer } from 'vite';
 import { createServerApp } from './server/app.ts';
 import { resolveStoragePaths } from './server/config/storagePaths.ts';
 import { initializeDatabase } from './server/db/database.ts';
@@ -39,7 +39,7 @@ async function startServer() {
   if (IS_PRODUCTION) {
     const distDir = path.resolve(process.cwd(), 'dist');
     app.use(express.static(distDir));
-    app.get('/{*splat}', (_req, res) => {
+    app.get('*', (_req, res) => {
       const indexFile = path.join(distDir, 'index.html');
       if (fs.existsSync(indexFile)) {
         res.sendFile(indexFile);
@@ -48,6 +48,7 @@ async function startServer() {
       }
     });
   } else {
+    const { createServer: createViteServer } = await import('vite');
     vite = await createViteServer({
       server: {
         middlewareMode: true,
