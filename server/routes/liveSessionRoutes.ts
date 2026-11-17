@@ -60,6 +60,62 @@ export function createLiveSessionRouter(
     }
   });
 
+  // استعادة حالة الطالب بأمان (بعد التحقق من participantId + reconnectToken)
+  router.get(
+    '/live-sessions/:id/student-state',
+    (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const sessionId = String(req.params.id);
+        const participantId =
+          typeof req.query.participantId === 'string' ? req.query.participantId : '';
+        const reconnectToken =
+          typeof req.query.reconnectToken === 'string'
+            ? req.query.reconnectToken
+            : typeof req.headers['x-reconnect-token'] === 'string'
+              ? req.headers['x-reconnect-token']
+              : '';
+
+        repository.verifyParticipantAuth({
+          sessionId,
+          participantId,
+          reconnectToken,
+        });
+
+        const state = repository.getStudentLiveState(sessionId, participantId);
+        res.json(state);
+      } catch (error) {
+        next(error);
+      }
+    }
+  );
+
+  // إرسال إجابة الطالب (مسار HTTP مساند إضافةً إلى Socket.IO)
+  router.post(
+    '/live-sessions/:id/answer',
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const sessionId = String(req.params.id);
+        const body = req.body && typeof req.body === 'object' ? (req.body as Record<string, unknown>) : {};
+        const result = repository.submitStudentAnswer({
+          sessionId,
+          participantId: typeof body.participantId === 'string' ? body.participantId : '',
+          reconnectToken: typeof body.reconnectToken === 'string' ? body.reconnectToken : '',
+          sessionQuestionId:
+            typeof body.sessionQuestionId === 'string' ? body.sessionQuestionId : '',
+          selectedOptionId:
+            typeof body.selectedOptionId === 'string' ? body.selectedOptionId : null,
+          selectedBoolean:
+            typeof body.selectedBoolean === 'boolean' ? body.selectedBoolean : null,
+        });
+
+        await liveSocketHub.broadcastTeacherSessionUpdate(sessionId, resolveRequestOrigin(req));
+        res.json(result);
+      } catch (error) {
+        next(error);
+      }
+    }
+  );
+
   // مسارات المعلم المحمية بـ localAdminGuard
   router.get(
     '/live-sessions',
@@ -82,9 +138,12 @@ export function createLiveSessionRouter(
     localAdminGuard,
     async (req: Request, res: Response, next: NextFunction) => {
       try {
-        const quizId =
-          req.body && typeof req.body === 'object' ? (req.body as { quizId?: string }).quizId ?? '' : '';
-        const session = await repository.createSession(quizId, {
+        const body =
+          req.body && typeof req.body === 'object'
+            ? (req.body as { quizId?: string; settings?: unknown })
+            : {};
+        const session = await repository.createSession(body.quizId ?? '', {
+          settings: body.settings,
           port: resolveRequestPort(req),
           requestOrigin: resolveRequestOrigin(req),
         });
@@ -131,18 +190,63 @@ export function createLiveSessionRouter(
     }
   );
 
+  router.put(
+    '/live-sessions/:id/settings',
+    localAdminGuard,
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const sessionId = String(req.params.id);
+        const session = await repository.updateSessionSettings(sessionId, req.body, {
+          port: resolveRequestPort(req),
+          requestOrigin: resolveRequestOrigin(req),
+        });
+        await liveSocketHub.broadcastTeacherSessionUpdate(sessionId, resolveRequestOrigin(req));
+        await liveSocketHub.broadcastStudentSessionStatus(sessionId);
+        res.json(session);
+      } catch (error) {
+        next(error);
+      }
+    }
+  );
+
   router.post(
     '/live-sessions/:id/start',
     localAdminGuard,
     async (req: Request, res: Response, next: NextFunction) => {
       try {
         const sessionId = String(req.params.id);
+        const body =
+          req.body && typeof req.body === 'object'
+            ? (req.body as { settings?: unknown })
+            : {};
         const session = await repository.startSession(sessionId, {
+          settings: body.settings,
           port: resolveRequestPort(req),
           requestOrigin: resolveRequestOrigin(req),
         });
+        liveSocketHub.syncSessionSchedule(sessionId);
         await liveSocketHub.broadcastTeacherSessionUpdate(sessionId, resolveRequestOrigin(req));
-        liveSocketHub.broadcastStudentSessionStatus(sessionId);
+        await liveSocketHub.broadcastStudentSessionStatus(sessionId);
+        res.json(session);
+      } catch (error) {
+        next(error);
+      }
+    }
+  );
+
+  router.post(
+    '/live-sessions/:id/next-question',
+    localAdminGuard,
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const sessionId = String(req.params.id);
+        const session = await repository.nextQuestionByTeacher(sessionId, {
+          port: resolveRequestPort(req),
+          requestOrigin: resolveRequestOrigin(req),
+        });
+        liveSocketHub.syncSessionSchedule(sessionId);
+        await liveSocketHub.broadcastTeacherSessionUpdate(sessionId, resolveRequestOrigin(req));
+        await liveSocketHub.broadcastStudentSessionStatus(sessionId);
         res.json(session);
       } catch (error) {
         next(error);
@@ -160,8 +264,9 @@ export function createLiveSessionRouter(
           port: resolveRequestPort(req),
           requestOrigin: resolveRequestOrigin(req),
         });
+        liveSocketHub.syncSessionSchedule(sessionId);
         await liveSocketHub.broadcastTeacherSessionUpdate(sessionId, resolveRequestOrigin(req));
-        liveSocketHub.broadcastStudentSessionStatus(sessionId);
+        await liveSocketHub.broadcastStudentSessionStatus(sessionId);
         res.json(session);
       } catch (error) {
         next(error);
@@ -179,8 +284,9 @@ export function createLiveSessionRouter(
           port: resolveRequestPort(req),
           requestOrigin: resolveRequestOrigin(req),
         });
+        liveSocketHub.syncSessionSchedule(sessionId);
         await liveSocketHub.broadcastTeacherSessionUpdate(sessionId, resolveRequestOrigin(req));
-        liveSocketHub.broadcastStudentSessionStatus(sessionId);
+        await liveSocketHub.broadcastStudentSessionStatus(sessionId);
         res.json(session);
       } catch (error) {
         next(error);

@@ -1,9 +1,13 @@
 import type {
   LiveSessionConflictPayload,
   LiveSessionListResponse,
+  LiveSessionSettings,
   StudentJoinRequest,
   StudentJoinResponse,
+  StudentLiveSessionState,
   StudentPublicSessionInfo,
+  StudentSubmitAnswerRequest,
+  StudentSubmitAnswerResponse,
   TeacherLiveSessionDetails,
 } from '../types/liveSession';
 
@@ -59,11 +63,14 @@ export const httpLiveSessionService = {
     return parseJsonOrThrow<LiveSessionListResponse>(response);
   },
 
-  async createSession(quizId: string): Promise<TeacherLiveSessionDetails> {
+  async createSession(
+    quizId: string,
+    settings?: Partial<LiveSessionSettings>
+  ): Promise<TeacherLiveSessionDetails> {
     const response = await fetch('/api/live-sessions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ quizId }),
+      body: JSON.stringify({ quizId, settings }),
     });
     return parseJsonOrThrow<TeacherLiveSessionDetails>(response);
   },
@@ -73,10 +80,40 @@ export const httpLiveSessionService = {
     return parseJsonOrThrow<TeacherLiveSessionDetails>(response);
   },
 
-  async startSession(sessionId: string): Promise<TeacherLiveSessionDetails> {
+  async updateSettings(
+    sessionId: string,
+    settings: Partial<LiveSessionSettings>
+  ): Promise<TeacherLiveSessionDetails> {
+    const response = await fetch(
+      `/api/live-sessions/${encodeURIComponent(sessionId)}/settings`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings),
+      }
+    );
+    return parseJsonOrThrow<TeacherLiveSessionDetails>(response);
+  },
+
+  async startSession(
+    sessionId: string,
+    settings?: Partial<LiveSessionSettings>
+  ): Promise<TeacherLiveSessionDetails> {
     const response = await fetch(`/api/live-sessions/${encodeURIComponent(sessionId)}/start`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(settings ? { settings } : {}),
     });
+    return parseJsonOrThrow<TeacherLiveSessionDetails>(response);
+  },
+
+  async nextQuestion(sessionId: string): Promise<TeacherLiveSessionDetails> {
+    const response = await fetch(
+      `/api/live-sessions/${encodeURIComponent(sessionId)}/next-question`,
+      {
+        method: 'POST',
+      }
+    );
     return parseJsonOrThrow<TeacherLiveSessionDetails>(response);
   },
 
@@ -113,5 +150,35 @@ export const httpLiveSessionService = {
       body: JSON.stringify(payload),
     });
     return parseJsonOrThrow<StudentJoinResponse>(response);
+  },
+
+  async getStudentState(
+    sessionId: string,
+    participantId: string,
+    reconnectToken: string,
+    options?: { signal?: AbortSignal }
+  ): Promise<StudentLiveSessionState> {
+    const response = await fetch(
+      `/api/live-sessions/${encodeURIComponent(sessionId)}/student-state?participantId=${encodeURIComponent(participantId)}`,
+      {
+        headers: {
+          'x-reconnect-token': reconnectToken,
+        },
+        signal: options?.signal,
+      }
+    );
+    return parseJsonOrThrow<StudentLiveSessionState>(response);
+  },
+
+  async submitAnswer(payload: StudentSubmitAnswerRequest): Promise<StudentSubmitAnswerResponse> {
+    const response = await fetch(
+      `/api/live-sessions/${encodeURIComponent(payload.sessionId)}/answer`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }
+    );
+    return parseJsonOrThrow<StudentSubmitAnswerResponse>(response);
   },
 };

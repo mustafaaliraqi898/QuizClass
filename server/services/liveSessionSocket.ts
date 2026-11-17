@@ -2,6 +2,7 @@ import type { Server as HttpServer, IncomingMessage } from 'node:http';
 import type { DatabaseSync } from 'node:sqlite';
 import { Server as SocketIOServer, type Socket } from 'socket.io';
 import type { StoragePaths } from '../config/storagePaths.ts';
+import { LiveSessionPhaseEngine } from './liveSessionEngine.ts';
 import { SqliteLiveSessionRepository } from './liveSessionRepository.ts';
 
 interface SocketClientData {
@@ -18,7 +19,8 @@ interface AckPayload<T = unknown> {
 
 export interface LiveSessionBroadcastHub {
   broadcastTeacherSessionUpdate(sessionId: string, requestOrigin?: string | null): Promise<void>;
-  broadcastStudentSessionStatus(sessionId: string): void;
+  broadcastStudentSessionStatus(sessionId: string): Promise<void>;
+  syncSessionSchedule(sessionId: string): void;
   close(): Promise<void>;
 }
 
@@ -26,8 +28,11 @@ export const NOOP_LIVE_SESSION_HUB: LiveSessionBroadcastHub = {
   async broadcastTeacherSessionUpdate() {
     // No-op when Socket.IO is not attached
   },
-  broadcastStudentSessionStatus() {
+  async broadcastStudentSessionStatus() {
     // No-op when Socket.IO is not attached
+  },
+  syncSessionSchedule() {
+    // No-op
   },
   async close() {
     // No-op
@@ -128,15 +133,37 @@ export function attachLiveSessionSocket(
     }
   };
 
-  const broadcastStudentSessionStatus = (sessionId: string): void => {
+  const broadcastStudentSessionStatus = async (sessionId: string): Promise<void> => {
     try {
-      const publicSession = repository.getStudentPublicSessionById(sessionId);
-      io.to(studentRoom(sessionId)).emit('session:student_status', {
-        session: publicSession,
-      });
+      const sockets = await io.in(studentRoom(sessionId)).fetchSockets();
+      for (const clientSocket of sockets) {
+        const clientData = clientSocket.data as SocketClientData;
+        const pid = clientData.participantId;
+        if (!pid) continue;
+        try {
+          const state = repository.getStudentLiveState(sessionId, pid);
+          clientSocket.emit('session:student_state', state);
+          clientSocket.emit('session:student_status', { session: state.session });
+        } catch {
+          // Ignore individual participant errors
+        }
+      }
     } catch {
-      // Ignore if session not found
+      // Ignore if room or session unavailable
     }
+  };
+
+  const phaseEngine = new LiveSessionPhaseEngine(repository, async (sessionId: string) => {
+    await Promise.all([
+      broadcastTeacherSessionUpdate(sessionId),
+      broadcastStudentSessionStatus(sessionId),
+    ]);
+  });
+
+  phaseEngine.recoverActiveSessionsOnBoot();
+
+  const syncSessionSchedule = (sessionId: string): void => {
+    phaseEngine.scheduleSession(sessionId);
   };
 
   io.on('connection', (socket: Socket) => {
@@ -161,7 +188,6 @@ export function attachLiveSessionSocket(
             return;
           }
 
-          // مغادرة أي غرفة معلم سابقة عند التبديل بين جلسات
           for (const room of socket.rooms) {
             if (room !== socket.id && room.startsWith('session:')) {
               await socket.leave(room);
@@ -207,18 +233,11 @@ export function attachLiveSessionSocket(
             reconnectToken,
           });
 
-          if (verified.session.status === 'completed' || verified.session.status === 'cancelled') {
-            ack?.({
-              ok: false,
-              error:
-                verified.session.status === 'completed'
-                  ? 'انتهت هذه المسابقة بالفعل.'
-                  : 'تم إلغاء هذه الجلسة.',
-            });
+          if (verified.session.status === 'cancelled') {
+            ack?.({ ok: false, error: 'تم إلغاء هذه الجلسة.' });
             return;
           }
 
-          // التحقق من عدم استخدام نفس Socket لانتحال مشارك أو جلسة أخرى
           if (data.role === 'student' && data.participantId && data.participantId !== participantId) {
             const oldSockets = activeParticipantSockets.get(data.participantId);
             oldSockets?.delete(socket.id);
@@ -241,7 +260,7 @@ export function attachLiveSessionSocket(
           }
           socketSet.add(socket.id);
 
-          const updatedParticipant = repository.setParticipantConnectionStatus(
+          repository.setParticipantConnectionStatus(
             verified.session.sessionId,
             verified.participant.id,
             'connected'
@@ -249,19 +268,13 @@ export function attachLiveSessionSocket(
 
           await socket.join(studentRoom(verified.session.sessionId));
 
-          const safeStudentPayload = {
-            session: verified.session,
-            participant: {
-              id: verified.participant.id,
-              sessionId: verified.participant.sessionId,
-              displayName: verified.participant.displayName,
-              connectionStatus: updatedParticipant?.connectionStatus ?? 'connected',
-              joinedAt: verified.participant.joinedAt,
-            },
-          };
+          const safeStudentState = repository.getStudentLiveState(
+            verified.session.sessionId,
+            verified.participant.id
+          );
 
-          socket.emit('session:student_state', safeStudentPayload);
-          ack?.({ ok: true, data: safeStudentPayload });
+          socket.emit('session:student_state', safeStudentState);
+          ack?.({ ok: true, data: safeStudentState });
 
           await broadcastTeacherSessionUpdate(
             verified.session.sessionId,
@@ -275,7 +288,60 @@ export function attachLiveSessionSocket(
       }
     );
 
-    // منع الطالب صراحةً من إرسال أي أوامر تحكم في الجلسة أو المؤقت
+    socket.on(
+      'student:submit_answer',
+      async (
+        payload: {
+          sessionId?: string;
+          participantId?: string;
+          reconnectToken?: string;
+          sessionQuestionId?: string;
+          selectedOptionId?: string | null;
+          selectedBoolean?: boolean | null;
+        },
+        ack?: (res: AckPayload) => void
+      ) => {
+        try {
+          const sessionId = typeof payload?.sessionId === 'string' ? payload.sessionId.trim() : '';
+          const participantId =
+            typeof payload?.participantId === 'string' ? payload.participantId.trim() : '';
+
+          if (
+            data.role === 'student' &&
+            ((data.sessionId && data.sessionId !== sessionId) ||
+              (data.participantId && data.participantId !== participantId))
+          ) {
+            ack?.({ ok: false, error: 'مرفوض: بيانات الجلسة أو المشارك غير متطابقة.' });
+            return;
+          }
+
+          const result = repository.submitStudentAnswer({
+            sessionId,
+            participantId,
+            reconnectToken:
+              typeof payload?.reconnectToken === 'string' ? payload.reconnectToken : '',
+            sessionQuestionId:
+              typeof payload?.sessionQuestionId === 'string' ? payload.sessionQuestionId : '',
+            selectedOptionId: payload?.selectedOptionId ?? null,
+            selectedBoolean:
+              typeof payload?.selectedBoolean === 'boolean' ? payload.selectedBoolean : null,
+          });
+
+          ack?.({ ok: true, data: result });
+
+          await broadcastTeacherSessionUpdate(
+            sessionId,
+            resolveSocketRequestOrigin(socket.request)
+          );
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : 'تعذر تسجيل إجابتك حالياً.';
+          ack?.({ ok: false, error: message });
+        }
+      }
+    );
+
+    // منع الطالب صراحةً من إرسال أي أوامر تحكم في الجلسة أو المؤقت أو الإعدادات
     const rejectUnauthorizedControl = (_payload: unknown, ack?: (res: AckPayload) => void) => {
       ack?.({ ok: false, error: 'غير مصرح للمشاركين بالتحكم في الجلسة أو المؤقت.' });
     };
@@ -283,6 +349,7 @@ export function attachLiveSessionSocket(
     socket.on('session:cancel', rejectUnauthorizedControl);
     socket.on('session:complete', rejectUnauthorizedControl);
     socket.on('session:next_question', rejectUnauthorizedControl);
+    socket.on('session:update_settings', rejectUnauthorizedControl);
 
     socket.on('disconnect', async () => {
       if (data.role !== 'student' || !data.sessionId || !data.participantId) {
@@ -293,7 +360,6 @@ export function attachLiveSessionSocket(
       if (socketSet) {
         socketSet.delete(socket.id);
         if (socketSet.size > 0) {
-          // لا يزال لدى الطالب اتصال نشط آخر
           return;
         }
         activeParticipantSockets.delete(data.participantId);
@@ -311,7 +377,9 @@ export function attachLiveSessionSocket(
     io,
     broadcastTeacherSessionUpdate,
     broadcastStudentSessionStatus,
+    syncSessionSchedule,
     async close() {
+      phaseEngine.clearAll();
       await new Promise<void>((resolve) => {
         io.close(() => resolve());
       });

@@ -98,6 +98,7 @@ describe('QuizClass Live Quiz Sessions & Local Network Foundation Suite', () => 
         hubImpl.broadcastTeacherSessionUpdate(sessionId, requestOrigin),
       broadcastStudentSessionStatus: (sessionId) =>
         hubImpl.broadcastStudentSessionStatus(sessionId),
+      syncSessionSchedule: (sessionId) => hubImpl.syncSessionSchedule(sessionId),
       close: () => hubImpl.close(),
     };
 

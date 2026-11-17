@@ -26,6 +26,7 @@ async function startServer() {
       liveSocketHub.broadcastTeacherSessionUpdate(sessionId, requestOrigin),
     broadcastStudentSessionStatus: (sessionId) =>
       liveSocketHub.broadcastStudentSessionStatus(sessionId),
+    syncSessionSchedule: (sessionId) => liveSocketHub.syncSessionSchedule(sessionId),
     close: () => liveSocketHub.close(),
   };
 

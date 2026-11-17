@@ -23,12 +23,16 @@ import { io, type Socket } from 'socket.io-client';
 import { httpLiveSessionService } from '../../services/liveSessionService';
 import { httpQuizService } from '../../services/quizService';
 import type {
+  LiveSessionSettings,
   LiveSessionStatus,
   LiveSessionSummary,
   TeacherLiveSessionDetails,
 } from '../../types/liveSession';
 import type { QuizSummary } from '../../types/quiz';
 import { formatQuizDate } from '../quizzes/quizFormatters';
+import { LiveBoardView } from './LiveBoardView';
+import { LiveFinalResultsView } from './LiveFinalResultsView';
+import { LiveSessionSettingsPanel } from './LiveSessionSettingsPanel';
 
 interface LiveLobbyViewProps {
   activeSession: TeacherLiveSessionDetails | null;
@@ -80,6 +84,7 @@ export function LiveLobbyView({
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [isMutating, setIsMutating] = useState(false);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [selectedNetworkIndex, setSelectedNetworkIndex] = useState(0);
   const [copiedField, setCopiedField] = useState<'pin' | 'url' | null>(null);
   const [socketConnected, setSocketConnected] = useState(false);
@@ -216,22 +221,61 @@ export function LiveLobbyView({
     }
   };
 
+  const handleSaveSettings = async (nextSettings: LiveSessionSettings) => {
+    if (!activeSession) return;
+    setIsSavingSettings(true);
+    setActionError(null);
+    try {
+      const updated = await httpLiveSessionService.updateSettings(activeSession.id, nextSettings);
+      onSessionUpdated(updated);
+    } catch (error) {
+      setActionError(
+        error instanceof Error ? error.message : 'تعذر حفظ إعدادات الجلسة في قاعدة البيانات.'
+      );
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
+
   const handleStartSession = async () => {
     if (!activeSession) return;
     setIsMutating(true);
     setActionError(null);
     setActionSuccess(null);
     try {
-      const updated = await httpLiveSessionService.startSession(activeSession.id);
+      const updated = await httpLiveSessionService.startSession(
+        activeSession.id,
+        activeSession.settings
+      );
       onSessionUpdated(updated);
       setActionSuccess(
-        'تم بدء المسابقة وتثبيت نسخة الأسئلة وحمايتها من أي تعديلات لاحقة في بنك الأسئلة.'
+        'تم بدء المسابقة وتشغيل السؤال الأول وتثبيت الإعدادات وحماية الأسئلة.'
       );
       onLifecycleChanged?.();
       void loadLobbyInitialData();
     } catch (error) {
       setActionError(
         error instanceof Error ? error.message : 'تعذر بدء الجلسة المباشرة.'
+      );
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
+  const handleNextQuestion = async () => {
+    if (!activeSession) return;
+    setIsMutating(true);
+    setActionError(null);
+    try {
+      const updated = await httpLiveSessionService.nextQuestion(activeSession.id);
+      onSessionUpdated(updated);
+      if (updated.status === 'completed') {
+        onLifecycleChanged?.();
+        void loadLobbyInitialData();
+      }
+    } catch (error) {
+      setActionError(
+        error instanceof Error ? error.message : 'تعذر الانتقال إلى السؤال التالي.'
       );
     } finally {
       setIsMutating(false);
@@ -246,7 +290,7 @@ export function LiveLobbyView({
     try {
       const updated = await httpLiveSessionService.completeSession(activeSession.id);
       onSessionUpdated(updated);
-      setActionSuccess('تم إنهاء الجلسة وتسجيل المسابقة كمكتملة في قاعدة البيانات.');
+      setActionSuccess('تم إنهاء الجلسة واعتماد النتائج النهائية في قاعدة البيانات.');
       onLifecycleChanged?.();
       void loadLobbyInitialData();
     } catch (error) {
@@ -352,6 +396,24 @@ export function LiveLobbyView({
       )}
 
       {activeSession ? (
+        activeSession.status === 'running' ? (
+          <LiveBoardView
+            session={activeSession}
+            socketConnected={socketConnected}
+            isMutating={isMutating}
+            onNextQuestion={handleNextQuestion}
+            onCompleteSession={handleCompleteSession}
+          />
+        ) : activeSession.status === 'completed' ? (
+          <LiveFinalResultsView
+            session={activeSession}
+            onLaunchNewSession={() => void onLaunchQuiz(activeSession.quizId)}
+            onBackToQuizzes={() => {
+              onSessionUpdated(null);
+              onNavigateQuizzes();
+            }}
+          />
+        ) : (
         <>
           {/* شريط عنوان الجلسة وأزرار التحكم */}
           <section className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
@@ -367,7 +429,7 @@ export function LiveLobbyView({
                     <span>{SESSION_STATUS_META[activeSession.status].label}</span>
                   </span>
 
-                  {(activeSession.status === 'waiting' || activeSession.status === 'running') && (
+                  {activeSession.status === 'waiting' && (
                     <span
                       className={`inline-flex items-center gap-1.5 text-xs font-bold ${
                         socketConnected
@@ -438,35 +500,7 @@ export function LiveLobbyView({
                   </>
                 )}
 
-                {activeSession.status === 'running' && (
-                  <>
-                    <button
-                      type="button"
-                      disabled={isMutating}
-                      onClick={() => void handleCompleteSession()}
-                      className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-bold text-white transition-colors hover:bg-indigo-700 disabled:opacity-60 whitespace-nowrap dark:bg-indigo-500 dark:hover:bg-indigo-400"
-                    >
-                      {isMutating ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <CheckCircle2 className="h-4 w-4" />
-                      )}
-                      <span>إنهاء الجلسة (مكتملة)</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      disabled={isMutating}
-                      onClick={() => void handleCancelSession()}
-                      className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 text-xs font-bold text-red-700 transition-colors hover:bg-red-100 disabled:opacity-60 whitespace-nowrap dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950"
-                    >
-                      <Ban className="h-4 w-4" />
-                      <span>إلغاء الجلسة</span>
-                    </button>
-                  </>
-                )}
-
-                {(activeSession.status === 'completed' || activeSession.status === 'cancelled') && (
+                {activeSession.status === 'cancelled' && (
                   <>
                     <button
                       type="button"
@@ -491,19 +525,6 @@ export function LiveLobbyView({
                 )}
               </div>
             </div>
-
-            {activeSession.status === 'running' && (
-              <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 text-xs leading-relaxed text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">
-                <p className="font-display font-bold">
-                  الجلسة قيد التشغيل حالياً ونسخة الأسئلة مثبتة بالكامل
-                </p>
-                <p className="mt-1">
-                  تم ربط حالة المسابقة بحالة التشغيل الفعلية؛ لن تتأثر أسئلة هذه الجلسة بأي
-                  تعديلات أو مزامنة لاحقة في بنك الأسئلة. سيتم إضافة بث الأسئلة المتتابع وحساب
-                  النقاط في الجزء التالي من هذه المرحلة.
-                </p>
-              </div>
-            )}
           </section>
 
           {/* شبكة تفاصيل الانضمام + قائمة الطلاب المنضمين */}
@@ -747,7 +768,17 @@ export function LiveLobbyView({
               )}
             </section>
           </div>
+
+          {activeSession.status === 'waiting' && (
+            <LiveSessionSettingsPanel
+              settings={activeSession.settings}
+              disabled={isMutating}
+              isSaving={isSavingSettings}
+              onSaveSettings={handleSaveSettings}
+            />
+          )}
         </>
+        )
       ) : (
         /* حالة عدم وجود جلسة نشطة */
         <section className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
@@ -863,7 +894,7 @@ export function LiveLobbyView({
                     {SESSION_STATUS_META[item.status].label}
                   </span>
 
-                  {(item.status === 'waiting' || item.status === 'running') &&
+                  {(item.status === 'waiting' || item.status === 'running' || item.status === 'completed') &&
                     activeSession?.id !== item.id && (
                       <button
                         type="button"
@@ -879,7 +910,7 @@ export function LiveLobbyView({
                         }}
                         className="h-8 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 text-xs font-bold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-300"
                       >
-                        فتح الغرفة
+                        {item.status === 'completed' ? 'عرض النتائج' : 'فتح الغرفة'}
                       </button>
                     )}
                 </div>

@@ -97,6 +97,15 @@ export function initializeDatabase(dbFilePath: string): DatabaseSync {
       host_token TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'waiting' CHECK (status IN ('waiting', 'running', 'completed', 'cancelled')),
       current_question_index INTEGER NOT NULL DEFAULT -1,
+      current_phase TEXT NOT NULL DEFAULT 'lobby' CHECK (current_phase IN ('lobby', 'question_intro', 'answering', 'question_results', 'final_results')),
+      phase_started_at TEXT,
+      phase_ends_at TEXT,
+      question_intro_seconds INTEGER NOT NULL DEFAULT 5 CHECK (question_intro_seconds BETWEEN 1 AND 60),
+      advance_mode TEXT NOT NULL DEFAULT 'auto' CHECK (advance_mode IN ('auto', 'manual')),
+      auto_advance_seconds INTEGER NOT NULL DEFAULT 5 CHECK (auto_advance_seconds BETWEEN 1 AND 60),
+      allow_answer_change INTEGER NOT NULL DEFAULT 0 CHECK (allow_answer_change IN (0, 1)),
+      allow_late_join INTEGER NOT NULL DEFAULT 1 CHECK (allow_late_join IN (0, 1)),
+      scoring_mode TEXT NOT NULL DEFAULT 'speed_and_accuracy' CHECK (scoring_mode IN ('speed_and_accuracy', 'accuracy_only')),
       question_started_at TEXT,
       created_at TEXT NOT NULL,
       started_at TEXT,
@@ -132,6 +141,7 @@ export function initializeDatabase(dbFilePath: string): DatabaseSync {
       difficulty TEXT CHECK (difficulty IS NULL OR difficulty IN ('easy', 'medium', 'hard')),
       time_limit_seconds INTEGER NOT NULL CHECK (time_limit_seconds BETWEEN 5 AND 600),
       points INTEGER NOT NULL DEFAULT 1000,
+      results_finalized INTEGER NOT NULL DEFAULT 0 CHECK (results_finalized IN (0, 1)),
       FOREIGN KEY (session_id) REFERENCES live_sessions(id) ON DELETE CASCADE,
       UNIQUE (session_id, question_order)
     );
@@ -161,6 +171,8 @@ export function initializeDatabase(dbFilePath: string): DatabaseSync {
       connection_status TEXT NOT NULL DEFAULT 'connected' CHECK (connection_status IN ('connected', 'disconnected')),
       total_score INTEGER NOT NULL DEFAULT 0,
       correct_count INTEGER NOT NULL DEFAULT 0,
+      wrong_count INTEGER NOT NULL DEFAULT 0,
+      total_response_time_ms INTEGER NOT NULL DEFAULT 0,
       rank_position INTEGER,
       joined_at TEXT NOT NULL,
       last_seen_at TEXT NOT NULL,
@@ -195,13 +207,70 @@ export function initializeDatabase(dbFilePath: string): DatabaseSync {
       ON live_session_answers(participant_id);
   `);
 
-  const quizColumns = db.prepare('PRAGMA table_info(quizzes)').all() as Array<{ name: string }>;
-  const hasLifecycleStatus = quizColumns.some((col) => col.name === 'lifecycle_status');
-  if (!hasLifecycleStatus) {
-    db.exec(
-      `ALTER TABLE quizzes ADD COLUMN lifecycle_status TEXT NOT NULL DEFAULT 'draft' CHECK (lifecycle_status IN ('draft', 'started', 'completed'));`
+  const ensureColumns = (table: string, definitions: Array<{ name: string; sql: string }>) => {
+    const existingCols = new Set(
+      (db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>).map(
+        (col) => col.name
+      )
     );
-  }
+    for (const def of definitions) {
+      if (!existingCols.has(def.name)) {
+        db.exec(`ALTER TABLE ${table} ADD COLUMN ${def.sql};`);
+      }
+    }
+  };
+
+  ensureColumns('quizzes', [
+    {
+      name: 'lifecycle_status',
+      sql: `lifecycle_status TEXT NOT NULL DEFAULT 'draft' CHECK (lifecycle_status IN ('draft', 'started', 'completed'))`,
+    },
+  ]);
+
+  ensureColumns('live_sessions', [
+    {
+      name: 'current_phase',
+      sql: `current_phase TEXT NOT NULL DEFAULT 'lobby' CHECK (current_phase IN ('lobby', 'question_intro', 'answering', 'question_results', 'final_results'))`,
+    },
+    { name: 'phase_started_at', sql: 'phase_started_at TEXT' },
+    { name: 'phase_ends_at', sql: 'phase_ends_at TEXT' },
+    {
+      name: 'question_intro_seconds',
+      sql: 'question_intro_seconds INTEGER NOT NULL DEFAULT 5 CHECK (question_intro_seconds BETWEEN 1 AND 60)',
+    },
+    {
+      name: 'advance_mode',
+      sql: `advance_mode TEXT NOT NULL DEFAULT 'auto' CHECK (advance_mode IN ('auto', 'manual'))`,
+    },
+    {
+      name: 'auto_advance_seconds',
+      sql: 'auto_advance_seconds INTEGER NOT NULL DEFAULT 5 CHECK (auto_advance_seconds BETWEEN 1 AND 60)',
+    },
+    {
+      name: 'allow_answer_change',
+      sql: 'allow_answer_change INTEGER NOT NULL DEFAULT 0 CHECK (allow_answer_change IN (0, 1))',
+    },
+    {
+      name: 'allow_late_join',
+      sql: 'allow_late_join INTEGER NOT NULL DEFAULT 1 CHECK (allow_late_join IN (0, 1))',
+    },
+    {
+      name: 'scoring_mode',
+      sql: `scoring_mode TEXT NOT NULL DEFAULT 'speed_and_accuracy' CHECK (scoring_mode IN ('speed_and_accuracy', 'accuracy_only'))`,
+    },
+  ]);
+
+  ensureColumns('live_session_questions', [
+    {
+      name: 'results_finalized',
+      sql: 'results_finalized INTEGER NOT NULL DEFAULT 0 CHECK (results_finalized IN (0, 1))',
+    },
+  ]);
+
+  ensureColumns('live_session_participants', [
+    { name: 'wrong_count', sql: 'wrong_count INTEGER NOT NULL DEFAULT 0' },
+    { name: 'total_response_time_ms', sql: 'total_response_time_ms INTEGER NOT NULL DEFAULT 0' },
+  ]);
 
   return db;
 }
