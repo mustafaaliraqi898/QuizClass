@@ -107,6 +107,22 @@ jobs:
             mkdir -p "$GITHUB_WORKSPACE/android/app/src/main/jniLibs/${abi}"
             library_dir="$(dirname "$library")"
             find "$library_dir" -maxdepth 1 -type f -name "*.so" -exec cp {} "$GITHUB_WORKSPACE/android/app/src/main/jniLibs/${abi}/" ';'
+
+            # libnode.so is linked against the Android NDK C++ shared runtime.
+            # It is shipped by the NDK rather than the nodejs-mobile archive,
+            # so package the matching ABI copy beside libnode.so.
+            case "$abi" in
+              arm64-v8a) ndk_triple="aarch64-linux-android" ;;
+              armeabi-v7a) ndk_triple="arm-linux-androideabi" ;;
+              *) echo "Unsupported runtime ABI: $abi" >&2; exit 1 ;;
+            esac
+            cxx_runtime="$ANDROID_HOME/ndk/27.2.12479018/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/$ndk_triple/libc++_shared.so"
+            if [ ! -f "$cxx_runtime" ]; then
+              echo "Missing NDK C++ shared runtime for $abi: $cxx_runtime" >&2
+              exit 1
+            fi
+            cp "$cxx_runtime" "$GITHUB_WORKSPACE/android/app/src/main/jniLibs/${abi}/libc++_shared.so"
+            test -s "$GITHUB_WORKSPACE/android/app/src/main/jniLibs/${abi}/libc++_shared.so"
           done
 
           header="$(find extracted -type f -name node.h -print -quit)"
