@@ -33,7 +33,8 @@ A current Node.js 24 mobile runtime project advertises full Android builds and d
 
 References:
 - https://github.com/fogtape/nodejs-mobile
-- https://github.com/fogtape/nodejs-mobile/releases
+- https://github.com/fogtape/nodejs-mobile/releases/tag/v24.22.1-0
+- https://nodejs-mobile.github.io/docs/guide/guide-android/getting-started/
 - https://nodejs.org/download/release/v24.22.1/docs/api/sqlite.html
 - https://capacitorjs.com/docs/android
 
@@ -79,3 +80,12 @@ A separate `build:mobile-server` script bundles this entry point for Node 24 int
 `android/app/src/main/assets/quizclass/server.cjs`.
 
 This is source-level groundwork only. The Android project, embedded runtime binary, JNI bridge, and device validation are not present yet. The build script has not yet been executed in CI or on an Android device.
+
+
+## Runtime integration constraints confirmed from the Android guide
+
+- Node is embedded in the Android app process and started through JNI using `node::Start(argc, argv)`.
+- Start Node on a dedicated background thread. The guide notes that only one Node runtime instance can be started per app process and that restarting it after it exits is not supported.
+- The full runtime archive must be selected (not the lite archive) because QuizClass relies on `node:sqlite`.
+- Runtime binaries and headers must be obtained from the pinned release and checked against its published `SHA256SUMS`; do not commit the binary archive to this repository.
+- The current CI workflow only verifies the web build and Node server bundle. It is not an Android APK build and does not test JNI or runtime behavior.
