@@ -73,7 +73,8 @@ jobs:
               exit 1
             fi
             mkdir -p "$GITHUB_WORKSPACE/android/app/src/main/jniLibs/${abi}"
-            cp "$library" "$GITHUB_WORKSPACE/android/app/src/main/jniLibs/${abi}/libnode.so"
+            library_dir="$(dirname "$library")"
+            find "$library_dir" -maxdepth 1 -type f -name "*.so" -exec cp {} "$GITHUB_WORKSPACE/android/app/src/main/jniLibs/${abi}/" ;
           done
 
           header="$(find extracted -type f -name node.h -print -quit)"
