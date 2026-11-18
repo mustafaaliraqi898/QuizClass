@@ -307,21 +307,6 @@ export function TwoPlayerCompetitionStageView({
         )}
       </header>
 
-      {/* Shared Question Prompt */}
-      <div className="rounded-3xl border border-line bg-surface-subtle p-5 sm:p-6 text-center">
-        <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-black leading-relaxed text-ink">
-          {currentQuestion.prompt}
-        </h1>
-        {currentQuestion.imageUrl && (
-          <img
-            src={currentQuestion.imageUrl}
-            alt="صورة السؤال"
-            referrerPolicy="no-referrer"
-            className="mx-auto mt-4 max-h-48 w-auto rounded-2xl object-contain border border-line"
-          />
-        )}
-      </div>
-
       {/* Revealed Correct Answer Banner */}
       {isRevealed && (
         <div
@@ -347,6 +332,7 @@ export function TwoPlayerCompetitionStageView({
         >
           <div className="flex items-center justify-between border-b border-line pb-3">
             <div className="flex items-center gap-2">
+              <AnimatedFullBodyAvatar avatarId={player1.avatarId} size="sm" animated={false} />
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white font-black text-sm">
                 P1
               </div>
@@ -360,6 +346,11 @@ export function TwoPlayerCompetitionStageView({
             </div>
           </div>
 
+          <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-4 text-center">
+            <p className="mb-2 text-xs font-black text-blue-700">سؤال المنافسة</p>
+            <h2 className="font-display text-lg font-black leading-relaxed text-slate-900 sm:text-xl">{currentQuestion.prompt}</h2>
+            {currentQuestion.imageUrl && <img src={currentQuestion.imageUrl} alt="صورة السؤال" referrerPolicy="no-referrer" className="mx-auto mt-3 max-h-36 w-auto rounded-xl border border-blue-100 object-contain" />}
+          </div>
           {/* Options for Player 1 */}
           <div className="space-y-3 flex-1">
             {currentQuestion.type === 'multiple_choice' ? (
@@ -449,6 +440,7 @@ export function TwoPlayerCompetitionStageView({
         >
           <div className="flex items-center justify-between border-b border-line pb-3">
             <div className="flex items-center gap-2">
+              <AnimatedFullBodyAvatar avatarId={player2.avatarId} size="sm" animated={false} />
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-success text-white font-black text-sm">
                 P2
               </div>
@@ -462,6 +454,11 @@ export function TwoPlayerCompetitionStageView({
             </div>
           </div>
 
+          <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-4 text-center">
+            <p className="mb-2 text-xs font-black text-emerald-700">سؤال المنافسة</p>
+            <h2 className="font-display text-lg font-black leading-relaxed text-slate-900 sm:text-xl">{currentQuestion.prompt}</h2>
+            {currentQuestion.imageUrl && <img src={currentQuestion.imageUrl} alt="صورة السؤال" referrerPolicy="no-referrer" className="mx-auto mt-3 max-h-36 w-auto rounded-xl border border-emerald-100 object-contain" />}
+          </div>
           {/* Options for Player 2 */}
           <div className="space-y-3 flex-1">
             {currentQuestion.type === 'multiple_choice' ? (
@@ -550,22 +547,6 @@ export function TwoPlayerCompetitionStageView({
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
-            disabled={isRevealed}
-            data-testid="two-player-reveal-btn"
-            onClick={() =>
-              setSession((prev) => ({
-                ...prev,
-                roundState: revealTwoPlayerRound(prev.roundState, currentQuestion),
-              }))
-            }
-            className="qc-btn-primary inline-flex h-13 items-center gap-2 rounded-2xl px-6 text-sm sm:text-base font-extrabold disabled:opacity-50 whitespace-nowrap"
-          >
-            <ShieldCheck className="h-5 w-5" />
-            <span>إظهار النتيجة والتحقق</span>
-          </button>
-
-          <button
-            type="button"
             onClick={() => setSession((prev) => ({ ...prev, isPaused: !prev.isPaused }))}
             className="qc-btn-secondary inline-flex h-13 items-center gap-2 rounded-2xl px-5 text-sm font-extrabold whitespace-nowrap"
           >
@@ -578,12 +559,13 @@ export function TwoPlayerCompetitionStageView({
           <button
             type="button"
             data-testid="two-player-next-btn"
+            disabled={!isRevealed}
             onClick={() =>
               setSession((prev) =>
                 navigateTwoPlayerSession(prev, prev.currentIndex + 1, totalQuestions, QUESTION_TIME_SECONDS)
               )
             }
-            className="inline-flex h-13 items-center gap-2 rounded-2xl bg-ink px-7 text-sm sm:text-base font-extrabold text-surface transition-opacity hover:opacity-90 whitespace-nowrap dark:bg-primary dark:text-white"
+            className="inline-flex h-13 items-center gap-2 rounded-2xl bg-ink px-7 text-sm sm:text-base font-extrabold text-surface transition-opacity hover:opacity-90 whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-40 dark:bg-primary dark:text-white"
           >
             <span>{isLastQuestion ? 'إنهاء المنافسة وعرض النتائج' : 'السؤال التالي'}</span>
             <ArrowLeft className="h-5 w-5" />
