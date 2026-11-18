@@ -54,22 +54,36 @@ jobs:
 
       - name: Download and verify full Node.js Mobile runtime
         run: |
-          set -euxo pipefail
+          set -euo pipefail
           version="24.22.1-0"
           tag="v${version}"
           archive="nodejs-mobile-android-${version}.zip"
-          release_url="https://github.com/fogtape/nodejs-mobile/releases/download/${tag}"
           mkdir -p /tmp/node-mobile
           cd /tmp/node-mobile
 
-          # Fetch public release assets directly; this avoids relying on gh CLI auth
-          # for a dependency hosted in a different public repository.
-          curl --fail --location --retry 3 --retry-delay 2 \
-            "${release_url}/${archive}" --output "${archive}"
-          curl --fail --location --retry 3 --retry-delay 2 \
-            "${release_url}/SHA256SUMS" --output SHA256SUMS
+          # Read the published release metadata first so asset URLs and names
+          # are verified against the actual release, not guessed.
+          curl --fail --show-error --silent --location --retry 3 --retry-delay 2 \
+            "https://api.github.com/repos/fogtape/nodejs-mobile/releases/tags/${tag}" \
+            --output release.json
+          asset_url="$(jq -r --arg name "${archive}" '.assets[] | select(.name == $name) | .browser_download_url' release.json | head -n 1)"
+          checksum_url="$(jq -r '.assets[] | select(.name == "SHA256SUMS") | .browser_download_url' release.json | head -n 1)"
+          if [ -z "${asset_url}" ] || [ -z "${checksum_url}" ] || [ "${asset_url}" = "null" ] || [ "${checksum_url}" = "null" ]; then
+            echo "Required Android runtime or SHA256SUMS asset is missing from release ${tag}" >&2
+            jq -r '.assets[].name' release.json >&2
+            exit 1
+          fi
 
-          checksum_line="$(awk -v file="${archive}" '$2 == file || $2 == "*" file { print; found=1; exit } END { if (!found) exit 1 }' SHA256SUMS)"
+          curl --fail --show-error --silent --location --retry 3 --retry-delay 2 \
+            "${asset_url}" --output "${archive}"
+          curl --fail --show-error --silent --location --retry 3 --retry-delay 2 \
+            "${checksum_url}" --output SHA256SUMS
+
+          checksum_line="$(awk -v file="${archive}" '$2 == file || $2 == "*" file { print; found=1; exit } END { if (!found) exit 1 }' SHA256SUMS)" || {
+            echo "No checksum entry found for ${archive}" >&2
+            cat SHA256SUMS >&2
+            exit 1
+          }
           printf '%s\n' "${checksum_line}" | sha256sum --check -
           unzip -q "${archive}" -d extracted
 
@@ -82,7 +96,7 @@ jobs:
             fi
             mkdir -p "$GITHUB_WORKSPACE/android/app/src/main/jniLibs/${abi}"
             library_dir="$(dirname "$library")"
-            find "$library_dir" -maxdepth 1 -type f -name "*.so" -exec cp {} "$GITHUB_WORKSPACE/android/app/src/main/jniLibs/${abi}/" ;
+            find "$library_dir" -maxdepth 1 -type f -name "*.so" -exec cp {} "$GITHUB_WORKSPACE/android/app/src/main/jniLibs/${abi}/" \\;
           done
 
           header="$(find extracted -type f -name node.h -print -quit)"
