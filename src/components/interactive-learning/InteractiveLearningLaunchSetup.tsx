@@ -1,4 +1,4 @@
-import { Check, ChevronLeft, ChevronRight, MonitorPlay, Presentation, Sparkles, Swords, UserRound, Users } from 'lucide-react';
+import { Check, ChevronLeft, MonitorPlay, Presentation, Sparkles, Swords, UserRound, Users } from 'lucide-react';
 import { useState } from 'react';
 import { getStudentAvatar, STUDENT_AVATARS } from '../../data/studentAvatars';
 
