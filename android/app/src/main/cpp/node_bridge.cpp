@@ -1,6 +1,7 @@
 #include <jni.h>
 #include <cstdlib>
 #include <cstring>
+#include <unistd.h>
 #include <string>
 #include <vector>
 #include "node.h"
@@ -27,7 +28,10 @@ Java_com_quizclass_android_MainActivity_startNodeWithArguments(
     std::vector<std::string> nodeArgs;
     nodeArgs.reserve(values.size());
     for (const auto& value : values) {
-        if (value.rfind("--env=", 0) == 0) {
+        if (value.rfind("--cwd=", 0) == 0) {
+            const std::string workingDirectory = value.substr(6);
+            if (workingDirectory.empty() || chdir(workingDirectory.c_str()) != 0) return 5;
+        } else if (value.rfind("--env=", 0) == 0) {
             const std::string assignment = value.substr(6);
             const auto separator = assignment.find('=');
             if (separator == std::string::npos || separator == 0) return 2;
