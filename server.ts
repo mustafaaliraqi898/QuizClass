@@ -40,7 +40,7 @@ async function startServer() {
     const appRoot = process.env.QUIZCLASS_APP_ROOT || process.cwd();
     const distDir = path.join(appRoot, 'dist');
     app.use(express.static(distDir));
-    app.get('/{*splat}', (_req, res) => {
+    app.get('*', (_req, res) => {
       const indexFile = path.join(distDir, 'index.html');
       if (fs.existsSync(indexFile)) {
         res.sendFile(indexFile);
