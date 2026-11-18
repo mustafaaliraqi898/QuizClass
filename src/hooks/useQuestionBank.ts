@@ -189,6 +189,37 @@ export function useQuestionBank(service: QuestionBankService = httpQuestionBankS
     [fetchQuestions, filters, service]
   );
 
+  const importQuestionsBatch = useCallback(
+    async (payloads: QuestionPayload[]) => {
+      setIsMutating(true);
+      setFeedback(null);
+      try {
+        const result = await service.createQuestionsBatch(payloads);
+        await fetchQuestions(filters);
+        setFeedback({
+          type: 'success',
+          message: `تم استيراد ${result.count} ${
+            result.count === 1 ? 'سؤال' : result.count === 2 ? 'سؤالين' : 'أسئلة'
+          } بنجاح إلى بنك الأسئلة المحلي.`,
+        });
+        return result;
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'تعذر استيراد الأسئلة إلى قاعدة البيانات المحلية.';
+        setFeedback({
+          type: 'error',
+          message,
+        });
+        throw error;
+      } finally {
+        setIsMutating(false);
+      }
+    },
+    [fetchQuestions, filters, service]
+  );
+
   const resetFilters = useCallback(() => {
     setFilters({
       search: '',
@@ -219,6 +250,7 @@ export function useQuestionBank(service: QuestionBankService = httpQuestionBankS
     clearFeedback,
     refresh,
     createQuestion,
+    importQuestionsBatch,
     updateQuestion,
     syncQuestionToQuizzes,
     deleteQuestion,

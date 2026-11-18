@@ -464,6 +464,79 @@ export class SqliteQuestionBankRepository {
     return this.getQuestionById(id);
   }
 
+  createQuestionsBatch(payloads: QuestionPayload[]): QuestionRecord[] {
+    if (!Array.isArray(payloads) || payloads.length === 0) {
+      throw new QuestionValidationError('يرجى تقديم قائمة أسئلة صالحة للاستيراد.');
+    }
+
+    const normalizedList = payloads.map((p) => validateAndNormalizePayload(p, this.storagePaths));
+    const createdIds: string[] = [];
+    const now = new Date().toISOString();
+
+    const insertQuestion = this.db.prepare(
+      `
+      INSERT INTO questions (
+        id, type, prompt, image_path, correct_boolean,
+        subject, grade, topic, difficulty, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `
+    );
+
+    const insertOption = this.db.prepare(
+      `
+      INSERT INTO question_options (
+        id, question_id, option_order, option_text, image_path, is_correct
+      ) VALUES (?, ?, ?, ?, ?, ?)
+    `
+    );
+
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      for (const normalized of normalizedList) {
+        const id = crypto.randomUUID();
+        createdIds.push(id);
+
+        insertQuestion.run(
+          id,
+          normalized.type,
+          normalized.prompt,
+          normalized.imagePath,
+          normalized.correctBoolean,
+          normalized.subject,
+          normalized.grade,
+          normalized.topic,
+          normalized.difficulty,
+          now,
+          now
+        );
+
+        if (normalized.type === 'multiple_choice') {
+          normalized.options.forEach((opt, index) => {
+            insertOption.run(
+              crypto.randomUUID(),
+              id,
+              index,
+              opt.optionText,
+              opt.imagePath,
+              opt.isCorrect ? 1 : 0
+            );
+          });
+        }
+      }
+
+      this.db.exec('COMMIT');
+    } catch (error) {
+      try {
+        this.db.exec('ROLLBACK');
+      } catch {
+        // Ignore rollback failure
+      }
+      throw error;
+    }
+
+    return createdIds.map((id) => this.getQuestionById(id));
+  }
+
   updateQuestion(id: string, payload: QuestionPayload): QuestionRecord {
     const existing = this.getQuestionById(id);
     const normalized = validateAndNormalizePayload(payload, this.storagePaths);

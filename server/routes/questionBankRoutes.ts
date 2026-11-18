@@ -111,6 +111,23 @@ export function createQuestionBankRouter(db: DatabaseSync, storagePaths: Storage
     }
   });
 
+  router.post('/questions/batch', (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const questions = Array.isArray(req.body?.questions) ? req.body.questions : [];
+      if (questions.length === 0) {
+        return res.status(400).json({ error: 'لم يتم إرسال أي أسئلة صالحة للاستيراد.' });
+      }
+      const created = repository.createQuestionsBatch(questions);
+      res.status(201).json({
+        success: true,
+        count: created.length,
+        questions: created,
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.put('/questions/:id', (req: Request, res: Response, next: NextFunction) => {
     try {
       const updated = repository.updateQuestion(String(req.params.id), req.body);

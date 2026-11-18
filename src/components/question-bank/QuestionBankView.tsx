@@ -2,8 +2,10 @@ import {
   AlertCircle,
   BookOpen,
   CheckCircle2,
+  Download,
   Edit3,
   Eye,
+  FileSpreadsheet,
   Image as ImageIcon,
   Plus,
   RefreshCw,
@@ -11,7 +13,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuestionBank } from '../../hooks/useQuestionBank';
 import type {
   LinkedQuizSummary,
@@ -20,9 +22,15 @@ import type {
   QuestionRecord,
   QuestionType,
 } from '../../types/questionBank';
+import {
+  downloadQuestionBankTemplate,
+  type ExcelImportSummary,
+  parseQuestionsFromExcel,
+} from '../../utils/questionBankExcel';
 import { DeleteConfirmModal } from './DeleteConfirmModal';
 import { QuestionDetailsModal } from './QuestionDetailsModal';
 import { QuestionFormModal } from './QuestionFormModal';
+import { QuestionImportModal } from './QuestionImportModal';
 import { QuestionSyncConfirmModal } from './QuestionSyncConfirmModal';
 
 interface QuestionBankViewProps {
@@ -55,6 +63,7 @@ export function QuestionBankView({
     clearFeedback,
     refresh,
     createQuestion,
+    importQuestionsBatch,
     updateQuestion,
     syncQuestionToQuizzes,
     deleteQuestion,
@@ -71,6 +80,55 @@ export function QuestionBankView({
     summary: LinkedQuizSummary;
   } | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
+
+  // Excel Import state
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [importSummary, setImportSummary] = useState<ExcelImportSummary | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+
+  const handleDownloadTemplate = () => {
+    downloadQuestionBankTemplate();
+  };
+
+  const handleTriggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const existingPrompts = new Set(
+        questions.map((q) => q.prompt.trim().toLowerCase())
+      );
+      const summary = parseQuestionsFromExcel(buffer, file.name, existingPrompts);
+      setImportSummary(summary);
+      setIsImportModalOpen(true);
+    } catch (err) {
+      setFeedback({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'تعذر قراءة ملف Excel المرفق.',
+      });
+    }
+  };
+
+  const handleConfirmBatchImport = async (validPayloads: QuestionPayload[]) => {
+    setIsImporting(true);
+    try {
+      await importQuestionsBatch(validPayloads);
+      setIsImportModalOpen(false);
+      setImportSummary(null);
+      onQuestionsChanged?.();
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
   useEffect(() => {
     if (openCreateSignal > 0) {
@@ -177,14 +235,38 @@ export function QuestionBankView({
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handleOpenCreate}
-            className="qc-btn-primary inline-flex h-11 items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold whitespace-nowrap shrink-0"
-          >
-            <Plus className="h-4 w-4" />
-            <span>إضافة سؤال جديد</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              type="button"
+              onClick={handleDownloadTemplate}
+              data-testid="download-excel-template-btn"
+              title="تنزيل قالب Excel المعتمد لإضافة الأسئلة"
+              className="qc-btn-secondary inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-xs sm:text-sm font-bold whitespace-nowrap"
+            >
+              <Download className="h-4 w-4 text-accent" />
+              <span>تنزيل قالب Excel</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleTriggerFileInput}
+              data-testid="import-excel-questions-btn"
+              title="استيراد مجموعة أسئلة من ملف Excel"
+              className="qc-btn-secondary inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-xs sm:text-sm font-bold whitespace-nowrap"
+            >
+              <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              <span>استيراد أسئلة من Excel</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleOpenCreate}
+              className="qc-btn-primary inline-flex h-11 items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold whitespace-nowrap shrink-0"
+            >
+              <Plus className="h-4 w-4" />
+              <span>إضافة سؤال جديد</span>
+            </button>
+          </div>
         </div>
 
         <div className="mt-5 grid grid-cols-1 gap-3 border-t border-line pt-5 md:grid-cols-12">
@@ -575,6 +657,28 @@ export function QuestionBankView({
         errorMessage={syncError}
         onKeepCurrent={handleKeepCurrentSnapshots}
         onConfirmSync={handleConfirmSync}
+      />
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".xlsx, .xls"
+        className="hidden"
+        onChange={handleFileSelected}
+        aria-hidden="true"
+        data-testid="excel-file-input"
+      />
+
+      <QuestionImportModal
+        isOpen={isImportModalOpen}
+        summary={importSummary}
+        isSaving={isImporting}
+        onClose={() => {
+          setIsImportModalOpen(false);
+          setImportSummary(null);
+        }}
+        onSelectDifferentFile={handleTriggerFileInput}
+        onConfirmImport={handleConfirmBatchImport}
       />
     </div>
   );

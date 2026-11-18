@@ -18,6 +18,7 @@ export interface QuestionBankService {
   getQuestionById(id: string): Promise<QuestionRecord>;
   getLinkedQuizzes(id: string): Promise<LinkedQuizSummary>;
   createQuestion(payload: QuestionPayload): Promise<QuestionRecord>;
+  createQuestionsBatch(payloads: QuestionPayload[]): Promise<import('../types/questionBank').BatchQuestionImportResult>;
   updateQuestion(id: string, payload: QuestionPayload): Promise<QuestionUpdateResult>;
   syncQuestionToQuizzes(id: string): Promise<QuestionSyncResponse>;
   deleteQuestion(id: string): Promise<void>;
@@ -89,6 +90,17 @@ export const httpQuestionBankService: QuestionBankService = {
       body: JSON.stringify(payload),
     });
     return parseJsonOrThrow<QuestionRecord>(response);
+  },
+
+  async createQuestionsBatch(
+    payloads: QuestionPayload[]
+  ): Promise<import('../types/questionBank').BatchQuestionImportResult> {
+    const response = await fetch('/api/questions/batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ questions: payloads }),
+    });
+    return parseJsonOrThrow<import('../types/questionBank').BatchQuestionImportResult>(response);
   },
 
   async updateQuestion(id: string, payload: QuestionPayload): Promise<QuestionUpdateResult> {

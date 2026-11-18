@@ -101,3 +101,10 @@ export interface QuestionSyncResponse {
   skippedLockedQuizCount: number;
   updatedQuizIds: string[];
 }
+
+export interface BatchQuestionImportResult {
+  success: boolean;
+  count: number;
+  questions: QuestionRecord[];
+}
+
