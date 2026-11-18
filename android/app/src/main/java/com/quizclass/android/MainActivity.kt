@@ -2,6 +2,7 @@ package com.quizclass.android
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.res.Configuration
 import android.os.Bundle
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -38,8 +39,33 @@ class MainActivity : Activity() {
     private fun configureWebView() {
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
+        // Keep CSS sizing predictable across Android phones, Google TV, and smartboards.
+        webView.settings.useWideViewPort = true
+        webView.settings.loadWithOverviewMode = false
+        webView.settings.textZoom = 100
+        webView.settings.builtInZoomControls = false
+        webView.settings.displayZoomControls = false
         webView.settings.allowFileAccess = false
-        webView.webViewClient = WebViewClient()
+        webView.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                if (isLargeLandscapeDisplay()) {
+                    view?.evaluateJavascript(
+                        "document.documentElement.classList.add('qc-large-screen');",
+                        null
+                    )
+                }
+            }
+        }
+    }
+
+    private fun isLargeLandscapeDisplay(): Boolean {
+        val config = resources.configuration
+        val isTelevision = (config.uiMode and Configuration.UI_MODE_TYPE_MASK) ==
+            Configuration.UI_MODE_TYPE_TELEVISION
+        val isWideLandscape = config.orientation == Configuration.ORIENTATION_LANDSCAPE &&
+            config.screenWidthDp >= 800
+        return isTelevision || isWideLandscape
     }
 
     private fun startEmbeddedNode() {
