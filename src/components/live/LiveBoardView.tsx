@@ -108,7 +108,7 @@ export function LiveBoardView({
   return (
     <div
       ref={containerRef}
-      className={`space-y-5 ${
+      className={`space-y-5 ${isFullscreen ? 'qc-tv-stage qc-tv-live-board' : ''} ${
         isFullscreen
           ? 'min-h-screen overflow-y-auto bg-canvas p-4 sm:p-8'
           : 'rounded-3xl bg-surface-subtle p-2 sm:p-4'
