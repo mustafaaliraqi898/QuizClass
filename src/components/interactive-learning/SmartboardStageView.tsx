@@ -28,6 +28,7 @@ import {
   type SmartboardQuestionState,
 } from './interactiveLearningLogic';
 import { TwoPlayerCompetitionStageView } from './TwoPlayerCompetitionStageView';
+import { InteractiveLearningLaunchSetup, type CompetitionSetup } from './InteractiveLearningLaunchSetup';
 
 interface SmartboardStageViewProps {
   activity: InteractiveActivityRecord;
@@ -40,7 +41,8 @@ export function SmartboardStageView({
   activity,
   onExitToActivities,
 }: SmartboardStageViewProps) {
-  const [mode, setMode] = useState<'standard' | 'two_player'>('standard');
+  const [mode, setMode] = useState<'setup' | 'standard' | 'two_player'>('setup');
+  const [competitionSetup, setCompetitionSetup] = useState<CompetitionSetup | null>(null);
   const [stageState, setStageState] = useState<SmartboardQuestionState>(() =>
     createInitialSmartboardState()
   );
@@ -88,7 +90,7 @@ export function SmartboardStageView({
         'لم يتم تفعيل ملء الشاشة تلقائياً بسبب قيود المتصفح — يمكنك الضغط على زر ملء الشاشة يدوياً.'
       );
     });
-  }, [activity.id, activity.autoFullscreen]);
+  }, [activity.id, activity.autoFullscreen, mode]);
 
   const handleToggleFullscreen = () => {
     setFullscreenNote(null);
@@ -115,12 +117,24 @@ export function SmartboardStageView({
     onExitToActivities();
   };
 
+  if (mode === 'setup') {
+    return (
+      <InteractiveLearningLaunchSetup
+        onStartStandard={() => setMode('standard')}
+        onStartCompetition={(setup) => {
+          setCompetitionSetup(setup);
+          setMode('two_player');
+        }}
+      />
+    );
+  }
+
   if (mode === 'two_player') {
     return (
       <TwoPlayerCompetitionStageView
         activity={activity}
+        players={competitionSetup ?? undefined}
         onExitToActivities={handleExit}
-        onSwitchToStandard={() => setMode('standard')}
       />
     );
   }
@@ -266,7 +280,7 @@ export function SmartboardStageView({
           <div className="flex items-center gap-2.5">
             <button
               type="button"
-              onClick={() => setMode('two_player')}
+              onClick={() => setMode('setup')}
               data-testid="switch-to-two-player-btn"
               className="qc-btn-secondary inline-flex h-12 items-center gap-2 rounded-2xl px-4 text-sm font-extrabold whitespace-nowrap shrink-0"
             >
