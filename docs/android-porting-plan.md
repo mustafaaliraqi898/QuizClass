@@ -61,3 +61,21 @@ References:
 - The exact full runtime binary and native bridge must be pinned and verified.
 - Native Node modules, if any are introduced, need Android ABI-compatible builds.
 - Android lifecycle, process startup/shutdown, permissions, WebView origin policy, and local-server security need explicit handling.
+
+
+## First Android-specific backend change
+
+The Android branch now has an isolated entry point at `server/mobile.ts`:
+
+- It requires absolute `QUIZCLASS_APP_ROOT` and `QUIZCLASS_DATA_DIR` paths supplied by the native host.
+- It opens the existing SQLite database and media directories under the supplied app-private data directory.
+- It serves the existing Vite production build and the existing API routes.
+- It exposes `GET /health` for native/WebView readiness checks.
+- It binds only to `127.0.0.1`, unlike the desktop/server entry point.
+- It starts the same Socket.IO live-session service.
+- It does not change `server.ts` or Electron behavior.
+
+A separate `build:mobile-server` script bundles this entry point for Node 24 into the future Android assets location:
+`android/app/src/main/assets/quizclass/server.cjs`.
+
+This is source-level groundwork only. The Android project, embedded runtime binary, JNI bridge, and device validation are not present yet. The build script has not yet been executed in CI or on an Android device.
