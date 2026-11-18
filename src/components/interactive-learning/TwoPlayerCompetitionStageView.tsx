@@ -34,7 +34,7 @@ interface TwoPlayerCompetitionStageViewProps {
 }
 
 const OPTION_LETTERS = ['أ', 'ب', 'ج', 'د', 'هـ', 'و'];
-const QUESTION_TIME_SECONDS = 30;
+const QUESTION_TIME_SECONDS = 20;
 
 export function TwoPlayerCompetitionStageView({
   activity,
