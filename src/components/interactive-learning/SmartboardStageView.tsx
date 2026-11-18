@@ -285,7 +285,7 @@ export function SmartboardStageView({
               className="qc-btn-secondary inline-flex h-12 items-center gap-2 rounded-2xl px-4 text-sm font-extrabold whitespace-nowrap shrink-0"
             >
               <Users className="h-4 w-4 text-accent" />
-              <span>منافسة طالبين</span>
+              <span>إعداد التشغيل</span>
             </button>
 
             <button
