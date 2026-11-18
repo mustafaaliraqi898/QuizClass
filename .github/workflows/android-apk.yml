@@ -53,16 +53,24 @@ jobs:
           npm run prepare:android-assets
 
       - name: Download and verify full Node.js Mobile runtime
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
+          set -euxo pipefail
           version="24.22.1-0"
+          tag="v${version}"
           archive="nodejs-mobile-android-${version}.zip"
+          release_url="https://github.com/fogtape/nodejs-mobile/releases/download/${tag}"
           mkdir -p /tmp/node-mobile
           cd /tmp/node-mobile
-          gh release download "v${version}" --repo fogtape/nodejs-mobile --pattern "${archive}" --pattern "SHA256SUMS"
-          grep -E "[[:space:]]${archive//./\\.}$" SHA256SUMS | sha256sum --check -
+
+          # Fetch public release assets directly; this avoids relying on gh CLI auth
+          # for a dependency hosted in a different public repository.
+          curl --fail --location --retry 3 --retry-delay 2 \
+            "${release_url}/${archive}" --output "${archive}"
+          curl --fail --location --retry 3 --retry-delay 2 \
+            "${release_url}/SHA256SUMS" --output SHA256SUMS
+
+          checksum_line="$(awk -v file="${archive}" '$2 == file || $2 == "*" file { print; found=1; exit } END { if (!found) exit 1 }' SHA256SUMS)"
+          printf '%s\n' "${checksum_line}" | sha256sum --check -
           unzip -q "${archive}" -d extracted
 
           mkdir -p "$GITHUB_WORKSPACE/android/app/src/main/jniLibs"
