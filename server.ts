@@ -37,7 +37,8 @@ async function startServer() {
   let vite: ViteDevServer | undefined;
 
   if (IS_PRODUCTION) {
-    const distDir = path.resolve(process.cwd(), 'dist');
+    const appRoot = process.env.QUIZCLASS_APP_ROOT || process.cwd();
+    const distDir = path.join(appRoot, 'dist');
     app.use(express.static(distDir));
     app.get('/{*splat}', (_req, res) => {
       const indexFile = path.join(distDir, 'index.html');
