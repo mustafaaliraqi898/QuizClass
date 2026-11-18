@@ -7,6 +7,7 @@ set_target_properties(node PROPERTIES
 )
 
 add_library(native-lib SHARED node_bridge.cpp)
+target_compile_features(native-lib PRIVATE cxx_std_20)
 target_include_directories(native-lib PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/libnode/include/node")
 find_library(log-lib log)
 find_library(android-lib android)
