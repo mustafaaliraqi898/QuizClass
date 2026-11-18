@@ -16,7 +16,9 @@ import {
 process.env.NODE_ENV = 'production';
 
 const PORT = Number(process.env.PORT ?? 3000);
-const HOST = '127.0.0.1';
+// Bind to all interfaces so student phones/tablets on the same LAN can join.
+// Teacher/admin HTTP routes and teacher Socket.IO subscriptions remain guarded.
+const HOST = '0.0.0.0';
 
 async function startMobileServer() {
   const appRoot = process.env.QUIZCLASS_APP_ROOT;
