@@ -982,3 +982,175 @@
     padding: clamp(8px, 1vh, 14px);
   }
 }
+
+
+/* Final TV density pass: prioritize the full activity over oversized desktop
+   spacing. Keep the viewport fixed; scrolling, when unavoidable, stays inside
+   the content panel rather than hiding the teacher controls below the TV edge. */
+@media (orientation: landscape) and (min-width: 700px) and (max-height: 1000px) {
+  html.qc-large-screen .qc-tv-stage {
+    height: 100dvh !important;
+    min-height: 0 !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    padding: clamp(6px, 1vh, 12px) clamp(10px, 1.2vw, 20px) !important;
+    gap: clamp(6px, .8vh, 10px) !important;
+  }
+
+  /* Two-player activity: compact header, two equal player panels, visible dock. */
+  html.qc-large-screen .qc-tv-competition:not(:has([data-testid="two-player-completion"])) {
+    display: grid !important;
+    grid-template-rows: auto minmax(0, 1fr) auto !important;
+    justify-content: stretch !important;
+  }
+
+  html.qc-large-screen .qc-tv-competition > header {
+    gap: 6px !important;
+  }
+
+  html.qc-large-screen .qc-tv-competition > header .h-11 {
+    height: 2.1rem !important;
+  }
+
+  html.qc-large-screen .qc-tv-competition > header .px-5,
+  html.qc-large-screen .qc-tv-competition > header .px-4 {
+    padding-inline: .7rem !important;
+  }
+
+  html.qc-large-screen .qc-tv-competition > main {
+    min-height: 0 !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: clamp(6px, .8vw, 12px) !important;
+    overflow: hidden !important;
+  }
+
+  html.qc-large-screen .qc-tv-competition > footer {
+    padding-top: 6px !important;
+    gap: 6px !important;
+  }
+
+  html.qc-large-screen .qc-tv-competition > footer button {
+    height: 2.5rem !important;
+    padding-inline: clamp(10px, 1vw, 18px) !important;
+    font-size: clamp(11px, 1.35vh, 14px) !important;
+  }
+
+  /* Completion / podium screen: shrink avatars, headings and cards to fit. */
+  html.qc-large-screen .qc-tv-competition:has([data-testid="two-player-completion"]) {
+    display: block !important;
+    overflow: hidden !important;
+  }
+
+  html.qc-large-screen .qc-tv-competition [data-testid="two-player-completion"] {
+    height: 100% !important;
+    min-height: 0 !important;
+    box-sizing: border-box !important;
+    padding: 2.8rem 1rem .5rem !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+  }
+
+  html.qc-large-screen .qc-tv-competition [data-testid="two-player-completion"] > div.relative.z-20 {
+    max-width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    gap: clamp(6px, 1vh, 12px) !important;
+  }
+
+  html.qc-large-screen .qc-tv-competition [data-testid="two-player-completion"] [data-testid="tie-celebration"],
+  html.qc-large-screen .qc-tv-competition [data-testid="two-player-completion"] [data-testid="winner-celebration"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: clamp(6px, .8vh, 10px) !important;
+  }
+
+  html.qc-large-screen .qc-tv-competition [data-testid="two-player-completion"] h2 {
+    font-size: clamp(1.2rem, 2.5vh, 2rem) !important;
+    line-height: 1.2 !important;
+  }
+
+  html.qc-large-screen .qc-tv-competition [data-testid="two-player-completion"] .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: clamp(6px, .8vh, 10px) !important;
+  }
+
+  html.qc-large-screen .qc-tv-competition [data-testid="two-player-completion"] .p-6,
+  html.qc-large-screen .qc-tv-competition [data-testid="two-player-completion"] .sm\\:p-12,
+  html.qc-large-screen .qc-tv-competition [data-testid="two-player-completion"] .px-6.py-7 {
+    padding: clamp(6px, 1vh, 12px) !important;
+  }
+
+  html.qc-large-screen .qc-tv-competition [data-testid="two-player-completion"] button {
+    height: 2.5rem !important;
+    padding-inline: 12px !important;
+    font-size: 12px !important;
+  }
+
+  /* Live board: keep the status strip and controls visible; scroll only the
+     question/results body if a question contains unusually large media. */
+  html.qc-large-screen .qc-tv-live-board {
+    display: grid !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    height: 100dvh !important;
+    overflow: hidden !important;
+    gap: 8px !important;
+  }
+
+  html.qc-large-screen .qc-tv-live-board > section:first-child {
+    padding: 8px 12px !important;
+    overflow: visible !important;
+  }
+
+  html.qc-large-screen .qc-tv-live-board > section:first-child .flex.flex-col {
+    gap: 6px !important;
+  }
+
+  html.qc-large-screen .qc-tv-live-board > section:first-child .flex.flex-wrap {
+    gap: 6px !important;
+  }
+
+  html.qc-large-screen .qc-tv-live-board > section:first-child button {
+    height: 2rem !important;
+    padding-inline: 9px !important;
+    font-size: 11px !important;
+  }
+
+  html.qc-large-screen .qc-tv-live-board > section:nth-child(2) {
+    min-height: 0 !important;
+    overflow: auto !important;
+    padding: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+  }
+
+  html.qc-large-screen .qc-tv-live-board > section:nth-child(2) .py-8 {
+    padding-block: 8px !important;
+  }
+
+  html.qc-large-screen .qc-tv-live-board > section:nth-child(2) h3 {
+    font-size: clamp(1.15rem, 2.4vh, 2rem) !important;
+    line-height: 1.25 !important;
+  }
+
+  html.qc-large-screen .qc-tv-live-board > section:nth-child(2) .p-5,
+  html.qc-large-screen .qc-tv-live-board > section:nth-child(2) .p-6,
+  html.qc-large-screen .qc-tv-live-board > section:nth-child(2) .sm\\:p-8 {
+    padding: clamp(8px, 1vh, 12px) !important;
+  }
+
+  html.qc-large-screen .qc-tv-live-board > section:nth-child(2) .gap-4 {
+    gap: 8px !important;
+  }
+
+  html.qc-large-screen .qc-tv-live-board > section:nth-child(2) .text-2xl {
+    font-size: clamp(1rem, 2vh, 1.5rem) !important;
+  }
+
+  html.qc-large-screen .qc-tv-live-board > section:nth-child(2) .h-16,
+  html.qc-large-screen .qc-tv-live-board > section:nth-child(2) .sm\\:h-20 {
+    width: 2.8rem !important;
+    height: 2.8rem !important;
+  }
+}
