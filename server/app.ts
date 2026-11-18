@@ -5,6 +5,7 @@ import { createInteractiveLearningRouter } from './routes/interactiveLearningRou
 import { createLiveSessionRouter } from './routes/liveSessionRoutes.ts';
 import { createQuestionBankRouter } from './routes/questionBankRoutes.ts';
 import { createQuizRouter } from './routes/quizRoutes.ts';
+import { createResultsArchiveRouter } from './routes/resultsArchiveRoutes.ts';
 import {
   InteractiveActivityNotFoundError,
   InteractiveActivityValidationError,
@@ -23,6 +24,10 @@ import {
   QuestionValidationError,
 } from './services/questionBankRepository.ts';
 import { QuizNotFoundError, QuizValidationError } from './services/quizRepository.ts';
+import {
+  ResultsArchiveNotFoundError,
+  ResultsArchiveValidationError,
+} from './services/resultsArchiveRepository.ts';
 
 export function createServerApp(
   db: DatabaseSync,
@@ -42,6 +47,7 @@ export function createServerApp(
   app.use('/api', createQuizRouter(db, storagePaths));
   app.use('/api', createLiveSessionRouter(db, storagePaths, liveSocketHub));
   app.use('/api', createInteractiveLearningRouter(db, storagePaths));
+  app.use('/api', createResultsArchiveRouter(db));
 
   // Global error handler catching JSON parse errors and internal server errors without leaking stack traces
   app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
@@ -59,6 +65,8 @@ export function createServerApp(
       error instanceof LiveSessionNotFoundError ||
       error instanceof InteractiveActivityValidationError ||
       error instanceof InteractiveActivityNotFoundError ||
+      error instanceof ResultsArchiveValidationError ||
+      error instanceof ResultsArchiveNotFoundError ||
       error instanceof MediaValidationError
     ) {
       res.status(error.statusCode).json({ error: error.message });

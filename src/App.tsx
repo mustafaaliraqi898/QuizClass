@@ -18,10 +18,9 @@ import { StudentJoinView } from './components/live/StudentJoinView';
 import { QuestionBankView } from './components/question-bank/QuestionBankView';
 import { CreateQuizView } from './components/quizzes/CreateQuizView';
 import { QuizzesListView } from './components/quizzes/QuizzesListView';
-import { ModuleRoadmapView } from './components/sections/ModuleRoadmapView';
+import { ResultsArchiveView } from './components/results/ResultsArchiveView';
 import { SettingsPreviewView } from './components/sections/SettingsPreviewView';
 import {
-  MODULE_ROADMAP,
   NAVIGATION_ITEMS,
   QUICK_SHORTCUTS,
 } from './data/previewDashboardData';
@@ -54,7 +53,6 @@ export default function App() {
   } = useDashboardData();
 
   const [activeSection, setActiveSection] = useState<NavSectionId>('dashboard');
-  const [sectionContextNote, setSectionContextNote] = useState<string | undefined>(undefined);
   const [openCreateQuestionSignal, setOpenCreateQuestionSignal] = useState(0);
   const [editingQuizId, setEditingQuizId] = useState<string | null>(null);
   const [quizzesNotice, setQuizzesNotice] = useState<string | null>(null);
@@ -71,9 +69,8 @@ export default function App() {
   const [conflictError, setConflictError] = useState<string | null>(null);
 
   const handleNavigate = useCallback(
-    (section: NavSectionId, contextNote?: string, shortcutId?: string) => {
+    (section: NavSectionId, _contextNote?: string, shortcutId?: string) => {
       setActiveSection(section);
-      setSectionContextNote(contextNote);
       setLiveLaunchError(null);
       if (section === 'create-quiz') {
         setEditingQuizId(null);
@@ -295,13 +292,7 @@ export default function App() {
               />
             )}
 
-            {activeSection === 'reports' && (
-              <ModuleRoadmapView
-                moduleInfo={MODULE_ROADMAP.reports}
-                contextNote={sectionContextNote}
-                onNavigate={(section) => handleNavigate(section)}
-              />
-            )}
+            {activeSection === 'reports' && <ResultsArchiveView />}
           </main>
         </div>
       </div>

@@ -48,7 +48,7 @@ export const NAVIGATION_ITEMS: NavItem[] = [
   {
     id: 'reports',
     label: 'النتائج والتقارير',
-    description: 'تحليل درجات الطلاب وترتيبهم',
+    description: 'أرشيف نتائج المسابقات المباشرة وتفاصيل إجابات المشاركين',
   },
   {
     id: 'settings',
@@ -88,7 +88,7 @@ export const QUICK_SHORTCUTS: QuickShortcut[] = [
   {
     id: 'shortcut-view-reports',
     title: 'عرض النتائج',
-    subtitle: 'مراجعة أداء الطلاب وترتيب المتصدرين',
+    subtitle: 'استعراض أرشيف المسابقات وترتيب المشاركين وإجاباتهم',
     targetSection: 'reports',
     accentTone: 'violet',
   },

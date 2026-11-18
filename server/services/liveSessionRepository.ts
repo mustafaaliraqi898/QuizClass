@@ -28,6 +28,7 @@ import type { StoragePaths } from '../config/storagePaths.ts';
 import { mediaRelativePathToUrl } from './mediaStorageService.ts';
 import { resolveSessionNetworkOptions } from './networkDiscoveryService.ts';
 import { QuizNotFoundError, SqliteQuizRepository } from './quizRepository.ts';
+import { archiveCompletedSessionTx } from './resultsArchiveRepository.ts';
 
 interface LiveSessionRow {
   id: string;
@@ -1332,6 +1333,10 @@ export class SqliteLiveSessionRepository {
         .prepare(`UPDATE quizzes SET lifecycle_status = 'completed', updated_at = ? WHERE id = ?`)
         .run(nowIso, row.quiz_id);
 
+      if (completeRes.changes === 1) {
+        archiveCompletedSessionTx(this.db, sessionId);
+      }
+
       this.db.exec('COMMIT');
       return { transitioned: completeRes.changes === 1, completed: completeRes.changes === 1 };
     } catch (error) {
@@ -1436,6 +1441,8 @@ export class SqliteLiveSessionRepository {
         `
         )
         .run(now, row.quiz_id);
+
+      archiveCompletedSessionTx(this.db, sessionId);
 
       this.db.exec('COMMIT');
     } catch (error) {

@@ -1,4 +1,5 @@
 import { DatabaseSync } from 'node:sqlite';
+import { backfillLegacyCompletedSessions } from '../services/resultsArchiveRepository.ts';
 
 export function initializeDatabase(dbFilePath: string): DatabaseSync {
   const db = new DatabaseSync(dbFilePath);
@@ -233,6 +234,114 @@ export function initializeDatabase(dbFilePath: string): DatabaseSync {
       ON interactive_activities(updated_at DESC);
     CREATE INDEX IF NOT EXISTS idx_interactive_activity_questions_order
       ON interactive_activity_questions(activity_id, question_order);
+
+    CREATE TABLE IF NOT EXISTS archived_sessions (
+      id TEXT PRIMARY KEY,
+      live_session_id TEXT NOT NULL UNIQUE,
+      quiz_id TEXT,
+      quiz_title TEXT NOT NULL,
+      quiz_subject TEXT,
+      quiz_grade TEXT,
+      pin_code TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'completed' CHECK (status = 'completed'),
+      scoring_mode TEXT NOT NULL DEFAULT 'speed_and_accuracy' CHECK (scoring_mode IN ('speed_and_accuracy', 'accuracy_only')),
+      advance_mode TEXT NOT NULL DEFAULT 'auto' CHECK (advance_mode IN ('auto', 'manual')),
+      allow_answer_change INTEGER NOT NULL DEFAULT 0 CHECK (allow_answer_change IN (0, 1)),
+      allow_late_join INTEGER NOT NULL DEFAULT 1 CHECK (allow_late_join IN (0, 1)),
+      question_intro_seconds INTEGER NOT NULL DEFAULT 5,
+      auto_advance_seconds INTEGER NOT NULL DEFAULT 5,
+      full_screen_mode INTEGER NOT NULL DEFAULT 0 CHECK (full_screen_mode IN (0, 1)),
+      question_count INTEGER NOT NULL DEFAULT 0,
+      participant_count INTEGER NOT NULL DEFAULT 0,
+      started_at TEXT,
+      ended_at TEXT,
+      archived_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_archived_sessions_ended_at
+      ON archived_sessions(ended_at DESC, archived_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_archived_sessions_quiz_title
+      ON archived_sessions(quiz_title);
+
+    CREATE TABLE IF NOT EXISTS archived_session_questions (
+      id TEXT PRIMARY KEY,
+      archive_id TEXT NOT NULL,
+      source_session_question_id TEXT,
+      source_quiz_question_id TEXT,
+      source_question_id TEXT,
+      question_order INTEGER NOT NULL,
+      type TEXT NOT NULL CHECK (type IN ('multiple_choice', 'true_false')),
+      prompt TEXT NOT NULL,
+      image_path TEXT,
+      correct_boolean INTEGER CHECK (correct_boolean IS NULL OR correct_boolean IN (0, 1)),
+      subject TEXT,
+      grade TEXT,
+      topic TEXT,
+      difficulty TEXT CHECK (difficulty IS NULL OR difficulty IN ('easy', 'medium', 'hard')),
+      time_limit_seconds INTEGER NOT NULL,
+      points INTEGER NOT NULL DEFAULT 1000,
+      FOREIGN KEY (archive_id) REFERENCES archived_sessions(id) ON DELETE CASCADE,
+      UNIQUE (archive_id, question_order)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_archived_session_questions_archive_id
+      ON archived_session_questions(archive_id, question_order);
+
+    CREATE TABLE IF NOT EXISTS archived_session_options (
+      id TEXT PRIMARY KEY,
+      archive_question_id TEXT NOT NULL,
+      source_option_id TEXT,
+      option_order INTEGER NOT NULL,
+      option_text TEXT,
+      image_path TEXT,
+      is_correct INTEGER NOT NULL DEFAULT 0 CHECK (is_correct IN (0, 1)),
+      FOREIGN KEY (archive_question_id) REFERENCES archived_session_questions(id) ON DELETE CASCADE,
+      UNIQUE (archive_question_id, option_order)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_archived_session_options_q_id
+      ON archived_session_options(archive_question_id, option_order);
+
+    CREATE TABLE IF NOT EXISTS archived_session_participants (
+      id TEXT PRIMARY KEY,
+      archive_id TEXT NOT NULL,
+      source_participant_id TEXT,
+      display_name TEXT NOT NULL,
+      avatar_id TEXT NOT NULL DEFAULT 'avatar_cat',
+      total_score INTEGER NOT NULL DEFAULT 0,
+      rank_position INTEGER,
+      correct_count INTEGER NOT NULL DEFAULT 0,
+      wrong_count INTEGER NOT NULL DEFAULT 0,
+      unanswered_count INTEGER NOT NULL DEFAULT 0,
+      accuracy_percent REAL,
+      total_response_time_ms INTEGER NOT NULL DEFAULT 0,
+      joined_at TEXT,
+      FOREIGN KEY (archive_id) REFERENCES archived_sessions(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_archived_session_participants_archive_rank
+      ON archived_session_participants(archive_id, rank_position ASC, total_score DESC);
+
+    CREATE TABLE IF NOT EXISTS archived_session_answers (
+      id TEXT PRIMARY KEY,
+      archive_id TEXT NOT NULL,
+      archive_question_id TEXT NOT NULL,
+      archive_participant_id TEXT NOT NULL,
+      selected_archive_option_id TEXT,
+      selected_option_text_snapshot TEXT,
+      selected_boolean INTEGER CHECK (selected_boolean IS NULL OR selected_boolean IN (0, 1)),
+      is_correct INTEGER NOT NULL DEFAULT 0 CHECK (is_correct IN (0, 1)),
+      response_time_ms INTEGER,
+      points_awarded INTEGER NOT NULL DEFAULT 0,
+      answered_at TEXT NOT NULL,
+      FOREIGN KEY (archive_id) REFERENCES archived_sessions(id) ON DELETE CASCADE,
+      FOREIGN KEY (archive_question_id) REFERENCES archived_session_questions(id) ON DELETE CASCADE,
+      FOREIGN KEY (archive_participant_id) REFERENCES archived_session_participants(id) ON DELETE CASCADE,
+      UNIQUE (archive_question_id, archive_participant_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_archived_session_answers_archive_participant
+      ON archived_session_answers(archive_id, archive_participant_id);
   `);
 
   const ensureColumns = (table: string, definitions: Array<{ name: string; sql: string }>) => {
@@ -290,6 +399,9 @@ export function initializeDatabase(dbFilePath: string): DatabaseSync {
       name: 'full_screen_mode',
       sql: 'full_screen_mode INTEGER NOT NULL DEFAULT 0 CHECK (full_screen_mode IN (0, 1))',
     },
+    { name: 'question_started_at', sql: 'question_started_at TEXT' },
+    { name: 'started_at', sql: 'started_at TEXT' },
+    { name: 'ended_at', sql: 'ended_at TEXT' },
   ]);
 
   ensureColumns('live_session_questions', [
@@ -300,10 +412,20 @@ export function initializeDatabase(dbFilePath: string): DatabaseSync {
   ]);
 
   ensureColumns('live_session_participants', [
+    {
+      name: 'connection_status',
+      sql: `connection_status TEXT NOT NULL DEFAULT 'connected' CHECK (connection_status IN ('connected', 'disconnected'))`,
+    },
+    { name: 'total_score', sql: 'total_score INTEGER NOT NULL DEFAULT 0' },
+    { name: 'correct_count', sql: 'correct_count INTEGER NOT NULL DEFAULT 0' },
     { name: 'wrong_count', sql: 'wrong_count INTEGER NOT NULL DEFAULT 0' },
     { name: 'total_response_time_ms', sql: 'total_response_time_ms INTEGER NOT NULL DEFAULT 0' },
+    { name: 'rank_position', sql: 'rank_position INTEGER' },
+    { name: 'disconnected_at', sql: 'disconnected_at TEXT' },
     { name: 'avatar_id', sql: "avatar_id TEXT NOT NULL DEFAULT 'avatar_cat'" },
   ]);
+
+  backfillLegacyCompletedSessions(db);
 
   return db;
 }
