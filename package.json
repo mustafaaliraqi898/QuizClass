@@ -13,7 +13,8 @@
     "build:server": "esbuild server.ts --bundle --platform=node --format=cjs --packages=external --outfile=electron/server.cjs --target=node22",
     "build:mobile-server": "esbuild server/mobile.ts --bundle --platform=node --format=cjs --outfile=android/app/src/main/assets/quizclass/server.cjs --target=node24",
     "electron:dev": "electron electron/main.cjs",
-    "electron:build": "npm run build && npm run build:server && electron-builder --win nsis --publish never"
+    "electron:build": "npm run build && npm run build:server && electron-builder --win nsis --publish never",
+    "prepare:android-assets": "mkdir -p android/app/src/main/assets/quizclass && rm -rf android/app/src/main/assets/quizclass/dist && cp -R dist android/app/src/main/assets/quizclass/dist"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
