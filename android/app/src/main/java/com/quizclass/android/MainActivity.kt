@@ -48,13 +48,20 @@ class MainActivity : Activity() {
                 waitForServerAndLoad()
                 return
             }
-            nodeStarted = true
         }
 
         val appRoot = File(filesDir, "quizclass-app")
         if (!copyAssetsIfNeeded(appRoot)) {
             showStartupError("تعذر تجهيز ملفات QuizClass.")
             return
+        }
+
+        synchronized(MainActivity::class.java) {
+            if (nodeStarted) {
+                waitForServerAndLoad()
+                return
+            }
+            nodeStarted = true
         }
 
         val dataDir = File(noBackupFilesDir, "quizclass-data")
