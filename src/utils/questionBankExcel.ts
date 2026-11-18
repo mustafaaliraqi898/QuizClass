@@ -238,6 +238,25 @@ export function downloadQuestionBankTemplate(): void {
   const blob = new Blob([buffer], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
+  const nativeBridge = (window as Window & {
+    QuizClassNative?: {
+      saveBase64File: (fileName: string, mimeType: string, base64Data: string) => void;
+    };
+  }).QuizClassNative;
+
+  // Android WebView cannot reliably download blob: URLs. Use the native
+  // Downloads bridge when running inside the Android application.
+  if (nativeBridge?.saveBase64File) {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    const chunkSize = 0x8000;
+    for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
+    }
+    nativeBridge.saveBase64File(TEMPLATE_FILE_NAME, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', btoa(binary));
+    return;
+  }
+
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
