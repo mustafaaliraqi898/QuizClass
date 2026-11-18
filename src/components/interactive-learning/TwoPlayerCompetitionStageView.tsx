@@ -158,7 +158,6 @@ export function TwoPlayerCompetitionStageView({
     const p2Score = session.roundState.p2Score;
     const isTie = p1Score === p2Score;
     const winner = isTie ? null : p1Score > p2Score ? player1 : player2;
-    const winnerAvatar = winner?.avatarId ?? player1.avatarId;
 
     return (
       <div
