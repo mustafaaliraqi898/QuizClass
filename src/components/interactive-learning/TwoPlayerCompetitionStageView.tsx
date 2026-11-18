@@ -8,13 +8,15 @@ import {
   Pause,
   Play,
   RotateCcw,
-  ShieldCheck,
+  Sparkles,
   Trophy,
   Users,
   XCircle,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { InteractiveActivityRecord } from '../../types/interactiveLearning';
+import { AnimatedFullBodyAvatar } from '../live/AnimatedFullBodyAvatar';
+import type { CompetitionSetup } from './InteractiveLearningLaunchSetup';
 import { extractSmartboardCorrectAnswerText } from './interactiveLearningLogic';
 import {
   createInitialTwoPlayerSession,
@@ -27,17 +29,19 @@ import {
 interface TwoPlayerCompetitionStageViewProps {
   activity: InteractiveActivityRecord;
   onExitToActivities: () => void;
-  onSwitchToStandard?: () => void;
+  players?: CompetitionSetup;
 }
 
 const OPTION_LETTERS = ['أ', 'ب', 'ج', 'د', 'هـ', 'و'];
-const QUESTION_TIME_SECONDS = 30;
+const QUESTION_TIME_SECONDS = 20;
 
 export function TwoPlayerCompetitionStageView({
   activity,
   onExitToActivities,
-  onSwitchToStandard,
+  players,
 }: TwoPlayerCompetitionStageViewProps) {
+  const player1 = players?.player1 ?? { name: 'الطالب الأول', avatarId: 'avatar_robot' };
+  const player2 = players?.player2 ?? { name: 'الطالب الثاني', avatarId: 'avatar_alien' };
   const [session, setSession] = useState<TwoPlayerSessionState>(() =>
     createInitialTwoPlayerSession(QUESTION_TIME_SECONDS)
   );
@@ -147,83 +151,74 @@ export function TwoPlayerCompetitionStageView({
     );
   }
 
-  // Final Completion Summary View
+  // Celebration screen after the final question
   if (session.completed) {
     const p1Score = session.roundState.p1Score;
     const p2Score = session.roundState.p2Score;
-    let winnerText = 'تعادل مثير بين الطالبين!';
-    let winnerBadge = '🤝 تعادل';
-
-    if (p1Score > p2Score) {
-      winnerText = 'فاز الطالب الأول (أحمد) بجدارة!';
-      winnerBadge = '🏆 بطل التحدي: الطالب الأول';
-    } else if (p2Score > p1Score) {
-      winnerText = 'فازت الطالبة الثانية (سارة) بجدارة!';
-      winnerBadge = '🏆 بطلة التحدي: الطالبة الثانية';
-    }
+    const isTie = p1Score === p2Score;
+    const winner = isTie ? null : p1Score > p2Score ? player1 : player2;
 
     return (
       <div
         ref={stageRef}
         data-testid="two-player-completion"
-        className={`flex flex-col items-center justify-center p-8 sm:p-14 text-center ${
-          isFullscreen ? 'min-h-screen bg-canvas' : 'qc-card rounded-3xl'
-        }`}
+        dir="rtl"
+        className={`relative isolate flex min-h-[82vh] flex-col items-center justify-center overflow-hidden rounded-3xl bg-gradient-to-br from-[#081a46] via-[#172b70] to-[#35166d] px-4 py-10 text-center text-white shadow-2xl sm:px-8 ${isFullscreen ? 'min-h-screen' : ''}`}
       >
-        <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-selected text-accent ring-4 ring-primary/20">
-          <Trophy className="h-11 w-11" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute -left-20 top-10 h-72 w-72 rounded-full bg-fuchsia-500/25 blur-3xl" />
+          <div className="absolute -right-20 top-16 h-80 w-80 rounded-full bg-sky-400/25 blur-3xl" />
+          <div className="absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-amber-400/20 blur-3xl" />
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300 to-transparent" />
         </div>
 
-        <span className="mt-4 rounded-full bg-primary/10 px-4 py-1.5 text-xs font-black text-accent">
-          {winnerBadge}
-        </span>
-
-        <h2 className="font-display mt-3 text-2xl sm:text-4xl font-black text-ink">
-          {winnerText}
+        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-300/40 bg-amber-300/10 px-5 py-2 text-sm font-black text-amber-200 shadow-lg">
+          <Trophy className="h-5 w-5" />
+          <span>{isTie ? 'منافسة رائعة!' : 'نتيجة المنافسة'}</span>
+        </div>
+        <h2 className="font-display text-3xl font-black leading-tight text-white drop-shadow-lg sm:text-5xl">
+          {isTie ? 'تعادل رائع بين البطلين!' : `🏆 الفائز: ${winner?.name}`}
         </h2>
-        <p className="mt-2 max-w-xl text-sm sm:text-base font-medium text-ink-muted">
-          انتهت منافسة طالبين في نشاط «{activity.title}» بعد الإجابة على {totalQuestions} أسئلة.
+        <p className="mt-3 max-w-2xl text-sm font-medium text-blue-100 sm:text-base">
+          {isTie ? 'أداء مميز منكما، تستحقان التحية!' : 'أحسنت! أداء رائع واستحقاق للبطولة، ومشاركة مميزة من المنافس الآخر.'}
         </p>
 
-        {/* Final Score Cards */}
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl">
-          <div className="rounded-2xl border-2 border-primary/30 bg-selected/40 p-6 text-center space-y-2">
-            <span className="text-xs font-bold text-accent">الطالب الأول (أحمد)</span>
-            <div className="font-display text-4xl font-black text-ink tabular-nums">
-              {p1Score} <span className="text-lg font-bold text-ink-muted">نقطة</span>
+        <div className="mt-8 grid w-full max-w-5xl grid-cols-1 items-end gap-5 md:grid-cols-2">
+          <section className={`relative flex min-h-72 flex-col items-center justify-end overflow-hidden rounded-3xl border p-5 pt-8 shadow-xl ${p1Score >= p2Score ? 'border-amber-300/70 bg-gradient-to-b from-blue-500/35 to-blue-950/80' : 'border-blue-300/40 bg-blue-950/45'}`}>
+            {p1Score > p2Score && <span className="absolute left-4 top-4 rounded-full bg-amber-300 px-3 py-1 text-xs font-black text-amber-950">المركز الأول 🏆</span>}
+            <AnimatedFullBodyAvatar avatarId={player1.avatarId} size="xl" showCrown={p1Score > p2Score || isTie} celebration={p1Score > p2Score ? 'victory' : 'clap'} animated />
+            <h3 className="mt-2 text-xl font-black">{player1.name}</h3>
+            <div className="mt-3 w-full rounded-2xl bg-black/25 px-4 py-3">
+              <div className="font-display text-4xl font-black tabular-nums text-amber-200">{p1Score}<span className="mr-2 text-base text-blue-100">نقطة</span></div>
+              <p className="mt-1 text-xs font-bold text-emerald-200">صحيح: {session.roundState.p1CorrectCount} <span className="mx-2 text-white/40">|</span> خطأ: {session.roundState.p1WrongCount}</p>
             </div>
-            <div className="text-xs font-bold text-success">
-              صحيح: {session.roundState.p1CorrectCount} | خطأ: {session.roundState.p1WrongCount}
-            </div>
-          </div>
+          </section>
 
-          <div className="rounded-2xl border-2 border-success/30 bg-success-soft/40 p-6 text-center space-y-2">
-            <span className="text-xs font-bold text-success">الطالب الثاني (سارة)</span>
-            <div className="font-display text-4xl font-black text-ink tabular-nums">
-              {p2Score} <span className="text-lg font-bold text-ink-muted">نقطة</span>
+          <section className={`relative flex min-h-72 flex-col items-center justify-end overflow-hidden rounded-3xl border p-5 pt-8 shadow-xl ${p2Score > p1Score ? 'border-amber-300/70 bg-gradient-to-b from-emerald-500/35 to-emerald-950/80' : 'border-emerald-300/40 bg-emerald-950/45'}`}>
+            {p2Score > p1Score && <span className="absolute left-4 top-4 rounded-full bg-amber-300 px-3 py-1 text-xs font-black text-amber-950">المركز الأول 🏆</span>}
+            <AnimatedFullBodyAvatar avatarId={player2.avatarId} size="xl" showCrown={p2Score > p1Score || isTie} celebration={p2Score > p1Score ? 'victory' : 'clap'} animated />
+            <h3 className="mt-2 text-xl font-black">{player2.name}</h3>
+            <div className="mt-3 w-full rounded-2xl bg-black/25 px-4 py-3">
+              <div className="font-display text-4xl font-black tabular-nums text-amber-200">{p2Score}<span className="mr-2 text-base text-emerald-100">نقطة</span></div>
+              <p className="mt-1 text-xs font-bold text-emerald-200">صحيح: {session.roundState.p2CorrectCount} <span className="mx-2 text-white/40">|</span> خطأ: {session.roundState.p2WrongCount}</p>
             </div>
-            <div className="text-xs font-bold text-success">
-              صحيح: {session.roundState.p2CorrectCount} | خطأ: {session.roundState.p2WrongCount}
-            </div>
-          </div>
+          </section>
         </div>
 
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          <button
-            type="button"
-            onClick={() => setSession(createInitialTwoPlayerSession(QUESTION_TIME_SECONDS))}
-            className="qc-btn-primary inline-flex h-13 items-center gap-2 rounded-2xl px-7 text-sm font-extrabold whitespace-nowrap"
-          >
-            <RotateCcw className="h-5 w-5" />
-            <span>إعادة التحدي من البداية</span>
-          </button>
+        {!isTie && (
+          <div className="mt-6 inline-flex items-center gap-3 rounded-2xl border border-amber-300/60 bg-gradient-to-r from-amber-500/25 to-yellow-300/10 px-8 py-3 text-xl font-black text-amber-100 shadow-lg">
+            <Trophy className="h-7 w-7 text-amber-300" />
+            <span>بطل التحدي: {winner?.name}</span>
+            <Sparkles className="h-6 w-6 text-amber-200" />
+          </div>
+        )}
 
-          <button
-            type="button"
-            onClick={handleExit}
-            className="qc-btn-secondary inline-flex h-13 items-center gap-2 rounded-2xl px-7 text-sm font-extrabold whitespace-nowrap"
-          >
-            <span>العودة إلى الأنشطة</span>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <button type="button" onClick={() => setSession(createInitialTwoPlayerSession(QUESTION_TIME_SECONDS))} className="inline-flex h-12 items-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-6 text-sm font-extrabold text-white transition hover:bg-white/20">
+            <RotateCcw className="h-5 w-5" /> إعادة المنافسة
+          </button>
+          <button type="button" onClick={handleExit} className="inline-flex h-12 items-center gap-2 rounded-2xl bg-white px-6 text-sm font-extrabold text-slate-900 transition hover:bg-blue-50">
+            العودة إلى الأنشطة <ArrowLeft className="h-5 w-5" />
           </button>
         </div>
       </div>
@@ -290,15 +285,7 @@ export function TwoPlayerCompetitionStageView({
               <span>{session.timeLeft} ثانية</span>
             </div>
 
-            {onSwitchToStandard && (
-              <button
-                type="button"
-                onClick={onSwitchToStandard}
-                className="qc-btn-secondary inline-flex h-12 items-center gap-1.5 rounded-2xl px-4 text-xs font-extrabold whitespace-nowrap"
-              >
-                <span>السبورة العادية</span>
-              </button>
-            )}
+}
 
             <button
               type="button"
@@ -317,21 +304,6 @@ export function TwoPlayerCompetitionStageView({
           </div>
         )}
       </header>
-
-      {/* Shared Question Prompt */}
-      <div className="rounded-3xl border border-line bg-surface-subtle p-5 sm:p-6 text-center">
-        <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-black leading-relaxed text-ink">
-          {currentQuestion.prompt}
-        </h1>
-        {currentQuestion.imageUrl && (
-          <img
-            src={currentQuestion.imageUrl}
-            alt="صورة السؤال"
-            referrerPolicy="no-referrer"
-            className="mx-auto mt-4 max-h-48 w-auto rounded-2xl object-contain border border-line"
-          />
-        )}
-      </div>
 
       {/* Revealed Correct Answer Banner */}
       {isRevealed && (
@@ -358,11 +330,12 @@ export function TwoPlayerCompetitionStageView({
         >
           <div className="flex items-center justify-between border-b border-line pb-3">
             <div className="flex items-center gap-2">
+              <AnimatedFullBodyAvatar avatarId={player1.avatarId} size="sm" animated={false} />
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white font-black text-sm">
                 P1
               </div>
               <div>
-                <h3 className="font-display text-base font-extrabold text-ink">الطالب الأول (أحمد)</h3>
+                <h3 className="font-display text-base font-extrabold text-ink">{player1.name}</h3>
                 <span className="text-xs font-bold text-ink-muted">اختيار مستقل</span>
               </div>
             </div>
@@ -371,6 +344,11 @@ export function TwoPlayerCompetitionStageView({
             </div>
           </div>
 
+          <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-4 text-center">
+            <p className="mb-2 text-xs font-black text-blue-700">سؤال المنافسة</p>
+            <h2 className="font-display text-lg font-black leading-relaxed text-slate-900 sm:text-xl">{currentQuestion.prompt}</h2>
+            {currentQuestion.imageUrl && <img src={currentQuestion.imageUrl} alt="صورة السؤال" referrerPolicy="no-referrer" className="mx-auto mt-3 max-h-36 w-auto rounded-xl border border-blue-100 object-contain" />}
+          </div>
           {/* Options for Player 1 */}
           <div className="space-y-3 flex-1">
             {currentQuestion.type === 'multiple_choice' ? (
@@ -460,11 +438,12 @@ export function TwoPlayerCompetitionStageView({
         >
           <div className="flex items-center justify-between border-b border-line pb-3">
             <div className="flex items-center gap-2">
+              <AnimatedFullBodyAvatar avatarId={player2.avatarId} size="sm" animated={false} />
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-success text-white font-black text-sm">
                 P2
               </div>
               <div>
-                <h3 className="font-display text-base font-extrabold text-ink">الطالب الثاني (سارة)</h3>
+                <h3 className="font-display text-base font-extrabold text-ink">{player2.name}</h3>
                 <span className="text-xs font-bold text-ink-muted">اختيار مستقل</span>
               </div>
             </div>
@@ -473,6 +452,11 @@ export function TwoPlayerCompetitionStageView({
             </div>
           </div>
 
+          <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-4 text-center">
+            <p className="mb-2 text-xs font-black text-emerald-700">سؤال المنافسة</p>
+            <h2 className="font-display text-lg font-black leading-relaxed text-slate-900 sm:text-xl">{currentQuestion.prompt}</h2>
+            {currentQuestion.imageUrl && <img src={currentQuestion.imageUrl} alt="صورة السؤال" referrerPolicy="no-referrer" className="mx-auto mt-3 max-h-36 w-auto rounded-xl border border-emerald-100 object-contain" />}
+          </div>
           {/* Options for Player 2 */}
           <div className="space-y-3 flex-1">
             {currentQuestion.type === 'multiple_choice' ? (
@@ -561,22 +545,6 @@ export function TwoPlayerCompetitionStageView({
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
-            disabled={isRevealed}
-            data-testid="two-player-reveal-btn"
-            onClick={() =>
-              setSession((prev) => ({
-                ...prev,
-                roundState: revealTwoPlayerRound(prev.roundState, currentQuestion),
-              }))
-            }
-            className="qc-btn-primary inline-flex h-13 items-center gap-2 rounded-2xl px-6 text-sm sm:text-base font-extrabold disabled:opacity-50 whitespace-nowrap"
-          >
-            <ShieldCheck className="h-5 w-5" />
-            <span>إظهار النتيجة والتحقق</span>
-          </button>
-
-          <button
-            type="button"
             onClick={() => setSession((prev) => ({ ...prev, isPaused: !prev.isPaused }))}
             className="qc-btn-secondary inline-flex h-13 items-center gap-2 rounded-2xl px-5 text-sm font-extrabold whitespace-nowrap"
           >
@@ -589,12 +557,13 @@ export function TwoPlayerCompetitionStageView({
           <button
             type="button"
             data-testid="two-player-next-btn"
+            disabled={!isRevealed}
             onClick={() =>
               setSession((prev) =>
                 navigateTwoPlayerSession(prev, prev.currentIndex + 1, totalQuestions, QUESTION_TIME_SECONDS)
               )
             }
-            className="inline-flex h-13 items-center gap-2 rounded-2xl bg-ink px-7 text-sm sm:text-base font-extrabold text-surface transition-opacity hover:opacity-90 whitespace-nowrap dark:bg-primary dark:text-white"
+            className="inline-flex h-13 items-center gap-2 rounded-2xl bg-ink px-7 text-sm sm:text-base font-extrabold text-surface transition-opacity hover:opacity-90 whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-40 dark:bg-primary dark:text-white"
           >
             <span>{isLastQuestion ? 'إنهاء المنافسة وعرض النتائج' : 'السؤال التالي'}</span>
             <ArrowLeft className="h-5 w-5" />
