@@ -835,31 +835,31 @@
    This class is applied by the native Android shell only.
    ========================================================================== */
 @media (orientation: landscape) and (min-width: 700px) {
-  html.qc-large-screen .lg\\:flex-row {
+  html.qc-large-screen .lg\:flex-row {
     flex-direction: row;
   }
 
-  html.qc-large-screen .lg\\:items-center {
+  html.qc-large-screen .lg\:items-center {
     align-items: center;
   }
 
-  html.qc-large-screen .lg\\:justify-between {
+  html.qc-large-screen .lg\:justify-between {
     justify-content: space-between;
   }
 
-  html.qc-large-screen .lg\\:grid-cols-2 {
+  html.qc-large-screen .lg\:grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  html.qc-large-screen .lg\\:grid-cols-12 {
+  html.qc-large-screen .lg\:grid-cols-12 {
     grid-template-columns: repeat(12, minmax(0, 1fr));
   }
 
-  html.qc-large-screen .lg\\:col-span-7 {
+  html.qc-large-screen .lg\:col-span-7 {
     grid-column: span 7 / span 7;
   }
 
-  html.qc-large-screen .lg\\:col-span-5 {
+  html.qc-large-screen .lg\:col-span-5 {
     grid-column: span 5 / span 5;
   }
 }
