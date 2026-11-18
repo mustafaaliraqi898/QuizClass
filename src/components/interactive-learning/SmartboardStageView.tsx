@@ -10,7 +10,6 @@ import {
   Minimize2,
   RotateCcw,
   ShieldCheck,
-  Users,
   XCircle,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -27,7 +26,6 @@ import {
   verifySmartboardAnswer,
   type SmartboardQuestionState,
 } from './interactiveLearningLogic';
-import { TwoPlayerCompetitionStageView } from './TwoPlayerCompetitionStageView';
 
 interface SmartboardStageViewProps {
   activity: InteractiveActivityRecord;
@@ -40,7 +38,6 @@ export function SmartboardStageView({
   activity,
   onExitToActivities,
 }: SmartboardStageViewProps) {
-  const [mode, setMode] = useState<'standard' | 'two_player'>('standard');
   const [stageState, setStageState] = useState<SmartboardQuestionState>(() =>
     createInitialSmartboardState()
   );
@@ -114,16 +111,6 @@ export function SmartboardStageView({
     }
     onExitToActivities();
   };
-
-  if (mode === 'two_player') {
-    return (
-      <TwoPlayerCompetitionStageView
-        activity={activity}
-        onExitToActivities={handleExit}
-        onSwitchToStandard={() => setMode('standard')}
-      />
-    );
-  }
 
   if (totalQuestions === 0) {
     return (
@@ -264,16 +251,6 @@ export function SmartboardStageView({
           </div>
 
           <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={() => setMode('two_player')}
-              data-testid="switch-to-two-player-btn"
-              className="qc-btn-secondary inline-flex h-12 items-center gap-2 rounded-2xl px-4 text-sm font-extrabold whitespace-nowrap shrink-0"
-            >
-              <Users className="h-4 w-4 text-accent" />
-              <span>منافسة طالبين</span>
-            </button>
-
             <button
               type="button"
               onClick={handleToggleFullscreen}

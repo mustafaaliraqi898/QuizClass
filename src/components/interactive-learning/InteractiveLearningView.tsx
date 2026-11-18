@@ -19,21 +19,36 @@ import type {
 } from '../../types/interactiveLearning';
 import { formatQuizDate } from '../quizzes/quizFormatters';
 import { ActivityBuilderView } from './ActivityBuilderView';
+import { ActivityLaunchSetupView } from './ActivityLaunchSetupView';
 import { SmartboardStageView } from './SmartboardStageView';
+import { TwoPlayerCompetitionStageView } from './TwoPlayerCompetitionStageView';
+import {
+  DEFAULT_TWO_PLAYER_CONFIG,
+  type TwoPlayerConfig,
+} from './twoPlayerCompetitionLogic';
 
 interface InteractiveLearningViewProps {
   onOpenQuestionBank?: () => void;
 }
 
-type ViewMode = 'list' | 'builder' | 'stage';
+type ViewMode =
+  | 'list'
+  | 'builder'
+  | 'launch-setup'
+  | 'stage-standard'
+  | 'stage-two-player';
 
 export function InteractiveLearningView({
   onOpenQuestionBank,
 }: InteractiveLearningViewProps) {
   const [mode, setMode] = useState<ViewMode>('list');
+  const [setupInitialStep, setSetupInitialStep] = useState<'mode' | 'players'>('mode');
   const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
   const [activeStageActivity, setActiveStageActivity] =
     useState<InteractiveActivityRecord | null>(null);
+  const [twoPlayerConfig, setTwoPlayerConfig] = useState<TwoPlayerConfig>(
+    DEFAULT_TWO_PLAYER_CONFIG
+  );
 
   const [activities, setActivities] = useState<InteractiveActivitySummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -77,7 +92,8 @@ export function InteractiveLearningView({
     try {
       const fullActivity = await httpInteractiveLearningService.getActivityById(activityId);
       setActiveStageActivity(fullActivity);
-      setMode('stage');
+      setSetupInitialStep('mode');
+      setMode('launch-setup');
     } catch (error) {
       setActionError(
         error instanceof Error ? error.message : 'تعذر تشغيل النشاط التعليمي على السبورة.'
@@ -104,10 +120,46 @@ export function InteractiveLearningView({
     }
   };
 
-  if (mode === 'stage' && activeStageActivity) {
+  if (mode === 'launch-setup' && activeStageActivity) {
+    return (
+      <ActivityLaunchSetupView
+        activity={activeStageActivity}
+        initialConfig={twoPlayerConfig}
+        initialStep={setupInitialStep}
+        onStartStandard={() => setMode('stage-standard')}
+        onStartTwoPlayer={(config) => {
+          setTwoPlayerConfig(config);
+          setMode('stage-two-player');
+        }}
+        onBackToActivities={() => {
+          setMode('list');
+          void loadActivities();
+        }}
+      />
+    );
+  }
+
+  if (mode === 'stage-standard' && activeStageActivity) {
     return (
       <SmartboardStageView
         activity={activeStageActivity}
+        onExitToActivities={() => {
+          setMode('list');
+          void loadActivities();
+        }}
+      />
+    );
+  }
+
+  if (mode === 'stage-two-player' && activeStageActivity) {
+    return (
+      <TwoPlayerCompetitionStageView
+        activity={activeStageActivity}
+        playerConfig={twoPlayerConfig}
+        onBackToSetup={() => {
+          setSetupInitialStep('players');
+          setMode('launch-setup');
+        }}
         onExitToActivities={() => {
           setMode('list');
           void loadActivities();
@@ -123,7 +175,8 @@ export function InteractiveLearningView({
         onStartActivity={(activity) => {
           setActiveStageActivity(activity);
           setEditingActivityId(null);
-          setMode('stage');
+          setSetupInitialStep('mode');
+          setMode('launch-setup');
           void loadActivities();
         }}
         onSavedOnly={(activity, wasEditing) => {
