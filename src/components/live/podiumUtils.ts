@@ -55,7 +55,7 @@ export function buildPodiumPlan(leaderboard: FinalLeaderboardEntry[]): PodiumPla
       visualOrderClass: 'order-2 sm:order-1',
       pedestalHeightClass: 'h-24 sm:h-28',
       pedestalToneClass:
-        'from-slate-300 via-slate-200 to-slate-400 border-slate-300 text-slate-900 dark:from-slate-700 dark:via-slate-600 dark:to-slate-800 dark:border-slate-500 dark:text-slate-100',
+        'from-[#E3E7EE] via-[#F2F4F8] to-[#C8D1DF] border-[#AFC5E3] text-[#292929] dark:from-[#4C5664] dark:via-[#5E6A7C] dark:to-[#3E4652] dark:border-[#8EACD0] dark:text-[#F0EDE9]',
       entranceMode: 'hop-in',
       celebrationStyle: RANK_CELEBRATION_FALLBACK[2],
       revealAtStep: 2,
@@ -69,7 +69,7 @@ export function buildPodiumPlan(leaderboard: FinalLeaderboardEntry[]): PodiumPla
       visualOrderClass: 'order-1 sm:order-2',
       pedestalHeightClass: 'h-32 sm:h-40',
       pedestalToneClass:
-        'from-amber-400 via-yellow-300 to-amber-500 border-amber-300 text-amber-950 dark:from-amber-500 dark:via-yellow-400 dark:to-amber-600 dark:border-amber-400 dark:text-slate-950',
+        'from-[#F2C96B] via-[#FCE192] to-[#D4891C] border-[#E5B85C] text-[#292929] dark:from-[#C78524] dark:via-[#E0A43E] dark:to-[#9C6314] dark:border-[#E5B85C] dark:text-[#201F22]',
       entranceMode: 'hero-leap',
       celebrationStyle: RANK_CELEBRATION_FALLBACK[1],
       revealAtStep: 3,
@@ -83,7 +83,7 @@ export function buildPodiumPlan(leaderboard: FinalLeaderboardEntry[]): PodiumPla
       visualOrderClass: 'order-3',
       pedestalHeightClass: 'h-16 sm:h-20',
       pedestalToneClass:
-        'from-orange-400 via-amber-500 to-orange-600 border-orange-300 text-white dark:from-orange-700 dark:via-amber-700 dark:to-orange-900 dark:border-orange-500 dark:text-orange-50',
+        'from-[#D99A6C] via-[#E8B389] to-[#B56D3B] border-[#DF9F70] text-[#292929] dark:from-[#8C5630] dark:via-[#A4673D] dark:to-[#6E4122] dark:border-[#BA7D52] dark:text-[#F0EDE9]',
       entranceMode: 'run-in',
       celebrationStyle: RANK_CELEBRATION_FALLBACK[3],
       revealAtStep: 1,

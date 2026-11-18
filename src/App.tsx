@@ -11,6 +11,7 @@ import { StatsGrid } from './components/dashboard/StatsGrid';
 import { WelcomeBanner } from './components/dashboard/WelcomeBanner';
 import { Sidebar } from './components/layout/Sidebar';
 import { TopBar } from './components/layout/TopBar';
+import { InteractiveLearningView } from './components/interactive-learning/InteractiveLearningView';
 import { LiveLobbyView } from './components/live/LiveLobbyView';
 import { LiveSessionConflictModal } from './components/live/LiveSessionConflictModal';
 import { StudentJoinView } from './components/live/StudentJoinView';
@@ -174,7 +175,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors duration-150 dark:bg-slate-950 dark:text-slate-100">
+    <div className="min-h-screen bg-canvas text-ink transition-colors duration-150">
       <div className="flex min-h-screen">
         <Sidebar
           items={NAVIGATION_ITEMS}
@@ -201,7 +202,7 @@ export default function App() {
             {liveLaunchError && (
               <div
                 role="alert"
-                className="flex items-center justify-between gap-3 rounded-2xl border border-red-200 bg-red-50 px-5 py-3.5 text-xs font-bold text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200"
+                className="flex items-center justify-between gap-3 rounded-2xl border border-danger-line bg-danger-soft px-5 py-3.5 text-xs font-bold text-danger-ink"
               >
                 <div className="flex items-center gap-2">
                   <AlertCircle className="h-4 w-4 shrink-0" />
@@ -211,7 +212,7 @@ export default function App() {
                   type="button"
                   onClick={() => setLiveLaunchError(null)}
                   aria-label="إغلاق التنبيه"
-                  className="rounded-lg p-1 hover:bg-black/5 dark:hover:bg-white/10"
+                  className="rounded-lg p-1 hover:bg-row-hover"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -274,6 +275,12 @@ export default function App() {
                 onNavigateQuizzes={() => handleNavigate('quizzes')}
                 onNavigateCreateQuiz={() => handleNavigate('create-quiz')}
                 onLifecycleChanged={() => void refreshDashboard()}
+              />
+            )}
+
+            {activeSection === 'interactive-learning' && (
+              <InteractiveLearningView
+                onOpenQuestionBank={() => handleNavigate('question-bank')}
               />
             )}
 

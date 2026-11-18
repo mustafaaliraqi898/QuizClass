@@ -50,18 +50,18 @@ export function QuestionDetailsModal({
       aria-modal="true"
       aria-labelledby="question-details-title"
     >
-      <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs" onClick={onClose} />
+      <div className="fixed inset-0 bg-backdrop backdrop-blur-xs" onClick={onClose} />
 
-      <div className="relative z-10 flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+      <div className="relative z-10 flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-line bg-modal shadow-2xl">
+        <div className="flex items-center justify-between border-b border-line px-6 py-4">
           <div>
             <h3
               id="question-details-title"
-              className="font-display text-base font-extrabold text-slate-900 dark:text-white"
+              className="font-display text-base font-extrabold text-ink"
             >
               تفاصيل السؤال
             </h3>
-            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-0.5 text-xs text-ink-muted">
               {question.type === 'multiple_choice' ? 'اختيار من متعدد' : 'صح أو خطأ'}
             </p>
           </div>
@@ -69,7 +69,7 @@ export function QuestionDetailsModal({
             type="button"
             onClick={onClose}
             aria-label="إغلاق تفاصيل السؤال"
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-row-hover hover:text-ink"
           >
             <X className="h-5 w-5" />
           </button>
@@ -77,11 +77,11 @@ export function QuestionDetailsModal({
 
         <div className="flex-1 space-y-6 overflow-y-auto p-6">
           {classificationItems.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-ink-muted">
               {classificationItems.map((item, idx) => (
                 <span key={item} className="inline-flex items-center gap-2">
                   {idx > 0 && (
-                    <span aria-hidden="true" className="text-slate-300 dark:text-slate-700">
+                    <span aria-hidden="true" className="text-line-strong">
                       ·
                     </span>
                   )}
@@ -92,12 +92,12 @@ export function QuestionDetailsModal({
           )}
 
           <div className="space-y-4">
-            <h4 className="font-display text-lg font-bold leading-relaxed text-slate-900 dark:text-white">
+            <h4 className="font-display text-lg font-bold leading-relaxed text-ink">
               {question.prompt}
             </h4>
 
             {question.imageUrl && (
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/60">
+              <div className="overflow-hidden rounded-xl border border-line bg-surface-subtle p-3">
                 <img
                   src={question.imageUrl}
                   alt="صورة السؤال"
@@ -109,7 +109,7 @@ export function QuestionDetailsModal({
           </div>
 
           <div className="space-y-3">
-            <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
+            <p className="text-xs font-bold text-ink-muted">
               {question.type === 'multiple_choice' ? 'الاختيارات' : 'الإجابة الصحيحة'}
             </p>
 
@@ -125,13 +125,13 @@ export function QuestionDetailsModal({
                       key={choice.label}
                       className={`flex items-center justify-between rounded-xl border p-4 ${
                         isCorrect
-                          ? 'border-emerald-300 bg-emerald-50/70 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200'
-                          : 'border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-400'
+                          ? 'border-success-line bg-success-soft text-success-ink'
+                          : 'border-line bg-surface-subtle text-ink-muted'
                       }`}
                     >
                       <span className="font-display text-sm font-bold">{choice.label}</span>
                       {isCorrect && (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-success-ink">
                           <CheckCircle2 className="h-4 w-4" />
                           <span>الإجابة الصحيحة</span>
                         </span>
@@ -147,8 +147,8 @@ export function QuestionDetailsModal({
                     key={opt.id}
                     className={`rounded-xl border p-4 ${
                       opt.isCorrect
-                        ? 'border-emerald-300 bg-emerald-50/70 dark:border-emerald-800 dark:bg-emerald-950/40'
-                        : 'border-slate-200 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-950/40'
+                        ? 'border-success-line bg-success-soft'
+                        : 'border-line bg-surface-subtle'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -156,31 +156,29 @@ export function QuestionDetailsModal({
                         <span
                           className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
                             opt.isCorrect
-                              ? 'bg-emerald-600 text-white dark:bg-emerald-500'
-                              : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                              ? 'bg-success text-white'
+                              : 'border border-line bg-input text-ink-muted'
                           }`}
                         >
                           {OPTION_LETTERS[index] ?? index + 1}
                         </span>
                         <div className="min-w-0 space-y-2">
                           {opt.optionText && (
-                            <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                              {opt.optionText}
-                            </p>
+                            <p className="text-sm font-bold text-ink">{opt.optionText}</p>
                           )}
                           {opt.imageUrl && (
                             <img
                               src={opt.imageUrl}
                               alt={`صورة الاختيار ${OPTION_LETTERS[index] ?? index + 1}`}
                               referrerPolicy="no-referrer"
-                              className="max-h-40 rounded-lg border border-slate-200 bg-white object-contain dark:border-slate-700 dark:bg-slate-900"
+                              className="max-h-40 rounded-lg border border-line bg-surface object-contain"
                             />
                           )}
                         </div>
                       </div>
 
                       {opt.isCorrect && (
-                        <span className="inline-flex shrink-0 items-center gap-1 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                        <span className="inline-flex shrink-0 items-center gap-1 text-xs font-bold text-success-ink">
                           <CheckCircle2 className="h-4 w-4" />
                           <span>الإجابة الصحيحة</span>
                         </span>
@@ -193,7 +191,7 @@ export function QuestionDetailsModal({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-6 py-4 dark:border-slate-800">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-6 py-4">
           <div className="flex items-center gap-2">
             {onEdit && (
               <button
@@ -202,7 +200,7 @@ export function QuestionDetailsModal({
                   onClose();
                   onEdit(question);
                 }}
-                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white transition-colors hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                className="qc-btn-primary inline-flex h-10 items-center gap-1.5 rounded-xl px-4 text-xs font-bold"
               >
                 <Edit3 className="h-4 w-4" />
                 <span>تعديل السؤال</span>
@@ -216,7 +214,7 @@ export function QuestionDetailsModal({
                   onClose();
                   onDelete(question);
                 }}
-                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-4 text-xs font-bold text-red-700 transition-colors hover:bg-red-100 dark:border-red-900/60 dark:bg-red-950/50 dark:text-red-300 dark:hover:bg-red-950"
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-danger-line bg-danger-soft px-4 text-xs font-bold text-danger-ink transition-colors hover:brightness-95"
               >
                 <Trash2 className="h-4 w-4" />
                 <span>حذف</span>
@@ -227,7 +225,7 @@ export function QuestionDetailsModal({
           <button
             type="button"
             onClick={onClose}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            className="qc-btn-secondary h-10 rounded-xl px-4 text-xs font-bold"
           >
             إغلاق
           </button>

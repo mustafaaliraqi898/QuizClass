@@ -15,20 +15,18 @@ const SHORTCUT_ICONS: Record<string, ComponentType<{ className?: string }>> = {
 };
 
 const ICON_TONES: Record<QuickShortcut['accentTone'], string> = {
-  indigo: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/70 dark:text-indigo-400',
-  sky: 'bg-sky-50 text-sky-600 dark:bg-sky-950/70 dark:text-sky-400',
-  emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/70 dark:text-emerald-400',
-  violet: 'bg-violet-50 text-violet-600 dark:bg-violet-950/70 dark:text-violet-400',
+  indigo: 'border border-selected-line bg-selected text-accent',
+  sky: 'border border-line bg-surface-subtle text-accent',
+  emerald: 'border border-success-line bg-success-soft text-success-ink',
+  violet: 'border border-warning-line bg-warning-soft text-warning-ink',
 };
 
 export function QuickShortcuts({ shortcuts, onNavigate }: QuickShortcutsProps) {
   return (
     <section aria-label="اختصارات سريعة">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-display text-base font-bold text-slate-900 dark:text-white">
-          الوصول السريع
-        </h3>
-        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+        <h3 className="font-display text-base font-bold text-ink">الوصول السريع</h3>
+        <span className="text-xs font-medium text-ink-muted">
           انتقل مباشرة إلى المهمة المطلوبة
         </span>
       </div>
@@ -44,7 +42,7 @@ export function QuickShortcuts({ shortcuts, onNavigate }: QuickShortcutsProps) {
               onClick={() =>
                 onNavigate(shortcut.targetSection, shortcut.contextNote, shortcut.id)
               }
-              className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 text-start transition-all duration-150 hover:border-indigo-300 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-700"
+              className="qc-card group flex flex-col justify-between p-5 text-start transition-all duration-150 hover:border-selected-line hover:bg-surface-subtle"
             >
               <div className="flex w-full items-start justify-between gap-3">
                 <div
@@ -54,16 +52,14 @@ export function QuickShortcuts({ shortcuts, onNavigate }: QuickShortcutsProps) {
                 >
                   <Icon className="h-5 w-5" />
                 </div>
-                <ArrowLeft className="h-4 w-4 text-slate-400 transition-transform duration-150 group-hover:-translate-x-1 group-hover:text-indigo-600 dark:text-slate-500 dark:group-hover:text-indigo-400" />
+                <ArrowLeft className="h-4 w-4 text-ink-muted transition-transform duration-150 group-hover:-translate-x-1 group-hover:text-accent" />
               </div>
 
               <div className="mt-4 space-y-1">
-                <h4 className="font-display text-sm font-bold text-slate-900 group-hover:text-indigo-700 dark:text-white dark:group-hover:text-indigo-300">
+                <h4 className="font-display text-sm font-bold text-ink transition-colors group-hover:text-accent">
                   {shortcut.title}
                 </h4>
-                <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                  {shortcut.subtitle}
-                </p>
+                <p className="text-xs leading-relaxed text-ink-muted">{shortcut.subtitle}</p>
               </div>
             </button>
           );

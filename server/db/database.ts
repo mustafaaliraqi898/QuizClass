@@ -207,6 +207,32 @@ export function initializeDatabase(dbFilePath: string): DatabaseSync {
       ON live_session_answers(session_id);
     CREATE INDEX IF NOT EXISTS idx_live_session_answers_participant_id
       ON live_session_answers(participant_id);
+
+    CREATE TABLE IF NOT EXISTS interactive_activities (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      subject TEXT,
+      grade TEXT,
+      auto_fullscreen INTEGER NOT NULL DEFAULT 0 CHECK (auto_fullscreen IN (0, 1)),
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS interactive_activity_questions (
+      id TEXT PRIMARY KEY,
+      activity_id TEXT NOT NULL,
+      question_id TEXT NOT NULL,
+      question_order INTEGER NOT NULL,
+      FOREIGN KEY (activity_id) REFERENCES interactive_activities(id) ON DELETE CASCADE,
+      FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+      UNIQUE (activity_id, question_order),
+      UNIQUE (activity_id, question_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_interactive_activities_updated_at
+      ON interactive_activities(updated_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_interactive_activity_questions_order
+      ON interactive_activity_questions(activity_id, question_order);
   `);
 
   const ensureColumns = (table: string, definitions: Array<{ name: string; sql: string }>) => {

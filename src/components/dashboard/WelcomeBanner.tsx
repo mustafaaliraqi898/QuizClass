@@ -10,22 +10,22 @@ export function WelcomeBanner({ teacher, onNavigate }: WelcomeBannerProps) {
   return (
     <section
       aria-label="الترحيب بالمعلم"
-      className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 dark:border-slate-800 dark:bg-slate-900"
+      className="qc-card relative overflow-hidden p-6 sm:p-8"
     >
       <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-indigo-600 dark:text-indigo-400">
+        <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-accent">
           <span>لوحة المعلم</span>
-          <span aria-hidden="true" className="text-slate-300 dark:text-slate-700">
+          <span aria-hidden="true" className="text-line-strong">
             ·
           </span>
-          <span className="text-slate-500 dark:text-slate-400">{teacher.role}</span>
+          <span className="text-ink-muted">{teacher.role}</span>
         </div>
 
-        <h2 className="font-display max-w-2xl text-2xl font-extrabold leading-snug text-slate-900 sm:text-3xl dark:text-white">
+        <h2 className="font-display max-w-2xl text-2xl font-extrabold leading-snug text-ink sm:text-3xl">
           مرحباً بك، {teacher.name}
         </h2>
 
-        <p className="max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base dark:text-slate-300">
+        <p className="max-w-3xl text-sm leading-relaxed text-ink-muted sm:text-base">
           مساحة العمل جاهزة لإدارة بنك أسئلتك وتجهيز مسابقات صفية تفاعلية مباشرة عبر الشبكة المحلية
           لطلابك بسرعة ووضوح تام دون الحاجة للإنترنت.
         </p>
@@ -34,7 +34,7 @@ export function WelcomeBanner({ teacher, onNavigate }: WelcomeBannerProps) {
           <button
             type="button"
             onClick={() => onNavigate('create-quiz')}
-            className="inline-flex h-11 items-center gap-2.5 rounded-xl bg-indigo-600 px-5 text-sm font-bold text-white transition-colors hover:bg-indigo-700 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+            className="qc-btn-primary inline-flex h-11 items-center gap-2.5 rounded-xl px-5 text-sm font-bold whitespace-nowrap shrink-0"
           >
             <PlusCircle className="h-4 w-4" />
             <span>إنشاء مسابقة جديدة</span>
@@ -43,9 +43,9 @@ export function WelcomeBanner({ teacher, onNavigate }: WelcomeBannerProps) {
           <button
             type="button"
             onClick={() => onNavigate('question-bank')}
-            className="inline-flex h-11 items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            className="qc-btn-secondary inline-flex h-11 items-center gap-2.5 rounded-xl px-5 text-sm font-bold whitespace-nowrap shrink-0"
           >
-            <BookOpen className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+            <BookOpen className="h-4 w-4 text-accent" />
             <span>استعراض بنك الأسئلة</span>
           </button>
         </div>

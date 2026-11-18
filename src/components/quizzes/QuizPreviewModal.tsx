@@ -47,20 +47,20 @@ export function QuizPreviewModal({
       aria-labelledby="quiz-preview-modal-title"
     >
       <div
-        className="fixed inset-0 bg-slate-950/55 backdrop-blur-xs"
+        className="fixed inset-0 bg-backdrop backdrop-blur-xs"
         onClick={onClose}
       />
 
-      <div className="relative z-10 flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+      <div className="relative z-10 flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-line bg-modal shadow-2xl">
+        <div className="flex items-center justify-between border-b border-line px-6 py-4">
           <div>
             <h3
               id="quiz-preview-modal-title"
-              className="font-display text-base font-extrabold text-slate-900 dark:text-white"
+              className="font-display text-base font-extrabold text-ink"
             >
               معاينة المسابقة والأسئلة المحفوظة
             </h3>
-            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-0.5 text-xs text-ink-muted">
               نسخة مستقلة محفوظة داخل المسابقة
             </p>
           </div>
@@ -68,7 +68,7 @@ export function QuizPreviewModal({
             type="button"
             onClick={onClose}
             aria-label="إغلاق المعاينة"
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-row-hover hover:text-ink"
           >
             <X className="h-5 w-5" />
           </button>
@@ -77,22 +77,22 @@ export function QuizPreviewModal({
         <div className="flex-1 overflow-y-auto p-6">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400" />
-              <p className="mt-3 text-xs font-bold text-slate-600 dark:text-slate-300">
+              <Loader2 className="h-8 w-8 animate-spin text-accent" />
+              <p className="mt-3 text-xs font-bold text-ink-muted">
                 جارٍ تحميل تفاصيل المسابقة...
               </p>
             </div>
           ) : errorMessage ? (
             <div
               role="alert"
-              className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs font-bold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300"
+              className="rounded-xl border border-danger-line bg-danger-soft p-4 text-xs font-bold text-danger-ink"
             >
               {errorMessage}
             </div>
           ) : quiz ? (
             <div className="space-y-6">
-              <div className="space-y-2 border-b border-slate-200 pb-5 dark:border-slate-800">
-                <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+              <div className="space-y-2 border-b border-line pb-5">
+                <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-ink-muted">
                   {quiz.subject && <span>{quiz.subject}</span>}
                   {quiz.subject && quiz.grade && <span aria-hidden="true">·</span>}
                   {quiz.grade && <span>{quiz.grade}</span>}
@@ -106,14 +106,10 @@ export function QuizPreviewModal({
                   <span className="tabular-nums">أُنشئت في {formatQuizDate(quiz.createdAt)}</span>
                 </div>
 
-                <h4 className="font-display text-xl font-extrabold text-slate-900 dark:text-white">
-                  {quiz.title}
-                </h4>
+                <h4 className="font-display text-xl font-extrabold text-ink">{quiz.title}</h4>
 
                 {quiz.description && (
-                  <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-                    {quiz.description}
-                  </p>
+                  <p className="text-sm leading-relaxed text-ink-muted">{quiz.description}</p>
                 )}
               </div>
 
@@ -130,33 +126,36 @@ export function QuizPreviewModal({
                   return (
                     <article
                       key={question.id}
-                      className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/50"
+                      className="rounded-xl border border-line bg-surface-subtle p-4"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
-                          <span className="tabular-nums font-extrabold text-indigo-600 dark:text-indigo-400">
+                        <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-ink-muted">
+                          <span className="tabular-nums font-extrabold text-accent">
                             سؤال {index + 1}
                           </span>
                           {meta.map((part, idx) => (
-                            <span key={`${question.id}-m-${idx}`} className="inline-flex items-center gap-2">
+                            <span
+                              key={`${question.id}-m-${idx}`}
+                              className="inline-flex items-center gap-2"
+                            >
                               <span aria-hidden="true">·</span>
                               <span>{part}</span>
                             </span>
                           ))}
                         </div>
 
-                        <span className="tabular-nums inline-flex items-center gap-1 text-xs font-bold text-slate-600 dark:text-slate-300">
-                          <Clock className="h-3.5 w-3.5 text-slate-400" />
+                        <span className="tabular-nums inline-flex items-center gap-1 text-xs font-bold text-ink-muted">
+                          <Clock className="h-3.5 w-3.5" />
                           <span>{question.timeLimitSeconds} ثانية</span>
                         </span>
                       </div>
 
-                      <p className="mt-2 font-display text-sm font-bold leading-relaxed text-slate-900 dark:text-white">
+                      <p className="mt-2 font-display text-sm font-bold leading-relaxed text-ink">
                         {question.prompt}
                       </p>
 
                       {question.imageUrl && (
-                        <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+                        <div className="mt-3 overflow-hidden rounded-xl border border-line bg-surface">
                           <img
                             src={question.imageUrl}
                             alt={`صورة السؤال ${index + 1}`}
@@ -167,7 +166,7 @@ export function QuizPreviewModal({
                       )}
 
                       {question.type === 'true_false' ? (
-                        <div className="mt-3 flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                        <div className="mt-3 flex items-center gap-2 text-xs font-bold text-success-ink">
                           <CheckCircle2 className="h-4 w-4 shrink-0" />
                           <span>
                             الإجابة الصحيحة: {question.correctBoolean ? 'صح' : 'خطأ'}
@@ -180,11 +179,11 @@ export function QuizPreviewModal({
                               key={option.id}
                               className={`flex items-start gap-2 rounded-lg border p-2.5 text-xs ${
                                 option.isCorrect
-                                  ? 'border-emerald-300 bg-emerald-50/80 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200'
-                                  : 'border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'
+                                  ? 'border-success-line bg-success-soft text-success-ink'
+                                  : 'border-line bg-surface text-ink'
                               }`}
                             >
-                              <span className="tabular-nums font-bold text-slate-400">
+                              <span className="tabular-nums font-bold text-ink-muted">
                                 {optIndex + 1}.
                               </span>
                               <div className="min-w-0 flex-1 space-y-1.5">
@@ -196,12 +195,12 @@ export function QuizPreviewModal({
                                     src={option.imageUrl}
                                     alt={`صورة الاختيار ${optIndex + 1}`}
                                     referrerPolicy="no-referrer"
-                                    className="max-h-24 rounded-md border border-slate-200 object-contain dark:border-slate-700"
+                                    className="max-h-24 rounded-md border border-line object-contain"
                                   />
                                 )}
                               </div>
                               {option.isCorrect && (
-                                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                <CheckCircle2 className="h-4 w-4 shrink-0 text-success-ink" />
                               )}
                             </div>
                           ))}
@@ -215,7 +214,7 @@ export function QuizPreviewModal({
           ) : null}
         </div>
 
-        <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 dark:border-slate-800">
+        <div className="flex items-center justify-end gap-3 border-t border-line px-6 py-4">
           {quiz && onLaunchLive && (
             <button
               type="button"
@@ -225,7 +224,7 @@ export function QuizPreviewModal({
                 onClose();
                 onLaunchLive(targetId);
               }}
-              className="inline-flex h-10 items-center gap-2 rounded-xl bg-emerald-600 px-4 text-xs font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60 dark:bg-emerald-500 dark:hover:bg-emerald-400"
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-success px-4 text-xs font-bold text-white transition-colors hover:bg-success-hover disabled:opacity-60"
             >
               <Play className="h-4 w-4" />
               <span>تشغيل مباشر</span>
@@ -239,7 +238,7 @@ export function QuizPreviewModal({
                 onClose();
                 onEdit(targetId);
               }}
-              className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white transition-colors hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+              className="qc-btn-primary inline-flex h-10 items-center gap-2 rounded-xl px-4 text-xs font-bold"
             >
               <Edit3 className="h-4 w-4" />
               <span>تعديل المسابقة</span>
@@ -248,7 +247,7 @@ export function QuizPreviewModal({
           <button
             type="button"
             onClick={onClose}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            className="qc-btn-secondary h-10 rounded-xl px-4 text-xs font-bold"
           >
             إغلاق
           </button>

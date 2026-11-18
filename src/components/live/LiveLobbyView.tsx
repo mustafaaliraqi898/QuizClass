@@ -50,23 +50,19 @@ const SESSION_STATUS_META: Record<
 > = {
   waiting: {
     label: 'في انتظار انضمام الطلاب',
-    badgeClass:
-      'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/50 dark:text-amber-300',
+    badgeClass: 'border-warning-line bg-warning-soft text-warning-ink',
   },
   running: {
     label: 'المسابقة قيد التشغيل',
-    badgeClass:
-      'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/50 dark:text-emerald-300',
+    badgeClass: 'border-success-line bg-success-soft text-success-ink',
   },
   completed: {
     label: 'مكتملة',
-    badgeClass:
-      'border-indigo-200 bg-indigo-50 text-indigo-800 dark:border-indigo-900/60 dark:bg-indigo-950/50 dark:text-indigo-300',
+    badgeClass: 'border-selected-line bg-selected text-accent',
   },
   cancelled: {
     label: 'ملغاة',
-    badgeClass:
-      'border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300',
+    badgeClass: 'border-line bg-surface-subtle text-ink-muted',
   },
 };
 
@@ -325,9 +321,9 @@ export function LiveLobbyView({
 
   if (isLoadingInitial && !activeSession) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-20 text-center dark:border-slate-800 dark:bg-slate-900">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400" />
-        <p className="mt-3 text-xs font-bold text-slate-600 dark:text-slate-300">
+      <div className="qc-card flex flex-col items-center justify-center px-6 py-20 text-center">
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+        <p className="mt-3 text-xs font-bold text-ink-muted">
           جارٍ التحقق من الجلسات المباشرة في قاعدة البيانات المحلية...
         </p>
       </div>
@@ -339,7 +335,7 @@ export function LiveLobbyView({
       {loadError && (
         <div
           role="alert"
-          className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-red-200 bg-red-50 p-5 text-xs font-bold text-red-800 sm:flex-row sm:items-center dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200"
+          className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-danger-line bg-danger-soft p-5 text-xs font-bold text-danger-ink sm:flex-row sm:items-center"
         >
           <div className="flex items-center gap-2">
             <AlertCircle className="h-4 w-4 shrink-0" />
@@ -348,7 +344,7 @@ export function LiveLobbyView({
           <button
             type="button"
             onClick={() => void loadLobbyInitialData()}
-            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-red-600 px-3 text-xs font-bold text-white hover:bg-red-700"
+            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-danger px-3 text-xs font-bold text-white transition-colors hover:bg-danger-hover"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             <span>إعادة المحاولة</span>
@@ -359,7 +355,7 @@ export function LiveLobbyView({
       {actionError && (
         <div
           role="alert"
-          className="flex items-center justify-between gap-3 rounded-2xl border border-red-200 bg-red-50 px-5 py-3.5 text-xs font-bold text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200"
+          className="flex items-center justify-between gap-3 rounded-2xl border border-danger-line bg-danger-soft px-5 py-3.5 text-xs font-bold text-danger-ink"
         >
           <div className="flex items-center gap-2">
             <AlertCircle className="h-4 w-4 shrink-0" />
@@ -369,7 +365,7 @@ export function LiveLobbyView({
             type="button"
             onClick={() => setActionError(null)}
             aria-label="إغلاق التنبيه"
-            className="rounded-lg p-1 hover:bg-black/5 dark:hover:bg-white/10"
+            className="rounded-lg p-1 hover:bg-ink/5"
           >
             <X className="h-4 w-4" />
           </button>
@@ -379,17 +375,17 @@ export function LiveLobbyView({
       {actionSuccess && (
         <div
           role="status"
-          className="flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3.5 text-xs font-bold text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200"
+          className="flex items-center justify-between gap-3 rounded-2xl border border-success-line bg-success-soft px-5 py-3.5 text-xs font-bold text-success-ink"
         >
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
             <span>{actionSuccess}</span>
           </div>
           <button
             type="button"
             onClick={() => setActionSuccess(null)}
             aria-label="إغلاق التنبيه"
-            className="rounded-lg p-1 hover:bg-black/5 dark:hover:bg-white/10"
+            className="rounded-lg p-1 hover:bg-ink/5"
           >
             <X className="h-4 w-4" />
           </button>
@@ -417,7 +413,7 @@ export function LiveLobbyView({
         ) : (
         <>
           {/* شريط عنوان الجلسة وأزرار التحكم */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+          <section className="qc-card p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-2.5">
@@ -433,9 +429,7 @@ export function LiveLobbyView({
                   {activeSession.status === 'waiting' && (
                     <span
                       className={`inline-flex items-center gap-1.5 text-xs font-bold ${
-                        socketConnected
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : 'text-amber-600 dark:text-amber-400'
+                        socketConnected ? 'text-success-ink' : 'text-warning-ink'
                       }`}
                     >
                       {socketConnected ? (
@@ -453,11 +447,11 @@ export function LiveLobbyView({
                   )}
                 </div>
 
-                <h2 className="font-display text-2xl font-extrabold text-slate-900 dark:text-white">
+                <h2 className="font-display text-2xl font-extrabold text-ink">
                   {activeSession.quizTitle}
                 </h2>
 
-                <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+                <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-ink-muted">
                   {activeSession.quizSubject && <span>{activeSession.quizSubject}</span>}
                   {activeSession.quizSubject && activeSession.quizGrade && (
                     <span aria-hidden="true">·</span>
@@ -479,7 +473,7 @@ export function LiveLobbyView({
                       type="button"
                       disabled={isMutating}
                       onClick={() => void handleStartSession()}
-                      className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 text-sm font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60 whitespace-nowrap dark:bg-emerald-500 dark:hover:bg-emerald-400"
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-success px-5 text-sm font-bold text-white transition-colors hover:bg-success-hover disabled:opacity-60 whitespace-nowrap"
                     >
                       {isMutating ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -493,7 +487,7 @@ export function LiveLobbyView({
                       type="button"
                       disabled={isMutating}
                       onClick={() => void handleCancelSession()}
-                      className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 text-xs font-bold text-red-700 transition-colors hover:bg-red-100 disabled:opacity-60 whitespace-nowrap dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950"
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-danger-line bg-danger-soft px-4 text-xs font-bold text-danger-ink transition-colors hover:opacity-90 disabled:opacity-60 whitespace-nowrap"
                     >
                       <Ban className="h-4 w-4" />
                       <span>إلغاء الجلسة</span>
@@ -506,7 +500,7 @@ export function LiveLobbyView({
                     <button
                       type="button"
                       onClick={() => void onLaunchQuiz(activeSession.quizId)}
-                      className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-bold text-white transition-colors hover:bg-indigo-700 whitespace-nowrap dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                      className="qc-btn-primary inline-flex h-11 items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold whitespace-nowrap"
                     >
                       <RefreshCw className="h-4 w-4" />
                       <span>تشغيل جلسة جديدة</span>
@@ -518,7 +512,7 @@ export function LiveLobbyView({
                         onSessionUpdated(null);
                         onNavigateQuizzes();
                       }}
-                      className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 whitespace-nowrap dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                      className="qc-btn-secondary inline-flex h-11 items-center justify-center rounded-xl px-4 text-xs font-bold whitespace-nowrap"
                     >
                       العودة إلى المسابقات
                     </button>
@@ -531,23 +525,23 @@ export function LiveLobbyView({
           {/* شبكة تفاصيل الانضمام + قائمة الطلاب المنضمين */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             {/* بطاقة الانضمام (PIN + QR + الشبكة المحلية) */}
-            <section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 lg:col-span-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="qc-card space-y-5 p-6 lg:col-span-5">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="font-display text-base font-extrabold text-slate-900 dark:text-white">
+                <h3 className="font-display text-base font-extrabold text-ink">
                   بيانات انضمام الطلاب
                 </h3>
-                <QrCode className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                <QrCode className="h-5 w-5 text-accent" />
               </div>
 
               {/* رمز PIN كبير للسبورة */}
-              <div className="rounded-2xl border border-indigo-200 bg-indigo-50/70 p-5 text-center dark:border-indigo-900/60 dark:bg-indigo-950/40">
-                <p className="text-xs font-bold text-indigo-700 dark:text-indigo-300">
+              <div className="rounded-2xl border border-selected-line bg-selected p-5 text-center">
+                <p className="text-xs font-bold text-accent">
                   رمز الدخول السريع (PIN)
                 </p>
                 <div className="mt-2 flex items-center justify-center gap-3">
                   <span
                     dir="ltr"
-                    className="font-display tabular-nums text-4xl font-black tracking-[0.22em] text-slate-900 sm:text-5xl dark:text-white"
+                    className="font-display tabular-nums text-4xl font-black tracking-[0.22em] text-ink sm:text-5xl"
                   >
                     {activeSession.pinCode}
                   </span>
@@ -555,11 +549,11 @@ export function LiveLobbyView({
                 <button
                   type="button"
                   onClick={() => void handleCopy(activeSession.pinCode, 'pin')}
-                  className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-lg border border-indigo-200 bg-white px-3 text-xs font-bold text-indigo-700 transition-colors hover:bg-indigo-50 dark:border-indigo-800 dark:bg-slate-900 dark:text-indigo-300 dark:hover:bg-slate-800"
+                  className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-lg border border-selected-line bg-surface px-3 text-xs font-bold text-accent transition-colors hover:bg-row-hover"
                 >
                   {copiedField === 'pin' ? (
                     <>
-                      <Check className="h-3.5 w-3.5 text-emerald-600" />
+                      <Check className="h-3.5 w-3.5 text-success" />
                       <span>تم نسخ الرمز</span>
                     </>
                   ) : (
@@ -573,15 +567,15 @@ export function LiveLobbyView({
 
               {/* رمز QR المولّد محلياً */}
               {selectedNetwork && (
-                <div className="flex flex-col items-center rounded-2xl border border-slate-200 bg-slate-50/80 p-5 text-center dark:border-slate-800 dark:bg-slate-950/50">
-                  <div className="overflow-hidden rounded-xl border border-slate-200 bg-white p-2 shadow-xs">
+                <div className="flex flex-col items-center rounded-2xl border border-line bg-surface-subtle p-5 text-center">
+                  <div className="overflow-hidden rounded-xl border border-line bg-white p-2 shadow-xs">
                     <img
                       src={selectedNetwork.qrDataUrl}
                       alt={`رمز QR للانضمام إلى المسابقة برمز ${activeSession.pinCode}`}
                       className="h-52 w-52 object-contain"
                     />
                   </div>
-                  <p className="mt-3 text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <p className="mt-3 text-xs font-bold text-ink-muted">
                     امسح الرمز بكاميرا هاتف الطالب المتصل بنفس شبكة Wi-Fi
                   </p>
 
@@ -589,7 +583,7 @@ export function LiveLobbyView({
                   <div className="mt-3 w-full space-y-2">
                     <div
                       dir="ltr"
-                      className="break-all rounded-xl border border-slate-200 bg-white px-3 py-2 text-center font-mono text-xs text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                      className="break-all rounded-xl border border-line bg-surface px-3 py-2 text-center font-mono text-xs text-ink"
                     >
                       {selectedNetwork.joinUrl}
                     </div>
@@ -597,11 +591,11 @@ export function LiveLobbyView({
                       <button
                         type="button"
                         onClick={() => void handleCopy(selectedNetwork.joinUrl, 'url')}
-                        className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                        className="qc-btn-secondary inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold"
                       >
                         {copiedField === 'url' ? (
                           <>
-                            <Check className="h-3.5 w-3.5 text-emerald-600" />
+                            <Check className="h-3.5 w-3.5 text-success" />
                             <span>تم نسخ الرابط</span>
                           </>
                         ) : (
@@ -616,7 +610,7 @@ export function LiveLobbyView({
                         href={`/join?pin=${encodeURIComponent(activeSession.pinCode)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 text-xs font-bold text-indigo-700 transition-colors hover:bg-indigo-100 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-950"
+                        className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-selected-line bg-selected px-3 text-xs font-bold text-accent transition-colors hover:opacity-90"
                       >
                         <ExternalLink className="h-3.5 w-3.5" />
                         <span>فتح شاشة الطالب</span>
@@ -627,16 +621,16 @@ export function LiveLobbyView({
               )}
 
               {/* معلومات عنوان الشبكة المحلية وتعدد الواجهات */}
-              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
-                  <Network className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              <div className="rounded-xl border border-line bg-surface-subtle p-4">
+                <div className="flex items-center gap-2 text-xs font-bold text-ink">
+                  <Network className="h-4 w-4 text-accent" />
                   <span>عنوان الشبكة المحلية والمنفذ</span>
                 </div>
 
                 {selectedNetwork && (
                   <p
                     dir="ltr"
-                    className="tabular-nums mt-1.5 font-mono text-xs font-bold text-slate-600 dark:text-slate-300"
+                    className="tabular-nums mt-1.5 font-mono text-xs font-bold text-ink-muted"
                   >
                     {selectedNetwork.ip}:{selectedNetwork.port} ({selectedNetwork.label})
                   </p>
@@ -646,7 +640,7 @@ export function LiveLobbyView({
                   <div className="mt-3 space-y-1.5">
                     <label
                       htmlFor="live-network-interface-select"
-                      className="block text-xs font-bold text-slate-600 dark:text-slate-400"
+                      className="block text-xs font-bold text-ink-muted"
                     >
                       تبديل واجهة الشبكة لرمز QR والرابط:
                     </label>
@@ -654,7 +648,7 @@ export function LiveLobbyView({
                       id="live-network-interface-select"
                       value={selectedNetworkIndex}
                       onChange={(e) => setSelectedNetworkIndex(Number(e.target.value))}
-                      className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                      className="qc-input h-9 w-full rounded-lg px-2.5 text-xs font-semibold"
                     >
                       {activeSession.networkAddresses.map((net, idx) => (
                         <option key={`${net.interfaceName}-${net.ip}`} value={idx}>
@@ -668,32 +662,32 @@ export function LiveLobbyView({
             </section>
 
             {/* قائمة الطلاب المشاركين لحظياً */}
-            <section className="flex flex-col rounded-2xl border border-slate-200 bg-white p-6 lg:col-span-7 dark:border-slate-800 dark:bg-slate-900">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4 dark:border-slate-800">
+            <section className="qc-card flex flex-col p-6 lg:col-span-7">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-selected text-accent">
                     <Users className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-display text-base font-extrabold text-slate-900 dark:text-white">
+                    <h3 className="font-display text-base font-extrabold text-ink">
                       الطلاب المنضمون
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-xs text-ink-muted">
                       تتحدث القائمة تلقائياً فور انضمام أو انقطاع أي طالب
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4 text-xs font-bold">
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 dark:border-slate-700 dark:bg-slate-800">
-                    <span className="text-slate-500 dark:text-slate-400">الإجمالي: </span>
-                    <span className="tabular-nums text-slate-900 dark:text-white">
+                  <div className="rounded-xl border border-line bg-surface-subtle px-3 py-1.5">
+                    <span className="text-ink-muted">الإجمالي: </span>
+                    <span className="tabular-nums text-ink">
                       {activeSession.participantCount}
                     </span>
                   </div>
-                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 dark:border-emerald-900/60 dark:bg-emerald-950/40">
-                    <span className="text-emerald-700 dark:text-emerald-300">المتصلون الآن: </span>
-                    <span className="tabular-nums text-emerald-900 dark:text-emerald-200">
+                  <div className="rounded-xl border border-success-line bg-success-soft px-3 py-1.5">
+                    <span className="text-success-ink">المتصلون الآن: </span>
+                    <span className="tabular-nums text-success-ink">
                       {activeSession.connectedParticipantCount}
                     </span>
                   </div>
@@ -702,16 +696,16 @@ export function LiveLobbyView({
 
               {activeSession.participants.length === 0 ? (
                 <div className="flex flex-1 flex-col items-center justify-center py-16 text-center">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-subtle text-ink-muted">
                     <Users className="h-7 w-7" />
                   </div>
-                  <h4 className="font-display mt-4 text-base font-bold text-slate-900 dark:text-white">
+                  <h4 className="font-display mt-4 text-base font-bold text-ink">
                     في انتظار انضمام أول طالب...
                   </h4>
-                  <p className="mt-1 max-w-sm text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                  <p className="mt-1 max-w-sm text-xs leading-relaxed text-ink-muted">
                     اطلب من الطلاب مسح رمز QR الظاهر على الشاشة أو فتح رابط الانضمام وإدخال
                     الرمز{' '}
-                    <span className="tabular-nums font-bold text-indigo-600 dark:text-indigo-400">
+                    <span className="tabular-nums font-bold text-accent">
                       {activeSession.pinCode}
                     </span>
                     .
@@ -719,15 +713,15 @@ export function LiveLobbyView({
                 </div>
               ) : (
                 <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {activeSession.participants.map((participant, index) => {
+                  {activeSession.participants.map((participant) => {
                     const isOnline = participant.connectionStatus === 'connected';
                     return (
                       <div
                         key={participant.id}
                         className={`flex items-center justify-between gap-3 rounded-xl border p-3.5 transition-colors ${
                           isOnline
-                            ? 'border-slate-200 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-950/50'
-                            : 'border-amber-200/80 bg-amber-50/40 dark:border-amber-900/40 dark:bg-amber-950/20'
+                            ? 'border-line bg-surface-subtle'
+                            : 'border-warning-line bg-warning-soft'
                         }`}
                       >
                         <div className="flex min-w-0 items-center gap-3">
@@ -740,10 +734,10 @@ export function LiveLobbyView({
                             );
                           })()}
                           <div className="min-w-0">
-                            <p className="truncate font-display text-sm font-bold text-slate-900 dark:text-white">
+                            <p className="truncate font-display text-sm font-bold text-ink">
                               {participant.displayName}
                             </p>
-                            <p className="tabular-nums text-[11px] text-slate-500 dark:text-slate-400">
+                            <p className="tabular-nums text-[11px] text-ink-muted">
                               انضم{' '}
                               {new Date(participant.joinedAt).toLocaleTimeString('ar-EG', {
                                 hour: '2-digit',
@@ -756,13 +750,13 @@ export function LiveLobbyView({
                         <span
                           className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold ${
                             isOnline
-                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300'
-                              : 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300'
+                              ? 'bg-success-soft text-success-ink'
+                              : 'bg-warning-soft text-warning-ink'
                           }`}
                         >
                           <span
                             className={`h-1.5 w-1.5 rounded-full ${
-                              isOnline ? 'bg-emerald-500' : 'bg-amber-500'
+                              isOnline ? 'bg-success' : 'bg-warning'
                             }`}
                           />
                           <span>{isOnline ? 'متصل' : 'منقطع'}</span>
@@ -787,48 +781,48 @@ export function LiveLobbyView({
         )
       ) : (
         /* حالة عدم وجود جلسة نشطة */
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+        <section className="qc-card p-6">
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/70 dark:text-indigo-400">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-selected text-accent">
               <Radio className="h-7 w-7" />
             </div>
-            <h2 className="font-display mt-4 text-xl font-extrabold text-slate-900 dark:text-white">
+            <h2 className="font-display mt-4 text-xl font-extrabold text-ink">
               لا توجد جلسة مباشرة نشطة حالياً
             </h2>
-            <p className="mt-1.5 max-w-lg text-xs leading-relaxed text-slate-500 sm:text-sm dark:text-slate-400">
+            <p className="mt-1.5 max-w-lg text-xs leading-relaxed text-ink-muted sm:text-sm">
               اختر إحدى المسابقات المحفوظة أدناه لتوليد رمز PIN ورمز QR فوري والبدء باستقبال
               الطلاب عبر شبكة Wi-Fi المحلية دون إنترنت.
             </p>
           </div>
 
           {savedQuizzes.length === 0 ? (
-            <div className="mt-4 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950/40">
-              <ClipboardList className="h-7 w-7 text-slate-400" />
-              <p className="mt-3 font-display text-sm font-bold text-slate-900 dark:text-white">
+            <div className="mt-4 flex flex-col items-center justify-center rounded-2xl border border-dashed border-line-strong bg-surface-subtle px-6 py-10 text-center">
+              <ClipboardList className="h-7 w-7 text-ink-muted" />
+              <p className="mt-3 font-display text-sm font-bold text-ink">
                 لا توجد مسابقات محفوظة بعد
               </p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              <p className="mt-1 text-xs text-ink-muted">
                 أنشئ مسابقة أولاً من بنك الأسئلة لتتمكن من تشغيلها مباشرة داخل الصف.
               </p>
               <button
                 type="button"
                 onClick={onNavigateCreateQuiz}
-                className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white transition-colors hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                className="qc-btn-primary mt-5 inline-flex h-10 items-center gap-2 rounded-xl px-4 text-xs font-bold"
               >
                 <Plus className="h-4 w-4" />
                 <span>إنشاء مسابقة جديدة</span>
               </button>
             </div>
           ) : (
-            <div className="mt-6 space-y-3 border-t border-slate-200 pt-6 dark:border-slate-800">
+            <div className="mt-6 space-y-3 border-t border-line pt-6">
               <div className="flex items-center justify-between">
-                <h3 className="font-display text-sm font-bold text-slate-900 dark:text-white">
+                <h3 className="font-display text-sm font-bold text-ink">
                   مسابقات جاهزة للتشغيل المباشر
                 </h3>
                 <button
                   type="button"
                   onClick={onNavigateQuizzes}
-                  className="text-xs font-bold text-indigo-600 hover:underline dark:text-indigo-400"
+                  className="text-xs font-bold text-accent hover:underline"
                 >
                   عرض جميع المسابقات
                 </button>
@@ -838,13 +832,13 @@ export function LiveLobbyView({
                 {savedQuizzes.slice(0, 6).map((quiz) => (
                   <div
                     key={quiz.id}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/50"
+                    className="flex items-center justify-between gap-3 rounded-xl border border-line bg-surface-subtle p-4"
                   >
                     <div className="min-w-0">
-                      <p className="truncate font-display text-sm font-bold text-slate-900 dark:text-white">
+                      <p className="truncate font-display text-sm font-bold text-ink">
                         {quiz.title}
                       </p>
-                      <p className="tabular-nums mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                      <p className="tabular-nums mt-0.5 text-xs text-ink-muted">
                         {quiz.questionCount} سؤالاً
                         {quiz.subject ? ` · ${quiz.subject}` : ''}
                       </p>
@@ -852,7 +846,7 @@ export function LiveLobbyView({
                     <button
                       type="button"
                       onClick={() => void onLaunchQuiz(quiz.id)}
-                      className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 text-xs font-bold text-white transition-colors hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400"
+                      className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-success px-3.5 text-xs font-bold text-white transition-colors hover:bg-success-hover"
                     >
                       <Play className="h-3.5 w-3.5" />
                       <span>تشغيل مباشر</span>
@@ -867,25 +861,25 @@ export function LiveLobbyView({
 
       {/* سجل الجلسات المباشرة السابقة */}
       {recentSessions.length > 0 && (
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-          <h3 className="font-display text-base font-extrabold text-slate-900 dark:text-white">
+        <section className="qc-card p-6">
+          <h3 className="font-display text-base font-extrabold text-ink">
             سجل الجلسات المباشرة
           </h3>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-ink-muted">
             الجلسات المحفوظة فعلياً في قاعدة البيانات المحلية
           </p>
 
-          <div className="mt-4 divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="mt-4 divide-y divide-line">
             {recentSessions.map((item) => (
               <div
                 key={item.id}
                 className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="min-w-0">
-                  <p className="truncate font-display text-sm font-bold text-slate-900 dark:text-white">
+                  <p className="truncate font-display text-sm font-bold text-ink">
                     {item.quizTitle}
                   </p>
-                  <p className="tabular-nums mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                  <p className="tabular-nums mt-0.5 text-xs text-ink-muted">
                     رمز {item.pinCode} · {item.participantCount} مشاركاً ·{' '}
                     {formatQuizDate(item.createdAt)}
                   </p>
@@ -914,7 +908,7 @@ export function LiveLobbyView({
                             );
                           }
                         }}
-                        className="h-8 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 text-xs font-bold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-300"
+                        className="h-8 rounded-lg border border-selected-line bg-selected px-2.5 text-xs font-bold text-accent transition-colors hover:opacity-90"
                       >
                         {item.status === 'completed' ? 'عرض النتائج' : 'فتح الغرفة'}
                       </button>

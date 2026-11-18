@@ -269,20 +269,20 @@ export function QuestionFormModal({
       aria-labelledby="question-form-title"
     >
       <div
-        className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs"
+        className="fixed inset-0 bg-backdrop backdrop-blur-xs"
         onClick={() => void handleCancel()}
       />
 
-      <div className="relative z-10 flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+      <div className="relative z-10 flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-line bg-modal shadow-2xl">
+        <div className="flex items-center justify-between border-b border-line px-6 py-4">
           <div>
             <h3
               id="question-form-title"
-              className="font-display text-lg font-extrabold text-slate-900 dark:text-white"
+              className="font-display text-lg font-extrabold text-ink"
             >
               {editingQuestion ? 'تعديل السؤال' : 'إضافة سؤال جديد'}
             </h3>
-            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-0.5 text-xs text-ink-muted">
               يُحفظ السؤال والصور المرتبطة به مباشرة في قاعدة البيانات المحلية
             </p>
           </div>
@@ -291,7 +291,7 @@ export function QuestionFormModal({
             disabled={isSaving}
             onClick={() => void handleCancel()}
             aria-label="إغلاق النموذج"
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-row-hover hover:text-ink disabled:opacity-50"
           >
             <X className="h-5 w-5" />
           </button>
@@ -302,16 +302,14 @@ export function QuestionFormModal({
             {formError && (
               <div
                 role="alert"
-                className="rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs font-bold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300"
+                className="rounded-xl border border-danger-line bg-danger-soft p-3.5 text-xs font-bold text-danger-ink"
               >
                 {formError}
               </div>
             )}
 
             <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-200">
-                نوع السؤال
-              </label>
+              <label className="block text-xs font-bold text-ink">نوع السؤال</label>
               <div className="grid grid-cols-2 gap-3">
                 {(
                   [
@@ -338,12 +336,14 @@ export function QuestionFormModal({
                       }}
                       className={`rounded-xl border p-3.5 text-start transition-colors ${
                         active
-                          ? 'border-indigo-600 bg-indigo-50/70 text-indigo-950 dark:border-indigo-400 dark:bg-indigo-950/50 dark:text-white'
-                          : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-300 dark:hover:bg-slate-800'
+                          ? 'border-primary bg-selected text-ink dark:border-icon-soft'
+                          : 'border-line bg-input text-ink-muted hover:bg-row-hover hover:text-ink'
                       }`}
                     >
-                      <span className="font-display block text-sm font-bold">{item.title}</span>
-                      <span className="mt-0.5 block text-[11px] text-slate-500 dark:text-slate-400">
+                      <span className="font-display block text-sm font-bold text-ink">
+                        {item.title}
+                      </span>
+                      <span className="mt-0.5 block text-[11px] text-ink-muted">
                         {item.desc}
                       </span>
                     </button>
@@ -355,9 +355,9 @@ export function QuestionFormModal({
             <div className="space-y-3">
               <label
                 htmlFor="question-prompt-input"
-                className="block text-xs font-bold text-slate-700 dark:text-slate-200"
+                className="block text-xs font-bold text-ink"
               >
-                نص السؤال <span className="text-red-600">*</span>
+                نص السؤال <span className="text-danger">*</span>
               </label>
               <textarea
                 id="question-prompt-input"
@@ -365,7 +365,7 @@ export function QuestionFormModal({
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="اكتب نص السؤال بوضوح هنا..."
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
+                className="qc-input w-full rounded-xl p-3.5 text-sm"
               />
 
               <ImageUploadField
@@ -385,10 +385,10 @@ export function QuestionFormModal({
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <p className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                      الاختيارات وتحديد الإجابة الصحيحة <span className="text-red-600">*</span>
+                    <p className="text-xs font-bold text-ink">
+                      الاختيارات وتحديد الإجابة الصحيحة <span className="text-danger">*</span>
                     </p>
-                    <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+                    <p className="mt-0.5 text-[11px] text-ink-muted">
                       يمكنك إدخال نص، أو صورة، أو الجمع بين النص والصورة لكل اختيار، مع تحديد
                       إجابة صحيحة واحدة فقط.
                     </p>
@@ -398,7 +398,7 @@ export function QuestionFormModal({
                     <button
                       type="button"
                       onClick={handleAddOption}
-                      className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                      className="qc-btn-secondary inline-flex h-8 items-center gap-1 rounded-lg px-3 text-xs font-bold"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       <span>إضافة اختيار</span>
@@ -412,8 +412,8 @@ export function QuestionFormModal({
                       key={opt.key}
                       className={`rounded-xl border p-4 transition-colors ${
                         opt.isCorrect
-                          ? 'border-emerald-400 bg-emerald-50/50 dark:border-emerald-700 dark:bg-emerald-950/30'
-                          : 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950/40'
+                          ? 'border-success-line bg-success-soft'
+                          : 'border-line bg-surface-subtle'
                       }`}
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -422,8 +422,8 @@ export function QuestionFormModal({
                           onClick={() => handleSetCorrectOption(opt.key)}
                           className={`inline-flex items-center gap-2 rounded-lg px-2.5 py-1 text-xs font-bold transition-colors ${
                             opt.isCorrect
-                              ? 'bg-emerald-600 text-white dark:bg-emerald-500'
-                              : 'border border-slate-200 bg-slate-50 text-slate-700 hover:border-emerald-400 hover:text-emerald-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-emerald-600'
+                              ? 'bg-success text-white'
+                              : 'border border-line bg-surface text-ink-muted hover:border-success-line hover:text-success-ink'
                           }`}
                         >
                           <CheckCircle2 className="h-3.5 w-3.5" />
@@ -439,7 +439,7 @@ export function QuestionFormModal({
                             type="button"
                             onClick={() => handleRemoveOption(opt.key)}
                             aria-label={`حذف الاختيار ${OPTION_LETTERS[idx] ?? idx + 1}`}
-                            className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-xs font-bold text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+                            className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-xs font-bold text-ink-muted transition-colors hover:bg-danger-soft hover:text-danger-ink"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                             <span>إزالة</span>
@@ -453,7 +453,7 @@ export function QuestionFormModal({
                           value={opt.optionText}
                           onChange={(e) => handleOptionTextChange(opt.key, e.target.value)}
                           placeholder={`نص الاختيار ${OPTION_LETTERS[idx] ?? idx + 1} (اختياري عند إرفاق صورة)...`}
-                          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
+                          className="qc-input h-10 w-full rounded-xl px-3 text-sm"
                         />
 
                         <ImageUploadField
@@ -473,8 +473,8 @@ export function QuestionFormModal({
               </div>
             ) : (
               <div className="space-y-2.5">
-                <p className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                  الإجابة الصحيحة <span className="text-red-600">*</span>
+                <p className="text-xs font-bold text-ink">
+                  الإجابة الصحيحة <span className="text-danger">*</span>
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   {[
@@ -489,11 +489,11 @@ export function QuestionFormModal({
                         onClick={() => setCorrectBoolean(choice.value)}
                         className={`flex h-14 items-center justify-center gap-2 rounded-xl border text-sm font-extrabold transition-colors ${
                           active
-                            ? 'border-emerald-600 bg-emerald-50 text-emerald-800 dark:border-emerald-500 dark:bg-emerald-950/50 dark:text-emerald-200'
-                            : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                            ? 'border-success bg-success-soft text-success-ink'
+                            : 'border-line bg-input text-ink-muted hover:bg-row-hover hover:text-ink'
                         }`}
                       >
-                        {active && <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />}
+                        {active && <CheckCircle2 className="h-4 w-4 text-success-ink" />}
                         <span className="font-display">{choice.label}</span>
                       </button>
                     );
@@ -502,12 +502,10 @@ export function QuestionFormModal({
               </div>
             )}
 
-            <div className="border-t border-slate-200 pt-5 dark:border-slate-800">
+            <div className="border-t border-line pt-5">
               <div className="mb-3">
-                <p className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                  التصنيفات (اختياري بالكامل)
-                </p>
-                <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+                <p className="text-xs font-bold text-ink">التصنيفات (اختياري بالكامل)</p>
+                <p className="mt-0.5 text-[11px] text-ink-muted">
                   تساعدك على تنظيم بنك الأسئلة وتصفيتها لاحقاً، ويمكنك الحفظ دون تعبئتها.
                 </p>
               </div>
@@ -516,7 +514,7 @@ export function QuestionFormModal({
                 <div>
                   <label
                     htmlFor="q-subject"
-                    className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400"
+                    className="mb-1 block text-xs font-medium text-ink-muted"
                   >
                     المادة الدراسية
                   </label>
@@ -526,14 +524,14 @@ export function QuestionFormModal({
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
                     placeholder="مثال: الفيزياء"
-                    className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
+                    className="qc-input h-10 w-full rounded-xl px-3 text-xs"
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="q-grade"
-                    className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400"
+                    className="mb-1 block text-xs font-medium text-ink-muted"
                   >
                     الصف الدراسي
                   </label>
@@ -543,14 +541,14 @@ export function QuestionFormModal({
                     value={grade}
                     onChange={(e) => setGrade(e.target.value)}
                     placeholder="مثال: الصف العاشر"
-                    className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
+                    className="qc-input h-10 w-full rounded-xl px-3 text-xs"
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="q-topic"
-                    className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400"
+                    className="mb-1 block text-xs font-medium text-ink-muted"
                   >
                     الموضوع
                   </label>
@@ -560,14 +558,14 @@ export function QuestionFormModal({
                     value={topic}
                     onChange={(e) => setTopic(e.target.value)}
                     placeholder="مثال: قوانين الحركة"
-                    className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
+                    className="qc-input h-10 w-full rounded-xl px-3 text-xs"
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="q-difficulty"
-                    className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400"
+                    className="mb-1 block text-xs font-medium text-ink-muted"
                   >
                     مستوى الصعوبة
                   </label>
@@ -577,7 +575,7 @@ export function QuestionFormModal({
                     onChange={(e) =>
                       setDifficulty(e.target.value as QuestionDifficulty | '')
                     }
-                    className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
+                    className="qc-input h-10 w-full rounded-xl px-3 text-xs"
                   >
                     <option value="">غير محدد</option>
                     <option value="easy">سهل</option>
@@ -589,12 +587,12 @@ export function QuestionFormModal({
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50/70 px-6 py-4 dark:border-slate-800 dark:bg-slate-950/40">
+          <div className="flex items-center justify-end gap-3 border-t border-line bg-surface-subtle px-6 py-4">
             <button
               type="button"
               disabled={isSaving}
               onClick={() => void handleCancel()}
-              className="h-10 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              className="qc-btn-secondary h-10 rounded-xl px-4 text-xs font-bold disabled:opacity-50"
             >
               إلغاء
             </button>
@@ -602,7 +600,7 @@ export function QuestionFormModal({
             <button
               type="submit"
               disabled={isSaving}
-              className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-5 text-xs font-bold text-white transition-colors hover:bg-indigo-700 disabled:opacity-60 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+              className="qc-btn-primary inline-flex h-10 items-center gap-2 rounded-xl px-5 text-xs font-bold disabled:opacity-60"
             >
               {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
               <span>

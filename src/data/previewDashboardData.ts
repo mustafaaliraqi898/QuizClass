@@ -41,6 +41,11 @@ export const NAVIGATION_ITEMS: NavItem[] = [
     description: 'تشغيل المسابقة واستقبال الطلاب عبر Wi-Fi',
   },
   {
+    id: 'interactive-learning',
+    label: 'التعلم التفاعلي',
+    description: 'عرض الأسئلة على السبورة الذكية والتفاعل المباشر باللمس',
+  },
+  {
     id: 'reports',
     label: 'النتائج والتقارير',
     description: 'تحليل درجات الطلاب وترتيبهم',
@@ -90,7 +95,7 @@ export const QUICK_SHORTCUTS: QuickShortcut[] = [
 ];
 
 export const MODULE_ROADMAP: Record<
-  Exclude<NavSectionId, 'dashboard' | 'settings' | 'live-session'>,
+  Exclude<NavSectionId, 'dashboard' | 'settings' | 'live-session' | 'interactive-learning'>,
   ModuleRoadmapInfo
 > = {
   'question-bank': {

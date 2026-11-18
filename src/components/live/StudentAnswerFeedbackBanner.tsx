@@ -67,7 +67,7 @@ export function StudentAnswerFeedbackBanner({
     ? 'border-emerald-300 bg-emerald-600 text-white shadow-emerald-950/30 dark:border-emerald-400 dark:bg-emerald-600'
     : isWrong
       ? 'border-red-300 bg-red-600 text-white shadow-red-950/30 dark:border-red-400 dark:bg-red-600'
-      : 'border-amber-300 bg-amber-500 text-slate-950 shadow-amber-950/25 dark:border-amber-400 dark:bg-amber-500';
+      : 'border-amber-300 bg-amber-500 text-[#292929] shadow-amber-950/25 dark:border-amber-400 dark:bg-amber-500';
 
   const animClass = phase === 'exiting' ? 'qc-feedback-slide-out' : 'qc-feedback-slide-in';
 
@@ -86,7 +86,7 @@ export function StudentAnswerFeedbackBanner({
         <div className="flex items-start gap-3">
           <div
             className={`mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
-              isCorrect || isWrong ? 'bg-white/20 text-white' : 'bg-slate-950/15 text-slate-950'
+              isCorrect || isWrong ? 'bg-white/20 text-white' : 'bg-[#292929]/15 text-[#292929]'
             }`}
           >
             {isCorrect ? (
@@ -121,8 +121,8 @@ export function StudentAnswerFeedbackBanner({
               <div
                 className={`mt-1.5 rounded-xl px-3 py-2 text-xs sm:text-sm font-extrabold ${
                   isWrong
-                    ? 'bg-black/20 text-white'
-                    : 'bg-slate-950/15 text-slate-950'
+                    ? 'bg-[#292929]/20 text-white'
+                    : 'bg-[#292929]/15 text-[#292929]'
                 }`}
               >
                 <span className="opacity-85">الإجابة الصحيحة: </span>

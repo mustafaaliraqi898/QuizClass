@@ -25,20 +25,20 @@ interface LiveFinalResultsViewProps {
 const REVEAL_DELAYS_MS = [450, 1350, 2250] as const;
 
 const CONFETTI_PIECES = [
-  { leftClass: 'left-[5%]', colorClass: 'bg-amber-400', sizeClass: 'h-3 w-2 rounded-sm', delayClass: '', alt: false },
-  { leftClass: 'left-[11%]', colorClass: 'bg-indigo-500', sizeClass: 'h-2.5 w-2.5 rounded-full', delayClass: 'delay-150', alt: true },
-  { leftClass: 'left-[17%]', colorClass: 'bg-emerald-400', sizeClass: 'h-3 w-1.5 rounded-sm', delayClass: 'delay-300', alt: false },
-  { leftClass: 'left-[24%]', colorClass: 'bg-pink-500', sizeClass: 'h-2.5 w-2.5 rounded-full', delayClass: 'delay-500', alt: true },
-  { leftClass: 'left-[31%]', colorClass: 'bg-sky-400', sizeClass: 'h-3 w-2 rounded-sm', delayClass: 'delay-200', alt: false },
-  { leftClass: 'left-[38%]', colorClass: 'bg-amber-500', sizeClass: 'h-2.5 w-2.5 rounded-full', delayClass: 'delay-700', alt: true },
-  { leftClass: 'left-[45%]', colorClass: 'bg-violet-500', sizeClass: 'h-3 w-2 rounded-sm', delayClass: 'delay-100', alt: false },
-  { leftClass: 'left-[53%]', colorClass: 'bg-rose-500', sizeClass: 'h-2.5 w-2.5 rounded-full', delayClass: 'delay-300', alt: true },
-  { leftClass: 'left-[60%]', colorClass: 'bg-emerald-500', sizeClass: 'h-3 w-1.5 rounded-sm', delayClass: 'delay-500', alt: false },
-  { leftClass: 'left-[67%]', colorClass: 'bg-yellow-300', sizeClass: 'h-3 w-2 rounded-sm', delayClass: 'delay-150', alt: true },
-  { leftClass: 'left-[75%]', colorClass: 'bg-indigo-400', sizeClass: 'h-2.5 w-2.5 rounded-full', delayClass: 'delay-700', alt: false },
-  { leftClass: 'left-[82%]', colorClass: 'bg-pink-400', sizeClass: 'h-3 w-2 rounded-sm', delayClass: 'delay-200', alt: true },
-  { leftClass: 'left-[89%]', colorClass: 'bg-teal-400', sizeClass: 'h-2.5 w-2.5 rounded-full', delayClass: 'delay-500', alt: false },
-  { leftClass: 'left-[95%]', colorClass: 'bg-amber-400', sizeClass: 'h-3 w-1.5 rounded-sm', delayClass: 'delay-1000', alt: true },
+  { leftClass: 'left-[5%]', colorClass: 'bg-warning', sizeClass: 'h-3 w-2 rounded-sm', delayClass: '', alt: false },
+  { leftClass: 'left-[11%]', colorClass: 'bg-primary', sizeClass: 'h-2.5 w-2.5 rounded-full', delayClass: 'delay-150', alt: true },
+  { leftClass: 'left-[17%]', colorClass: 'bg-success', sizeClass: 'h-3 w-1.5 rounded-sm', delayClass: 'delay-300', alt: false },
+  { leftClass: 'left-[24%]', colorClass: 'bg-danger', sizeClass: 'h-2.5 w-2.5 rounded-full', delayClass: 'delay-500', alt: true },
+  { leftClass: 'left-[31%]', colorClass: 'bg-icon-soft', sizeClass: 'h-3 w-2 rounded-sm', delayClass: 'delay-200', alt: false },
+  { leftClass: 'left-[38%]', colorClass: 'bg-[#E5B85C]', sizeClass: 'h-2.5 w-2.5 rounded-full', delayClass: 'delay-700', alt: true },
+  { leftClass: 'left-[45%]', colorClass: 'bg-primary', sizeClass: 'h-3 w-2 rounded-sm', delayClass: 'delay-100', alt: false },
+  { leftClass: 'left-[53%]', colorClass: 'bg-danger', sizeClass: 'h-2.5 w-2.5 rounded-full', delayClass: 'delay-300', alt: true },
+  { leftClass: 'left-[60%]', colorClass: 'bg-success', sizeClass: 'h-3 w-1.5 rounded-sm', delayClass: 'delay-500', alt: false },
+  { leftClass: 'left-[67%]', colorClass: 'bg-warning', sizeClass: 'h-3 w-2 rounded-sm', delayClass: 'delay-150', alt: true },
+  { leftClass: 'left-[75%]', colorClass: 'bg-icon-soft', sizeClass: 'h-2.5 w-2.5 rounded-full', delayClass: 'delay-700', alt: false },
+  { leftClass: 'left-[82%]', colorClass: 'bg-[#E5B85C]', sizeClass: 'h-3 w-2 rounded-sm', delayClass: 'delay-200', alt: true },
+  { leftClass: 'left-[89%]', colorClass: 'bg-success', sizeClass: 'h-2.5 w-2.5 rounded-full', delayClass: 'delay-500', alt: false },
+  { leftClass: 'left-[95%]', colorClass: 'bg-primary', sizeClass: 'h-3 w-1.5 rounded-sm', delayClass: 'delay-1000', alt: true },
 ] as const;
 
 export function LiveFinalResultsView({
@@ -84,15 +84,15 @@ export function LiveFinalResultsView({
 
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl border border-indigo-200 bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950 p-6 sm:p-10 text-white shadow-2xl dark:border-indigo-900/70">
+      <section className="relative overflow-hidden rounded-3xl border border-line bg-surface p-6 text-ink shadow-sm sm:p-10">
         {/* Stage Spotlight Ambient Glow */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-20 left-1/2 h-64 w-96 -translate-x-1/2 rounded-full bg-amber-400/15 blur-3xl"
+          className="pointer-events-none absolute -top-20 left-1/2 h-64 w-96 -translate-x-1/2 rounded-full bg-warning/15 blur-3xl"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-16 -right-16 h-56 w-56 rounded-full bg-indigo-500/20 blur-3xl"
+          className="pointer-events-none absolute -bottom-16 -right-16 h-56 w-56 rounded-full bg-primary/15 blur-3xl"
         />
 
         {/* Confetti Shower when 1st Place Champion Arrives */}
@@ -100,7 +100,7 @@ export function LiveFinalResultsView({
           <div
             aria-hidden="true"
             data-testid="podium-confetti"
-            className="pointer-events-none absolute inset-x-0 top-0 h-80 overflow-hidden z-20"
+            className="pointer-events-none absolute inset-x-0 top-0 z-20 h-80 overflow-hidden"
           >
             {CONFETTI_PIECES.map((piece, idx) => (
               <span
@@ -114,8 +114,8 @@ export function LiveFinalResultsView({
         {/* Header & Teacher Controls */}
         <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-2.5">
-            <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/15 px-3.5 py-1 text-xs font-black text-amber-200">
-              <Sparkles className="h-4 w-4 text-amber-300" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-warning-line bg-warning-soft px-3.5 py-1 text-xs font-black text-warning-ink">
+              <Sparkles className="h-4 w-4 text-warning" />
               <span>
                 {leaderboard.length === 0
                   ? 'انتهت المسابقة'
@@ -125,11 +125,11 @@ export function LiveFinalResultsView({
               </span>
             </div>
 
-            <h2 className="font-display text-2xl font-black text-white sm:text-4xl">
+            <h2 className="font-display text-2xl font-black text-ink sm:text-4xl">
               {session.quizTitle}
             </h2>
 
-            <p className="tabular-nums text-xs font-bold text-indigo-200 sm:text-sm">
+            <p className="tabular-nums text-xs font-bold text-ink-muted sm:text-sm">
               {session.questionCount} سؤالاً مسجلاً · {leaderboard.length} مشاركاً · رمز الجلسة:{' '}
               {session.pinCode}
             </p>
@@ -140,7 +140,7 @@ export function LiveFinalResultsView({
               <button
                 type="button"
                 onClick={() => setReplayNonce((n) => n + 1)}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 text-xs font-extrabold text-white backdrop-blur-sm transition-colors hover:bg-white/20 whitespace-nowrap"
+                className="qc-btn-secondary inline-flex h-11 items-center justify-center gap-2 rounded-2xl px-4 text-xs font-extrabold whitespace-nowrap"
               >
                 <RotateCcw className="h-4 w-4" />
                 <span>إعادة الاحتفال</span>
@@ -149,7 +149,7 @@ export function LiveFinalResultsView({
             <button
               type="button"
               onClick={onLaunchNewSession}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-indigo-500 px-5 text-xs sm:text-sm font-extrabold text-white transition-all hover:bg-indigo-400 shadow-lg shadow-indigo-950/50 whitespace-nowrap"
+              className="qc-btn-primary inline-flex h-11 items-center justify-center gap-2 rounded-2xl px-5 text-xs font-extrabold shadow-xs whitespace-nowrap sm:text-sm"
             >
               <RefreshCw className="h-4 w-4" />
               <span>تشغيل جلسة جديدة</span>
@@ -157,7 +157,7 @@ export function LiveFinalResultsView({
             <button
               type="button"
               onClick={onBackToQuizzes}
-              className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-600 bg-slate-800/80 px-4 text-xs font-extrabold text-slate-100 transition-colors hover:bg-slate-700 whitespace-nowrap"
+              className="qc-btn-secondary inline-flex h-11 items-center justify-center rounded-2xl px-4 text-xs font-extrabold whitespace-nowrap"
             >
               العودة إلى المسابقات
             </button>
@@ -168,13 +168,13 @@ export function LiveFinalResultsView({
         {leaderboard.length === 0 ? (
           <div
             data-testid="podium-empty-state"
-            className="relative z-10 mt-10 flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-6 py-16 text-center backdrop-blur-sm"
+            className="relative z-10 mt-10 flex flex-col items-center justify-center rounded-2xl border border-line bg-surface-subtle px-6 py-16 text-center"
           >
-            <Users className="h-12 w-12 text-indigo-300/60" />
-            <p className="font-display mt-3 text-lg font-extrabold text-white">
+            <Users className="h-12 w-12 text-ink-muted" />
+            <p className="font-display mt-3 text-lg font-extrabold text-ink">
               لم يشارك أي طالب في هذه الجلسة
             </p>
-            <p className="mt-1 text-xs font-bold text-indigo-200/80">
+            <p className="mt-1 text-xs font-bold text-ink-muted">
               يمكنك تشغيل جلسة جديدة ودعوة الطلاب باستخدام رمز PIN جديد.
             </p>
           </div>
@@ -184,7 +184,7 @@ export function LiveFinalResultsView({
             <div
               data-testid="podium-stage"
               data-reveal-stage={revealStage}
-              className="rounded-3xl border border-white/10 bg-slate-950/45 px-4 pt-8 pb-6 sm:px-8 sm:pt-10 backdrop-blur-sm"
+              className="rounded-3xl border border-line bg-surface-subtle px-4 pt-8 pb-6 sm:px-8 sm:pt-10"
             >
               <div className="mx-auto flex max-w-4xl flex-col items-center justify-center gap-6 sm:flex-row sm:items-end sm:gap-5">
                 {podiumPlan.slots.map((slot) => {
@@ -207,17 +207,17 @@ export function LiveFinalResultsView({
                       className={`flex w-full max-w-[230px] flex-col items-center ${slot.visualOrderClass}`}
                     >
                       {/* Animated Character + Stable Grounded Nameplate */}
-                      <div className="flex min-h-[210px] sm:min-h-[235px] w-full flex-col items-center justify-end pb-3">
+                      <div className="flex min-h-[210px] w-full flex-col items-center justify-end pb-3 sm:min-h-[235px]">
                         {isRevealed ? (
                           <div className={`flex w-full flex-col items-center ${entranceClass}`}>
                             {/* Rank Badge Pill above character */}
-                            <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1 text-[11px] font-black text-white shadow-sm backdrop-blur-sm">
+                            <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 text-[11px] font-black text-ink shadow-xs">
                               {displayRank === 1 ? (
-                                <Crown className="h-3.5 w-3.5 text-amber-300" />
+                                <Crown className="h-3.5 w-3.5 text-warning" />
                               ) : displayRank === 2 ? (
-                                <Medal className="h-3.5 w-3.5 text-slate-200" />
+                                <Medal className="h-3.5 w-3.5 text-accent" />
                               ) : (
-                                <Award className="h-3.5 w-3.5 text-orange-300" />
+                                <Award className="h-3.5 w-3.5 text-[#B56D3B] dark:text-[#DF9F70]" />
                               )}
                               <span className="tabular-nums">المركز {entry.rankPosition}</span>
                             </div>
@@ -235,32 +235,40 @@ export function LiveFinalResultsView({
 
                             {/* Crisp Unobstructed Student Name & Score Plate */}
                             <div
-                              className={`mt-1 w-full rounded-2xl border px-3 py-2 text-center shadow-lg ${
+                              className={`mt-1 w-full rounded-2xl border px-3 py-2 text-center shadow-sm ${
                                 displayRank === 1
-                                  ? 'border-amber-300/70 bg-amber-400/20 text-white'
+                                  ? 'border-warning-line bg-warning-soft text-ink'
                                   : displayRank === 2
-                                    ? 'border-slate-300/50 bg-slate-200/15 text-white'
-                                    : 'border-orange-300/50 bg-orange-400/15 text-white'
+                                    ? 'border-selected-line bg-selected text-ink'
+                                    : 'border-[#DF9F70] bg-[#FBF2EA] text-ink dark:border-[#8C5630] dark:bg-[#3A2E25]'
                               }`}
                             >
-                              <h3 className="font-display truncate text-base sm:text-lg font-black text-white">
+                              <h3 className="font-display truncate text-base font-black text-ink sm:text-lg">
                                 {entry.displayName}
                               </h3>
-                              <p className="tabular-nums font-display text-lg sm:text-xl font-black text-amber-200">
+                              <p
+                                className={`tabular-nums font-display text-lg font-black sm:text-xl ${
+                                  displayRank === 1
+                                    ? 'text-warning-ink'
+                                    : displayRank === 2
+                                      ? 'text-accent'
+                                      : 'text-[#8C4D22] dark:text-[#ECC29E]'
+                                }`}
+                              >
                                 {entry.totalScore}{' '}
-                                <span className="text-xs font-bold text-indigo-100">نقطة</span>
+                                <span className="text-xs font-bold text-ink-muted">نقطة</span>
                               </p>
                             </div>
                           </div>
                         ) : (
                           <div
                             aria-hidden="true"
-                            className="flex flex-col items-center justify-center gap-2 pb-4 opacity-40"
+                            className="flex flex-col items-center justify-center gap-2 pb-4 opacity-50"
                           >
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-dashed border-indigo-300/60 text-indigo-200">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-dashed border-line-strong text-ink-muted">
                               <Trophy className="h-5 w-5" />
                             </div>
-                            <span className="text-[11px] font-bold text-indigo-200">
+                            <span className="text-[11px] font-bold text-ink-muted">
                               في انتظار الإعلان...
                             </span>
                           </div>
@@ -269,9 +277,9 @@ export function LiveFinalResultsView({
 
                       {/* Physical Stepped Pedestal */}
                       <div
-                        className={`flex w-full flex-col items-center justify-between rounded-t-2xl border-t-4 border-x-2 bg-gradient-to-b px-3 py-3 shadow-xl ${slot.pedestalHeightClass} ${slot.pedestalToneClass}`}
+                        className={`flex w-full flex-col items-center justify-between rounded-t-2xl border-x-2 border-t-4 bg-gradient-to-b px-3 py-3 shadow-md ${slot.pedestalHeightClass} ${slot.pedestalToneClass}`}
                       >
-                        <span className="tabular-nums font-display text-2xl sm:text-3xl font-black leading-none">
+                        <span className="tabular-nums font-display text-2xl leading-none font-black sm:text-3xl">
                           {entry.rankPosition}
                         </span>
                         {isRevealed ? (
@@ -281,7 +289,7 @@ export function LiveFinalResultsView({
                             <span className="tabular-nums">{entry.wrongCount} خطأ</span>
                           </div>
                         ) : (
-                          <span className="text-[11px] font-extrabold opacity-75">
+                          <span className="text-[11px] font-extrabold opacity-80">
                             المركز {entry.rankPosition}
                           </span>
                         )}
@@ -296,19 +304,19 @@ export function LiveFinalResultsView({
             {podiumPlan.remainingParticipants.length > 0 && (
               <div
                 data-testid="podium-remaining-list"
-                className="overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+                className="qc-card overflow-hidden text-ink"
               >
-                <div className="flex items-center justify-between border-b border-slate-200 p-4 dark:border-slate-800">
-                  <h3 className="font-display text-sm font-extrabold text-slate-900 dark:text-white">
+                <div className="flex items-center justify-between border-b border-line p-4">
+                  <h3 className="font-display text-sm font-extrabold text-ink">
                     بقية المشاركين ({podiumPlan.remainingParticipants.length})
                   </h3>
-                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                  <span className="text-xs font-bold text-ink-muted">
                     إجمالي المشاركين: {leaderboard.length}
                   </span>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-start text-sm">
-                    <thead className="border-b border-slate-200 bg-slate-50 text-xs font-extrabold text-slate-600 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-300">
+                    <thead className="border-b border-line bg-surface-subtle text-xs font-extrabold text-ink-muted">
                       <tr>
                         <th className="px-4 py-3.5 text-start">الترتيب</th>
                         <th className="px-4 py-3.5 text-start">اسم الطالب والشخصية</th>
@@ -318,51 +326,51 @@ export function LiveFinalResultsView({
                         <th className="px-4 py-3.5 text-center">غير المجابة</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 bg-white dark:divide-slate-800 dark:bg-slate-900">
+                    <tbody className="divide-y divide-line bg-surface">
                       {podiumPlan.remainingParticipants.map((entry) => {
                         const resolvedAvatarId =
                           entry.avatarId ?? participantAvatarMap.get(entry.participantId);
                         return (
                           <tr
                             key={entry.participantId}
-                            className="transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-800/40"
+                            className="transition-colors hover:bg-row-hover"
                           >
                             <td className="px-4 py-3.5">
-                              <span className="tabular-nums inline-flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 font-display text-xs font-black text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                              <span className="tabular-nums inline-flex h-8 w-8 items-center justify-center rounded-lg bg-selected font-display text-xs font-black text-accent">
                                 {entry.rankPosition}
                               </span>
                             </td>
                             <td className="px-4 py-3.5">
                               <div className="flex items-center gap-3">
-                                <div className="flex h-11 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800">
+                                <div className="flex h-11 w-10 shrink-0 items-center justify-center rounded-xl bg-surface-subtle">
                                   <AnimatedFullBodyAvatar
                                     avatarId={resolvedAvatarId}
                                     size="sm"
                                     animated={false}
                                   />
                                 </div>
-                                <span className="font-display font-bold text-slate-900 dark:text-white">
+                                <span className="font-display font-bold text-ink">
                                   {entry.displayName}
                                 </span>
                               </div>
                             </td>
-                            <td className="tabular-nums px-4 py-3.5 text-center font-display font-black text-indigo-700 dark:text-indigo-300">
+                            <td className="tabular-nums px-4 py-3.5 text-center font-display font-black text-accent">
                               {entry.totalScore}
                             </td>
                             <td className="tabular-nums px-4 py-3.5 text-center">
-                              <span className="inline-flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-300">
+                              <span className="inline-flex items-center gap-1 font-bold text-success-ink">
                                 <CheckCircle2 className="h-3.5 w-3.5" />
                                 <span>{entry.correctCount}</span>
                               </span>
                             </td>
                             <td className="tabular-nums px-4 py-3.5 text-center">
-                              <span className="inline-flex items-center gap-1 font-bold text-red-700 dark:text-red-300">
+                              <span className="inline-flex items-center gap-1 font-bold text-danger-ink">
                                 <XCircle className="h-3.5 w-3.5" />
                                 <span>{entry.wrongCount}</span>
                               </span>
                             </td>
                             <td className="tabular-nums px-4 py-3.5 text-center">
-                              <span className="inline-flex items-center gap-1 font-bold text-slate-600 dark:text-slate-400">
+                              <span className="inline-flex items-center gap-1 font-bold text-ink-muted">
                                 <HelpCircle className="h-3.5 w-3.5" />
                                 <span>{entry.unansweredCount}</span>
                               </span>

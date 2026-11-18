@@ -40,37 +40,32 @@ export function RecentQuizzesSection({
   }, [quizzes, searchQuery]);
 
   return (
-    <section
-      aria-label="المسابقات الأخيرة"
-      className="rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
-    >
-      <div className="flex flex-col gap-4 border-b border-slate-200 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between dark:border-slate-800">
+    <section aria-label="المسابقات الأخيرة" className="qc-card">
+      <div className="flex flex-col gap-4 border-b border-line p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h3 className="font-display text-base font-bold text-slate-900 dark:text-white">
-            المسابقات الأخيرة
-          </h3>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <h3 className="font-display text-base font-bold text-ink">المسابقات الأخيرة</h3>
+          <p className="mt-1 text-xs text-ink-muted">
             أحدث المسابقات المحفوظة محلياً في قاعدة البيانات
           </p>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative">
-            <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
             <input
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="ابحث بالاسم أو المادة..."
               aria-label="البحث في المسابقات الأخيرة"
-              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pe-3 ps-9 text-xs text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none sm:w-56 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
+              className="qc-input h-10 w-full rounded-xl pe-3 ps-9 text-xs sm:w-56"
             />
           </div>
 
           <button
             type="button"
             onClick={() => onNavigate('quizzes')}
-            className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 whitespace-nowrap shrink-0 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            className="qc-btn-secondary inline-flex h-10 items-center justify-center rounded-xl px-4 text-xs font-bold whitespace-nowrap shrink-0"
           >
             إدارة جميع المسابقات
           </button>
@@ -82,16 +77,16 @@ export function RecentQuizzesSection({
           role="alert"
           className="flex flex-col items-center justify-center px-6 py-10 text-center"
         >
-          <AlertCircle className="h-7 w-7 text-red-500" />
-          <p className="mt-2 font-display text-sm font-bold text-slate-900 dark:text-white">
+          <AlertCircle className="h-7 w-7 text-danger" />
+          <p className="mt-2 font-display text-sm font-bold text-ink">
             تعذر تحميل المسابقات من قاعدة البيانات
           </p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{errorMessage}</p>
+          <p className="mt-1 text-xs text-ink-muted">{errorMessage}</p>
           {onRetry && (
             <button
               type="button"
               onClick={onRetry}
-              className="mt-4 inline-flex h-9 items-center gap-1.5 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white hover:bg-indigo-700 dark:bg-indigo-500"
+              className="qc-btn-primary mt-4 inline-flex h-9 items-center gap-1.5 rounded-xl px-4 text-xs font-bold"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               <span>إعادة المحاولة</span>
@@ -103,25 +98,25 @@ export function RecentQuizzesSection({
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="h-14 animate-pulse rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/40"
+              className="h-14 animate-pulse rounded-xl border border-line bg-surface-subtle"
             />
           ))}
         </div>
       ) : quizzes.length === 0 ? (
         <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/70 dark:text-indigo-400">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-selected-line bg-selected text-accent">
             <ClipboardList className="h-6 w-6" />
           </div>
-          <p className="mt-3 font-display text-sm font-bold text-slate-900 dark:text-white">
+          <p className="mt-3 font-display text-sm font-bold text-ink">
             لا توجد مسابقات محفوظة حتى الآن
           </p>
-          <p className="mt-1 max-w-md text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 max-w-md text-xs text-ink-muted">
             ابدأ بإنشاء مسابقتك الأولى باختيار الأسئلة من بنك الأسئلة المحلي.
           </p>
           <button
             type="button"
             onClick={() => onNavigate('create-quiz')}
-            className="mt-4 inline-flex h-10 items-center gap-1.5 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white transition-colors hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+            className="qc-btn-primary mt-4 inline-flex h-10 items-center gap-1.5 rounded-xl px-4 text-xs font-bold"
           >
             <Plus className="h-4 w-4" />
             <span>إنشاء مسابقة جديدة</span>
@@ -129,16 +124,16 @@ export function RecentQuizzesSection({
         </div>
       ) : filteredQuizzes.length === 0 ? (
         <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
-          <p className="font-display text-sm font-bold text-slate-900 dark:text-white">
+          <p className="font-display text-sm font-bold text-ink">
             لا توجد نتائج مطابقة لبحثك
           </p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-ink-muted">
             جرّب تغيير كلمات البحث لعرض المسابقات المحفوظة.
           </p>
           <button
             type="button"
             onClick={() => setSearchQuery('')}
-            className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            className="qc-btn-secondary mt-4 rounded-xl px-4 py-2 text-xs font-bold"
           >
             إظهار جميع المسابقات
           </button>
@@ -148,7 +143,7 @@ export function RecentQuizzesSection({
           <div className="hidden overflow-x-auto md:block">
             <table className="w-full border-collapse text-start">
               <thead>
-                <tr className="border-b border-slate-200 text-xs font-bold text-slate-500 dark:border-slate-800 dark:text-slate-400">
+                <tr className="border-b border-line bg-surface-subtle text-xs font-bold text-ink-muted">
                   <th className="px-6 py-3.5 text-start font-bold">عنوان المسابقة</th>
                   <th className="px-4 py-3.5 text-start font-bold">الأسئلة</th>
                   <th className="px-4 py-3.5 text-start font-bold">المدة الكلية</th>
@@ -156,7 +151,7 @@ export function RecentQuizzesSection({
                   <th className="px-6 py-3.5 text-end font-bold">الإجراء</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-sm dark:divide-slate-800/80">
+              <tbody className="divide-y divide-line text-sm">
                 {filteredQuizzes.map((quiz) => {
                   const metaParts = [quiz.subject, quiz.grade].filter(
                     (part): part is string => Boolean(part)
@@ -165,16 +160,17 @@ export function RecentQuizzesSection({
                     <tr
                       key={quiz.id}
                       onClick={() => setSelectedQuiz(quiz)}
-                      className="cursor-pointer transition-colors hover:bg-slate-50/90 dark:hover:bg-slate-800/50"
+                      className="cursor-pointer transition-colors hover:bg-row-hover"
                     >
                       <td className="px-6 py-4">
-                        <div className="font-display font-bold text-slate-900 dark:text-slate-100">
-                          {quiz.title}
-                        </div>
+                        <div className="font-display font-bold text-ink">{quiz.title}</div>
                         {metaParts.length > 0 && (
-                          <div className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                          <div className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-muted">
                             {metaParts.map((part, idx) => (
-                              <span key={`${quiz.id}-rowm-${idx}`} className="inline-flex items-center gap-1.5">
+                              <span
+                                key={`${quiz.id}-rowm-${idx}`}
+                                className="inline-flex items-center gap-1.5"
+                              >
                                 {idx > 0 && <span aria-hidden="true">·</span>}
                                 <span>{part}</span>
                               </span>
@@ -183,15 +179,15 @@ export function RecentQuizzesSection({
                         )}
                       </td>
 
-                      <td className="tabular-nums px-4 py-4 text-xs font-bold text-slate-700 whitespace-nowrap dark:text-slate-300">
+                      <td className="tabular-nums px-4 py-4 text-xs font-bold text-ink whitespace-nowrap">
                         {quiz.questionCount} سؤالاً
                       </td>
 
-                      <td className="tabular-nums px-4 py-4 text-xs font-medium text-slate-600 whitespace-nowrap dark:text-slate-400">
+                      <td className="tabular-nums px-4 py-4 text-xs font-medium text-ink-muted whitespace-nowrap">
                         {formatDurationArabic(quiz.totalDurationSeconds)}
                       </td>
 
-                      <td className="tabular-nums px-4 py-4 text-xs font-medium text-slate-600 whitespace-nowrap dark:text-slate-400">
+                      <td className="tabular-nums px-4 py-4 text-xs font-medium text-ink-muted whitespace-nowrap">
                         {formatQuizDate(quiz.createdAt)}
                       </td>
 
@@ -203,7 +199,7 @@ export function RecentQuizzesSection({
                             e.stopPropagation();
                             setSelectedQuiz(quiz);
                           }}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 transition-colors hover:border-indigo-300 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-indigo-600 dark:hover:text-indigo-400"
+                          className="qc-btn-secondary inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold hover:border-selected-line hover:text-accent"
                         >
                           <Eye className="h-3.5 w-3.5" />
                           <span>معاينة</span>
@@ -216,7 +212,7 @@ export function RecentQuizzesSection({
             </table>
           </div>
 
-          <div className="divide-y divide-slate-100 md:hidden dark:divide-slate-800">
+          <div className="divide-y divide-line md:hidden">
             {filteredQuizzes.map((quiz) => {
               const metaParts = [
                 quiz.subject,
@@ -230,12 +226,10 @@ export function RecentQuizzesSection({
                   key={quiz.id}
                   type="button"
                   onClick={() => setSelectedQuiz(quiz)}
-                  className="flex w-full flex-col gap-2 p-4 text-start transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                  className="flex w-full flex-col gap-2 p-4 text-start transition-colors hover:bg-row-hover"
                 >
-                  <h4 className="font-display text-sm font-bold text-slate-900 dark:text-white">
-                    {quiz.title}
-                  </h4>
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                  <h4 className="font-display text-sm font-bold text-ink">{quiz.title}</h4>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
                     {metaParts.map((part, idx) => (
                       <span
                         key={`${quiz.id}-mobm-${idx}`}

@@ -42,17 +42,17 @@ export function LiveSessionSettingsPanel({
   };
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4 dark:border-slate-800">
+    <section className="qc-card p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-selected text-accent">
             <Settings2 className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-display text-base font-extrabold text-slate-900 dark:text-white">
+            <h3 className="font-display text-base font-extrabold text-ink">
               إعدادات تشغيل المسابقة المباشرة
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-ink-muted">
               تُحفظ الإعدادات داخل الجلسة وتثبت بمجرد بدء المسابقة
             </p>
           </div>
@@ -60,13 +60,13 @@ export function LiveSessionSettingsPanel({
 
         <div className="flex items-center gap-2 text-xs font-bold">
           {isSaving && (
-            <span className="inline-flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
+            <span className="inline-flex items-center gap-1.5 text-accent">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
               <span>جارٍ الحفظ...</span>
             </span>
           )}
           {!isSaving && justSaved && (
-            <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+            <span className="inline-flex items-center gap-1 text-success-ink">
               <Check className="h-3.5 w-3.5" />
               <span>تم الحفظ</span>
             </span>
@@ -76,15 +76,15 @@ export function LiveSessionSettingsPanel({
 
       <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
         {/* 1. مدة عرض السؤال قبل الاختيارات */}
-        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+        <div className="rounded-xl border border-line bg-surface-subtle p-4">
           <label
             htmlFor="setting-intro-seconds"
-            className="flex items-center gap-2 text-xs font-extrabold text-slate-900 dark:text-white"
+            className="flex items-center gap-2 text-xs font-extrabold text-ink"
           >
-            <Clock className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+            <Clock className="h-4 w-4 text-accent" />
             <span>مدة عرض السؤال قبل ظهور الاختيارات (ثانية)</span>
           </label>
-          <p className="mt-1 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-[11px] leading-relaxed text-ink-muted">
             تمنح الطلاب وقتاً لقراءة السؤال قبل ظهور الخيارات وبدء مؤقت الإجابة.
           </p>
           <div className="mt-3 flex items-center gap-2">
@@ -99,19 +99,19 @@ export function LiveSessionSettingsPanel({
                 const val = clampSeconds(e.target.value, draft.questionIntroSeconds);
                 void commitChange({ ...draft, questionIntroSeconds: val });
               }}
-              className="tabular-nums h-10 w-24 rounded-xl border border-slate-200 bg-white px-3 text-center text-sm font-extrabold text-slate-900 focus:border-indigo-500 focus:outline-none disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+              className="qc-input tabular-nums h-10 w-24 rounded-xl px-3 text-center text-sm font-extrabold disabled:opacity-60"
             />
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">ثوانٍ (1 – 60)</span>
+            <span className="text-xs font-bold text-ink-muted">ثوانٍ (1 – 60)</span>
           </div>
         </div>
 
         {/* 2. نظام احتساب النقاط */}
-        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
-          <div className="flex items-center gap-2 text-xs font-extrabold text-slate-900 dark:text-white">
-            <Trophy className="h-4 w-4 text-amber-500" />
+        <div className="rounded-xl border border-line bg-surface-subtle p-4">
+          <div className="flex items-center gap-2 text-xs font-extrabold text-ink">
+            <Trophy className="h-4 w-4 text-warning" />
             <span>نظام احتساب النقاط</span>
           </div>
-          <p className="mt-1 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-[11px] leading-relaxed text-ink-muted">
             يتم الحساب حصرياً على الخادم وفق توقيت استلام الإجابة.
           </p>
           <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -138,8 +138,8 @@ export function LiveSessionSettingsPanel({
                   onClick={() => void commitChange({ ...draft, scoringMode: option.value })}
                   className={`rounded-xl border p-2.5 text-start transition-colors disabled:opacity-60 ${
                     selected
-                      ? 'border-indigo-500 bg-indigo-50/80 text-indigo-950 dark:border-indigo-400 dark:bg-indigo-950/50 dark:text-indigo-100'
-                      : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
+                      ? 'border-primary bg-selected text-ink'
+                      : 'border-line bg-surface text-ink-muted hover:bg-row-hover hover:text-ink'
                   }`}
                 >
                   <p className="text-xs font-extrabold">{option.title}</p>
@@ -151,9 +151,9 @@ export function LiveSessionSettingsPanel({
         </div>
 
         {/* 3. طريقة الانتقال بين الأسئلة */}
-        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
-          <div className="flex items-center gap-2 text-xs font-extrabold text-slate-900 dark:text-white">
-            <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+        <div className="rounded-xl border border-line bg-surface-subtle p-4">
+          <div className="flex items-center gap-2 text-xs font-extrabold text-ink">
+            <ShieldCheck className="h-4 w-4 text-success" />
             <span>طريقة الانتقال بين الأسئلة</span>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2">
@@ -172,8 +172,8 @@ export function LiveSessionSettingsPanel({
                   onClick={() => void commitChange({ ...draft, advanceMode: mode.value })}
                   className={`h-10 rounded-xl border px-3 text-xs font-extrabold transition-colors disabled:opacity-60 ${
                     selected
-                      ? 'border-indigo-500 bg-indigo-50/80 text-indigo-900 dark:border-indigo-400 dark:bg-indigo-950/50 dark:text-indigo-100'
-                      : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
+                      ? 'border-primary bg-selected text-ink'
+                      : 'border-line bg-surface text-ink-muted hover:bg-row-hover hover:text-ink'
                   }`}
                 >
                   {mode.label}
@@ -186,7 +186,7 @@ export function LiveSessionSettingsPanel({
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <label
                 htmlFor="setting-auto-advance-seconds"
-                className="text-[11px] font-bold text-slate-600 dark:text-slate-300"
+                className="text-[11px] font-bold text-ink-muted"
               >
                 مدة عرض النتائج قبل الانتقال:
               </label>
@@ -201,26 +201,26 @@ export function LiveSessionSettingsPanel({
                   const val = clampSeconds(e.target.value, draft.autoAdvanceSeconds);
                   void commitChange({ ...draft, autoAdvanceSeconds: val });
                 }}
-                className="tabular-nums h-9 w-20 rounded-lg border border-slate-200 bg-white px-2 text-center text-xs font-extrabold text-slate-900 focus:border-indigo-500 focus:outline-none disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                className="qc-input tabular-nums h-9 w-20 rounded-lg px-2 text-center text-xs font-extrabold disabled:opacity-60"
               />
-              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">ثوانٍ</span>
+              <span className="text-[11px] font-bold text-ink-muted">ثوانٍ</span>
             </div>
           )}
         </div>
 
         {/* 4. خيارات التحكم بالمشاركة والإجابة */}
-        <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
-          <div className="flex items-center gap-2 text-xs font-extrabold text-slate-900 dark:text-white">
-            <Users className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+        <div className="space-y-3 rounded-xl border border-line bg-surface-subtle p-4">
+          <div className="flex items-center gap-2 text-xs font-extrabold text-ink">
+            <Users className="h-4 w-4 text-accent" />
             <span>صلاحيات المشاركة والإجابات</span>
           </div>
 
-          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
+          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-line bg-surface p-3">
             <div>
-              <p className="text-xs font-extrabold text-slate-900 dark:text-white">
+              <p className="text-xs font-extrabold text-ink">
                 السماح بتغيير الإجابة
               </p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="text-[11px] text-ink-muted">
                 عند التعطيل تُثبت أول إجابة يستلمها الخادم
               </p>
             </div>
@@ -231,16 +231,16 @@ export function LiveSessionSettingsPanel({
               onChange={(e) =>
                 void commitChange({ ...draft, allowAnswerChange: e.target.checked })
               }
-              className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+              className="h-4 w-4 rounded border-line-strong text-primary"
             />
           </label>
 
-          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
+          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-line bg-surface p-3">
             <div>
-              <p className="text-xs font-extrabold text-slate-900 dark:text-white">
+              <p className="text-xs font-extrabold text-ink">
                 السماح بالانضمام بعد بدء المسابقة
               </p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="text-[11px] text-ink-muted">
                 ينضم المتأخر للأسئلة الحالية أو القادمة دون نقاط سابقة
               </p>
             </div>
@@ -251,16 +251,16 @@ export function LiveSessionSettingsPanel({
               onChange={(e) =>
                 void commitChange({ ...draft, allowLateJoin: e.target.checked })
               }
-              className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+              className="h-4 w-4 rounded border-line-strong text-primary"
             />
           </label>
 
-          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
+          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-line bg-surface p-3">
             <div>
-              <p className="text-xs font-extrabold text-slate-900 dark:text-white">
+              <p className="text-xs font-extrabold text-ink">
                 تشغيل وضع ملء الشاشة تلقائياً
               </p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="text-[11px] text-ink-muted">
                 عرض السبورة على كامل الشاشة عند بدء المسابقة لتركيز عرض العارض
               </p>
             </div>
@@ -271,7 +271,7 @@ export function LiveSessionSettingsPanel({
               onChange={(e) =>
                 void commitChange({ ...draft, fullScreenMode: e.target.checked })
               }
-              className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+              className="h-4 w-4 rounded border-line-strong text-primary"
             />
           </label>
         </div>

@@ -77,13 +77,13 @@ export function ImageUploadField({
 
       {imageUrl && imagePath ? (
         <div
-          className={`flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-2.5 dark:border-slate-700 dark:bg-slate-800/70 ${
+          className={`flex items-center justify-between gap-3 rounded-xl border border-line bg-input p-2.5 ${
             compact ? '' : 'flex-col sm:flex-row'
           }`}
         >
           <div className="flex min-w-0 items-center gap-3">
             <div
-              className={`shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 ${
+              className={`shrink-0 overflow-hidden rounded-lg border border-line bg-surface ${
                 compact ? 'h-14 w-14' : 'h-20 w-28'
               }`}
             >
@@ -95,10 +95,8 @@ export function ImageUploadField({
               />
             </div>
             <div className="min-w-0">
-              <p className="truncate text-xs font-bold text-slate-800 dark:text-slate-100">
-                {label}
-              </p>
-              <p className="mt-0.5 text-[11px] text-emerald-600 dark:text-emerald-400">
+              <p className="truncate text-xs font-bold text-ink">{label}</p>
+              <p className="mt-0.5 text-[11px] text-success-ink">
                 تم الحفظ محلياً وجاهزة للمعاينة
               </p>
             </div>
@@ -109,7 +107,7 @@ export function ImageUploadField({
               type="button"
               disabled={isUploading}
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+              className="qc-btn-secondary inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-bold disabled:opacity-50"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               <span>استبدال</span>
@@ -120,7 +118,7 @@ export function ImageUploadField({
               disabled={isUploading}
               onClick={handleRemove}
               aria-label={`حذف ${label}`}
-              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 text-xs font-bold text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-900/60 dark:bg-red-950/50 dark:text-red-300 dark:hover:bg-red-950"
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-danger-line bg-danger-soft px-2.5 text-xs font-bold text-danger-ink transition-colors hover:brightness-95 disabled:opacity-50"
             >
               <Trash2 className="h-3.5 w-3.5" />
               <span>حذف</span>
@@ -132,21 +130,21 @@ export function ImageUploadField({
           type="button"
           disabled={isUploading}
           onClick={() => fileInputRef.current?.click()}
-          className={`flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50/70 text-xs font-bold text-slate-600 transition-colors hover:border-indigo-400 hover:bg-indigo-50/40 hover:text-indigo-700 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-300 dark:hover:border-indigo-500 dark:hover:bg-indigo-950/30 dark:hover:text-indigo-300 ${
+          className={`flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-line-strong bg-input text-xs font-bold text-ink-muted transition-colors hover:border-primary hover:bg-selected/60 hover:text-accent disabled:opacity-60 ${
             compact ? 'h-10 px-3' : 'h-20 flex-col px-4 py-3'
           }`}
         >
           {isUploading ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin text-indigo-600 dark:text-indigo-400" />
+              <Loader2 className="h-4 w-4 animate-spin text-accent" />
               <span>جارٍ رفع الصورة وحفظها...</span>
             </>
           ) : (
             <>
-              <ImagePlus className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              <ImagePlus className="h-4 w-4 text-accent" />
               <span>{label}</span>
               {!compact && (
-                <span className="text-[11px] font-normal text-slate-400 dark:text-slate-500">
+                <span className="text-[11px] font-normal text-ink-muted">
                   PNG أو JPG أو JPEG أو WEBP · بحد أقصى 5 ميجابايت
                 </span>
               )}
@@ -156,7 +154,7 @@ export function ImageUploadField({
       )}
 
       {uploadError && (
-        <p role="alert" className="text-xs font-bold text-red-600 dark:text-red-400">
+        <p role="alert" className="text-xs font-bold text-danger-ink">
           {uploadError}
         </p>
       )}

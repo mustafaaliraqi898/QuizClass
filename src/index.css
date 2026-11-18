@@ -1,15 +1,175 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
-@layer base {
-  :root {
-    --font-display: "Cairo", system-ui, sans-serif;
-    --font-sans: "Almarai", "Cairo", system-ui, sans-serif;
-  }
+/* ==========================================================================
+   QuizClass Unified Design Tokens (Light: Warm Off-White / Dark: Warm Charcoal)
+   ========================================================================== */
 
+:root {
+  --font-display: "Cairo", system-ui, sans-serif;
+  --font-sans: "Almarai", "Cairo", system-ui, sans-serif;
+
+  /* Core Surfaces */
+  --qc-canvas: #f3f1ed;
+  --qc-surface: #ffffff;
+  --qc-surface-subtle: #faf9f7;
+  --qc-sidebar: #ffffff;
+  --qc-modal: #ffffff;
+  --qc-input: #f8f7f5;
+  --qc-input-focus: #ffffff;
+
+  /* Borders & Dividers */
+  --qc-border: #e5e1dc;
+  --qc-border-strong: #d4cec6;
+
+  /* Typography */
+  --qc-text: #292929;
+  --qc-text-muted: #777777;
+
+  /* Primary Interactive Accent (Calm Slate-Blue) */
+  --qc-primary: #536e91;
+  --qc-primary-hover: #455d7c;
+  --qc-primary-active: #3a4f6b;
+  --qc-icon-soft: #afc5e3;
+  --qc-accent-ink: #476080;
+
+  /* Selection & Hover States */
+  --qc-selected-bg: #edf2f8;
+  --qc-selected-border: #afc5e3;
+  --qc-row-hover: #f8f7f5;
+  --qc-backdrop: rgba(41, 41, 41, 0.42);
+
+  /* Semantic Status Colors */
+  --qc-success: #2e7d5b;
+  --qc-success-hover: #25684b;
+  --qc-success-soft: #edf6f1;
+  --qc-success-line: #b6dcc8;
+  --qc-success-ink: #1f5c41;
+
+  --qc-danger: #c43b3f;
+  --qc-danger-hover: #a82e32;
+  --qc-danger-soft: #fcf1f1;
+  --qc-danger-line: #efc4c6;
+  --qc-danger-ink: #a3262a;
+
+  --qc-warning: #d4891c;
+  --qc-warning-soft: #fcf6ea;
+  --qc-warning-line: #ebd39f;
+  --qc-warning-ink: #8a5308;
+
+  /* Scrollbar */
+  --qc-scrollbar-track: #ece9e3;
+  --qc-scrollbar-thumb: #ccc5bc;
+  --qc-scrollbar-thumb-hover: #b2aaa0;
+}
+
+.dark {
+  /* Core Surfaces (Warm Charcoal - No pure #000000) */
+  --qc-canvas: #201f22;
+  --qc-surface: #302d32;
+  --qc-surface-subtle: #272529;
+  --qc-sidebar: #302d32;
+  --qc-modal: #302d32;
+  --qc-input: #403d42;
+  --qc-input-focus: #474349;
+
+  /* Borders & Dividers */
+  --qc-border: #57515c;
+  --qc-border-strong: #6b6471;
+
+  /* Typography */
+  --qc-text: #f0ede9;
+  --qc-text-muted: #b7b1b9;
+
+  /* Primary Interactive Accent (Calm Royal Blue) */
+  --qc-primary: #38669b;
+  --qc-primary-hover: #4778ae;
+  --qc-primary-active: #2f5785;
+  --qc-icon-soft: #8eacd0;
+  --qc-accent-ink: #8eacd0;
+
+  /* Selection & Hover States */
+  --qc-selected-bg: #354457;
+  --qc-selected-border: #5a80ad;
+  --qc-row-hover: #38353b;
+  --qc-backdrop: rgba(20, 19, 22, 0.68);
+
+  /* Semantic Status Colors */
+  --qc-success: #2e7d5b;
+  --qc-success-hover: #38926b;
+  --qc-success-soft: #243830;
+  --qc-success-line: #3a6452;
+  --qc-success-ink: #84d6ae;
+
+  --qc-danger: #c04347;
+  --qc-danger-hover: #d15357;
+  --qc-danger-soft: #42282b;
+  --qc-danger-line: #763d42;
+  --qc-danger-ink: #f3a6a9;
+
+  --qc-warning: #d4891c;
+  --qc-warning-soft: #3d3223;
+  --qc-warning-line: #735c33;
+  --qc-warning-ink: #f0c97a;
+
+  /* Scrollbar */
+  --qc-scrollbar-track: #262429;
+  --qc-scrollbar-thumb: #4b4650;
+  --qc-scrollbar-thumb-hover: #625b69;
+}
+
+@theme inline {
+  --color-canvas: var(--qc-canvas);
+  --color-surface: var(--qc-surface);
+  --color-surface-subtle: var(--qc-surface-subtle);
+  --color-sidebar: var(--qc-sidebar);
+  --color-modal: var(--qc-modal);
+  --color-input: var(--qc-input);
+  --color-input-focus: var(--qc-input-focus);
+  --color-line: var(--qc-border);
+  --color-line-strong: var(--qc-border-strong);
+  --color-ink: var(--qc-text);
+  --color-ink-muted: var(--qc-text-muted);
+  --color-primary: var(--qc-primary);
+  --color-primary-hover: var(--qc-primary-hover);
+  --color-primary-active: var(--qc-primary-active);
+  --color-icon-soft: var(--qc-icon-soft);
+  --color-accent: var(--qc-accent-ink);
+  --color-selected: var(--qc-selected-bg);
+  --color-selected-line: var(--qc-selected-border);
+  --color-row-hover: var(--qc-row-hover);
+  --color-backdrop: var(--qc-backdrop);
+
+  --color-success: var(--qc-success);
+  --color-success-hover: var(--qc-success-hover);
+  --color-success-soft: var(--qc-success-soft);
+  --color-success-line: var(--qc-success-line);
+  --color-success-ink: var(--qc-success-ink);
+
+  --color-danger: var(--qc-danger);
+  --color-danger-hover: var(--qc-danger-hover);
+  --color-danger-soft: var(--qc-danger-soft);
+  --color-danger-line: var(--qc-danger-line);
+  --color-danger-ink: var(--qc-danger-ink);
+
+  --color-warning: var(--qc-warning);
+  --color-warning-soft: var(--qc-warning-soft);
+  --color-warning-line: var(--qc-warning-line);
+  --color-warning-ink: var(--qc-warning-ink);
+}
+
+@layer base {
   html {
     font-family: var(--font-sans);
     direction: rtl;
+    background-color: var(--qc-canvas);
+    color: var(--qc-text);
+  }
+
+  body {
+    background-color: var(--qc-canvas);
+    color: var(--qc-text);
+    accent-color: var(--qc-primary);
   }
 
   h1,
@@ -18,6 +178,110 @@
   h4,
   .font-display {
     font-family: var(--font-display);
+  }
+
+  /* Accessible calm focus ring across keyboard navigation */
+  :where(button, a, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--qc-primary);
+    outline-offset: 2px;
+  }
+
+  .dark :where(button, a, input, select, textarea, [tabindex]):focus-visible {
+    outline-color: var(--qc-icon-soft);
+  }
+
+  input[type='checkbox'],
+  input[type='radio'] {
+    accent-color: var(--qc-primary);
+  }
+
+  /* Subtle custom scrollbar aligned with light/dark surfaces */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--qc-scrollbar-thumb) var(--qc-scrollbar-track);
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: var(--qc-scrollbar-track);
+    border-radius: 9999px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: var(--qc-scrollbar-thumb);
+    border-radius: 9999px;
+    border: 2px solid var(--qc-scrollbar-track);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--qc-scrollbar-thumb-hover);
+  }
+}
+
+@layer components {
+  .qc-card {
+    background-color: var(--qc-surface);
+    border: 1px solid var(--qc-border);
+    border-radius: 1rem;
+    box-shadow: 0 1px 2px rgba(41, 41, 41, 0.04);
+  }
+
+  .dark .qc-card {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .qc-input {
+    background-color: var(--qc-input);
+    border: 1px solid var(--qc-border);
+    color: var(--qc-text);
+    transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+  }
+
+  .qc-input::placeholder {
+    color: var(--qc-text-muted);
+    opacity: 0.78;
+  }
+
+  .qc-input:focus {
+    outline: none;
+    border-color: var(--qc-primary);
+    background-color: var(--qc-input-focus);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--qc-primary) 16%, transparent);
+  }
+
+  .dark .qc-input:focus {
+    border-color: var(--qc-icon-soft);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--qc-icon-soft) 20%, transparent);
+  }
+
+  .qc-btn-primary {
+    background-color: var(--qc-primary);
+    color: #ffffff;
+    transition: background-color 150ms ease, transform 100ms ease;
+  }
+
+  .qc-btn-primary:hover:not(:disabled) {
+    background-color: var(--qc-primary-hover);
+  }
+
+  .qc-btn-primary:active:not(:disabled) {
+    background-color: var(--qc-primary-active);
+  }
+
+  .qc-btn-secondary {
+    background-color: var(--qc-surface-subtle);
+    border: 1px solid var(--qc-border);
+    color: var(--qc-text);
+    transition: background-color 150ms ease, border-color 150ms ease;
+  }
+
+  .qc-btn-secondary:hover:not(:disabled) {
+    background-color: var(--qc-row-hover);
+    border-color: var(--qc-border-strong);
   }
 }
 
@@ -491,6 +755,66 @@
 
 .qc-feedback-slide-out {
   animation: qc-banner-slide-out 0.34s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+}
+
+/* ==========================================================================
+   Smartboard Interactive Learning Animations
+   ========================================================================== */
+
+@keyframes qc-smartboard-pop {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0) scale(0.96);
+  }
+  65% {
+    opacity: 1;
+    transform: translate3d(0, -3px, 0) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes qc-smartboard-shake {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  20% {
+    transform: translate3d(7px, 0, 0);
+  }
+  40% {
+    transform: translate3d(-7px, 0, 0);
+  }
+  60% {
+    transform: translate3d(5px, 0, 0);
+  }
+  80% {
+    transform: translate3d(-4px, 0, 0);
+  }
+}
+
+@keyframes qc-smartboard-question-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.qc-smartboard-success-pop {
+  animation: qc-smartboard-pop 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.qc-smartboard-wrong-shake {
+  animation: qc-smartboard-shake 0.34s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+}
+
+.qc-smartboard-question-enter {
+  animation: qc-smartboard-question-in 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -505,14 +505,14 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
   const isLastQuestion = session ? questionNumber >= session.questionCount : false;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors duration-150 dark:bg-slate-950 dark:text-slate-100">
+    <div className="min-h-screen bg-canvas text-ink transition-colors duration-150">
       <StudentAnswerFeedbackBanner
         banner={activeFeedback}
         onDismissed={handleFeedbackDismissed}
       />
 
       {/* شريط علوي مبسط للهواتف */}
-      <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+      <header className="border-b border-line bg-surface">
         <div className="mx-auto flex h-16 max-w-md items-center justify-between px-4">
           <QuizClassLogo />
 
@@ -520,7 +520,7 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
             type="button"
             onClick={onToggleTheme}
             aria-label={theme === 'dark' ? 'التبديل إلى الوضع النهاري' : 'التبديل إلى الوضع الليلي'}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+            className="qc-btn-secondary flex h-10 w-10 items-center justify-center rounded-xl text-ink-muted"
           >
             {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
@@ -529,21 +529,21 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
 
       <main className="mx-auto flex w-full max-w-md flex-col px-4 py-6">
         {isRestoringSession ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center shadow-xs dark:border-slate-800 dark:bg-slate-900">
-            <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400" />
-            <p className="mt-3 text-xs font-bold text-slate-600 dark:text-slate-300">
+          <div className="qc-card flex flex-col items-center justify-center px-6 py-16 text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-accent" />
+            <p className="mt-3 text-xs font-bold text-ink-muted">
               جارٍ التحقق من اتصالك بالمسابقة...
             </p>
           </div>
         ) : joinedCredentials && liveState && session ? (
-          <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+          <section className="qc-card space-y-4 p-5">
             {/* شريط حالة الاتصال والرمز */}
             <div className="flex items-center justify-between gap-2">
               <span
-                className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold ${
+                className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-bold ${
                   socketConnected
-                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
-                    : 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
+                    ? 'border-success-line bg-success-soft text-success-ink'
+                    : 'border-warning-line bg-warning-soft text-warning-ink'
                 }`}
               >
                 {socketConnected ? (
@@ -559,40 +559,40 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
                 )}
               </span>
 
-              <span className="tabular-nums text-xs font-bold text-slate-500 dark:text-slate-400">
+              <span className="tabular-nums text-xs font-bold text-ink-muted">
                 رمز {session.pinCode}
               </span>
             </div>
 
             {/* بطاقة تعريف الطالب والمسابقة */}
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3.5 dark:border-slate-800 dark:bg-slate-950/50">
+            <div className="rounded-2xl border border-line bg-surface-subtle p-3.5">
               <div className="flex items-center justify-between gap-2">
-                <span className="inline-flex items-center gap-2 text-xs font-extrabold text-indigo-600 dark:text-indigo-400">
+                <span className="inline-flex items-center gap-2 text-xs font-extrabold text-accent">
                   <span className="text-xl">{getStudentAvatar(liveState.participant.avatarId).emoji}</span>
                   <span>{liveState.participant.displayName}</span>
                 </span>
-                <span className="tabular-nums rounded-lg bg-white px-2.5 py-1 text-xs font-extrabold text-slate-800 shadow-2xs dark:bg-slate-900 dark:text-slate-200">
+                <span className="tabular-nums rounded-lg border border-line bg-surface px-2.5 py-1 text-xs font-extrabold text-ink">
                   {liveState.participant.totalScore} نقطة
                 </span>
               </div>
-              <p className="mt-1.5 truncate font-display text-sm font-extrabold text-slate-900 dark:text-white">
+              <p className="mt-1.5 truncate font-display text-sm font-extrabold text-ink">
                 {session.quizTitle}
               </p>
             </div>
 
             {/* 1. انتظار بدء المسابقة */}
             {activeStatus === 'waiting' && (
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-5 text-center dark:border-emerald-900/60 dark:bg-emerald-950/30">
+              <div className="rounded-2xl border border-success-line bg-success-soft p-5 text-center">
                 <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl text-3xl shadow-sm ${getStudentAvatar(liveState.participant.avatarId).bgClass}`}>
                   <span>{getStudentAvatar(liveState.participant.avatarId).emoji}</span>
                 </div>
-                <h2 className="font-display mt-3 text-base font-extrabold text-emerald-900 dark:text-emerald-200">
+                <h2 className="font-display mt-3 text-base font-extrabold text-success-ink">
                   تم الانضمام بنجاح!
                 </h2>
-                <p className="mt-1.5 text-xs leading-relaxed text-emerald-800 dark:text-emerald-300">
+                <p className="mt-1.5 text-xs leading-relaxed text-success-ink opacity-90">
                   اسمك ظاهر الآن على شاشة المعلم. استعد لبداية المسابقة.
                 </p>
-                <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/80 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:bg-slate-900/70 dark:text-emerald-300">
+                <div className="mt-4 inline-flex items-center gap-2 rounded-xl border border-success-line bg-surface px-3 py-1.5 text-xs font-bold text-success-ink">
                   <Clock className="h-3.5 w-3.5 animate-pulse" />
                   <span>في انتظار بدء المعلم...</span>
                 </div>
@@ -603,36 +603,36 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
             {activeStatus === 'running' && currentPhase === 'question_intro' && currentQuestion && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between text-xs font-extrabold">
-                  <span className="tabular-nums text-indigo-600 dark:text-indigo-400">
+                  <span className="tabular-nums text-accent">
                     السؤال {questionNumber} من {session.questionCount}
                   </span>
-                  <span className="tabular-nums inline-flex items-center gap-1 rounded-lg bg-amber-50 px-2.5 py-1 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                  <span className="tabular-nums inline-flex items-center gap-1 rounded-lg border border-warning-line bg-warning-soft px-2.5 py-1 text-warning-ink">
                     <Clock className="h-3.5 w-3.5" />
                     <span>تظهر الاختيارات خلال {remainingSeconds} ث</span>
                   </span>
                 </div>
 
-                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-surface-subtle">
                   <div
-                    className="h-full rounded-full bg-amber-500 transition-all duration-150"
+                    className="h-full rounded-full bg-warning transition-all duration-150"
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
 
-                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 text-center dark:border-slate-800 dark:bg-slate-950/40">
-                  <h2 className="font-display text-lg leading-relaxed font-extrabold text-slate-900 dark:text-white">
+                <div className="rounded-2xl border border-line bg-surface-subtle p-5 text-center">
+                  <h2 className="font-display text-lg leading-relaxed font-extrabold text-ink">
                     {currentQuestion.prompt}
                   </h2>
                   {currentQuestion.imageUrl && (
                     <img
                       src={currentQuestion.imageUrl}
                       alt="صورة السؤال"
-                      className="mx-auto mt-4 max-h-48 rounded-xl border border-slate-200 object-contain dark:border-slate-700"
+                      className="mx-auto mt-4 max-h-48 rounded-xl border border-line object-contain"
                     />
                   )}
                 </div>
 
-                <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 text-center text-xs font-bold text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-300">
+                <div className="rounded-xl border border-warning-line bg-warning-soft p-3.5 text-center text-xs font-bold text-warning-ink">
                   اقرأ السؤال بتركيز — ستظهر أزرار الإجابة فور انتهاء العد التمهيدي.
                 </div>
               </div>
@@ -642,14 +642,14 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
             {activeStatus === 'running' && currentPhase === 'answering' && currentQuestion && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between text-xs font-extrabold">
-                  <span className="tabular-nums text-indigo-600 dark:text-indigo-400">
+                  <span className="tabular-nums text-accent">
                     السؤال {questionNumber} من {session.questionCount}
                   </span>
                   <span
-                    className={`tabular-nums inline-flex items-center gap-1 rounded-lg px-2.5 py-1 font-extrabold ${
+                    className={`tabular-nums inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 font-extrabold ${
                       remainingSeconds <= 5
-                        ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300'
-                        : 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300'
+                        ? 'border-danger-line bg-danger-soft text-danger-ink'
+                        : 'border-selected-line bg-selected text-accent'
                     }`}
                   >
                     <Clock className="h-3.5 w-3.5" />
@@ -657,42 +657,42 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
                   </span>
                 </div>
 
-                <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                <div className="h-2.5 w-full overflow-hidden rounded-full bg-surface-subtle">
                   <div
                     className={`h-full rounded-full transition-all duration-150 ${
-                      remainingSeconds <= 5 ? 'bg-red-500' : 'bg-indigo-600 dark:bg-indigo-500'
+                      remainingSeconds <= 5 ? 'bg-danger' : 'bg-primary'
                     }`}
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
 
-                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 text-center dark:border-slate-800 dark:bg-slate-950/40">
-                  <h2 className="font-display text-base leading-relaxed font-extrabold text-slate-900 dark:text-white">
+                <div className="rounded-2xl border border-line bg-surface-subtle p-4 text-center">
+                  <h2 className="font-display text-base leading-relaxed font-extrabold text-ink">
                     {currentQuestion.prompt}
                   </h2>
                   {currentQuestion.imageUrl && (
                     <img
                       src={currentQuestion.imageUrl}
                       alt="صورة السؤال"
-                      className="mx-auto mt-3 max-h-44 rounded-xl border border-slate-200 object-contain dark:border-slate-700"
+                      className="mx-auto mt-3 max-h-44 rounded-xl border border-line object-contain"
                     />
                   )}
                 </div>
 
                 {/* حالة انتهاء الوقت قبل وصول بث النتائج */}
                 {remainingSeconds <= 0 && (
-                  <div className="rounded-xl border border-slate-200 bg-slate-100 p-4 text-center text-xs font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                  <div className="rounded-xl border border-line bg-surface-subtle p-4 text-center text-xs font-bold text-ink">
                     انتهى وقت الإجابة — جارٍ احتساب النتائج...
                   </div>
                 )}
 
                 {/* حالة تأكيد استلام الإجابة */}
                 {myAnswer && (
-                  <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs font-bold text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200">
+                  <div className="flex items-center gap-2 rounded-xl border border-success-line bg-success-soft px-3.5 py-2.5 text-xs font-bold text-success-ink">
                     {session.settings.allowAnswerChange ? (
-                      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
                     ) : (
-                      <Lock className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                      <Lock className="h-4 w-4 shrink-0 text-success" />
                     )}
                     <span>
                       {answerFeedback ??
@@ -706,7 +706,7 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
                 {answerError && (
                   <div
                     role="alert"
-                    className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-bold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300"
+                    className="flex items-center gap-2 rounded-xl border border-danger-line bg-danger-soft px-3.5 py-2.5 text-xs font-bold text-danger-ink"
                   >
                     <AlertCircle className="h-4 w-4 shrink-0" />
                     <span>{answerError}</span>
@@ -731,15 +731,15 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
                           onClick={() => void handleSubmitChoice({ selectedOptionId: opt.id })}
                           className={`flex min-h-[60px] w-full items-center gap-3 rounded-2xl border-2 p-3.5 text-start transition-all active:scale-[0.99] disabled:cursor-not-allowed ${
                             isSelected
-                              ? 'border-indigo-600 bg-indigo-50 text-indigo-950 ring-2 ring-indigo-500/30 dark:border-indigo-400 dark:bg-indigo-950/60 dark:text-white'
-                              : 'border-slate-200 bg-white text-slate-900 hover:border-indigo-300 hover:bg-slate-50 disabled:opacity-65 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-indigo-700'
+                              ? 'border-primary bg-selected text-ink ring-2 ring-primary/25'
+                              : 'border-line bg-surface text-ink hover:border-selected-line hover:bg-row-hover disabled:opacity-65'
                           }`}
                         >
                           <span
                             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-display text-base font-black ${
                               isSelected
-                                ? 'bg-indigo-600 text-white'
-                                : 'bg-slate-100 text-slate-700 dark:bg-slate-900 dark:text-slate-300'
+                                ? 'bg-primary text-white'
+                                : 'bg-surface-subtle text-ink-muted'
                             }`}
                           >
                             {OPTION_LETTERS[idx] ?? idx + 1}
@@ -754,12 +754,12 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
                               <img
                                 src={opt.imageUrl}
                                 alt={`اختيار ${idx + 1}`}
-                                className="mt-2 max-h-24 rounded-lg border border-slate-200 object-contain bg-white"
+                                className="mt-2 max-h-24 rounded-lg border border-line bg-surface object-contain"
                               />
                             )}
                           </div>
                           {isSelected && (
-                            <CheckCircle2 className="h-5 w-5 shrink-0 text-indigo-600 dark:text-indigo-400" />
+                            <CheckCircle2 className="h-5 w-5 shrink-0 text-accent" />
                           )}
                         </button>
                       );
@@ -784,16 +784,16 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
                           onClick={() => void handleSubmitChoice({ selectedBoolean: tf.value })}
                           className={`flex min-h-[84px] flex-col items-center justify-center gap-2 rounded-2xl border-2 p-4 font-display text-lg font-extrabold transition-all active:scale-[0.99] disabled:cursor-not-allowed ${
                             isSelected
-                              ? 'border-indigo-600 bg-indigo-50 text-indigo-950 ring-2 ring-indigo-500/30 dark:border-indigo-400 dark:bg-indigo-950/60 dark:text-white'
+                              ? 'border-primary bg-selected text-ink ring-2 ring-primary/25'
                               : tf.value
-                                ? 'border-emerald-200 bg-emerald-50/50 text-emerald-900 hover:border-emerald-400 disabled:opacity-65 dark:border-emerald-900/60 dark:bg-emerald-950/20 dark:text-emerald-200'
-                                : 'border-red-200 bg-red-50/50 text-red-900 hover:border-red-400 disabled:opacity-65 dark:border-red-900/60 dark:bg-red-950/20 dark:text-red-200'
+                                ? 'border-success-line bg-success-soft text-success-ink hover:border-success disabled:opacity-65'
+                                : 'border-danger-line bg-danger-soft text-danger-ink hover:border-danger disabled:opacity-65'
                           }`}
                         >
                           {tf.value ? (
-                            <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                            <CheckCircle2 className="h-6 w-6 text-success" />
                           ) : (
-                            <XCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+                            <XCircle className="h-6 w-6 text-danger" />
                           )}
                           <span>{tf.label}</span>
                         </button>
@@ -808,45 +808,45 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
             {activeStatus === 'running' && currentPhase === 'question_results' && questionResult && (
               <div className="space-y-4">
                 {questionResult.joinedMidResult ? (
-                  <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-5 text-center dark:border-indigo-900/60 dark:bg-indigo-950/40">
-                    <Clock className="mx-auto h-7 w-7 text-indigo-600 dark:text-indigo-400" />
-                    <h2 className="font-display mt-2 text-base font-extrabold text-indigo-950 dark:text-indigo-200">
+                  <div className="rounded-2xl border border-selected-line bg-selected p-5 text-center">
+                    <Clock className="mx-auto h-7 w-7 text-accent" />
+                    <h2 className="font-display mt-2 text-base font-extrabold text-ink">
                       أهلاً بك في المسابقة!
                     </h2>
-                    <p className="mt-1 text-xs leading-relaxed text-indigo-800 dark:text-indigo-300">
+                    <p className="mt-1 text-xs leading-relaxed text-ink-muted">
                       انتهى السؤال السابق قبل انضمامك؛ ستبدأ المشاركة الفعلية من السؤال التالي مباشرة.
                     </p>
                   </div>
                 ) : (
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 text-center dark:border-slate-800 dark:bg-slate-950/40">
-                    <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
+                  <div className="rounded-2xl border border-line bg-surface-subtle p-4 text-center">
+                    <p className="text-[11px] font-bold text-accent">
                       السؤال {questionNumber} من {session.questionCount}
                     </p>
-                    <h2 className="font-display mt-1 text-sm font-extrabold text-slate-900 dark:text-white">
+                    <h2 className="font-display mt-1 text-sm font-extrabold text-ink">
                       {questionResult.prompt}
                     </h2>
                   </div>
                 )}
 
                 {/* الرصيد والترتيب الحالي + حالة انتظار السؤال التالي */}
-                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-bold dark:border-slate-700 dark:bg-slate-800">
+                <div className="flex items-center justify-between rounded-xl border border-line bg-surface-subtle px-4 py-3 text-xs font-bold">
                   <span>
                     مجموعك:{' '}
-                    <span className="tabular-nums font-black text-indigo-600 dark:text-indigo-400">
+                    <span className="tabular-nums font-black text-accent">
                       {liveState.participant.totalScore}
                     </span>
                   </span>
                   {liveState.participant.rankPosition && (
                     <span>
                       ترتيبك الحالي:{' '}
-                      <span className="tabular-nums font-black text-slate-900 dark:text-white">
+                      <span className="tabular-nums font-black text-ink">
                         #{liveState.participant.rankPosition}
                       </span>
                     </span>
                   )}
                 </div>
 
-                <div className="flex items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/70 px-4 py-3 text-xs font-bold text-indigo-800 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-200">
+                <div className="flex items-center justify-center gap-2 rounded-xl border border-selected-line bg-selected px-4 py-3 text-xs font-bold text-accent">
                   <Clock className="h-4 w-4 animate-pulse" />
                   <span>
                     {session.settings.advanceMode === 'auto'
@@ -862,69 +862,69 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
             {/* 8. انتهاء المسابقة والنتائج النهائية */}
             {(activeStatus === 'completed' || currentPhase === 'final_results') && (
               <div className="space-y-4">
-                <div className="rounded-2xl border border-indigo-200 bg-indigo-50/80 p-5 text-center dark:border-indigo-900/60 dark:bg-indigo-950/40">
-                  <Trophy className="mx-auto h-9 w-9 text-amber-500" />
-                  <h2 className="font-display mt-2 text-lg font-extrabold text-slate-900 dark:text-white">
+                <div className="rounded-2xl border border-selected-line bg-selected p-5 text-center">
+                  <Trophy className="mx-auto h-9 w-9 text-warning" />
+                  <h2 className="font-display mt-2 text-lg font-extrabold text-ink">
                     انتهت المسابقة!
                   </h2>
 
                   {finalSummary?.mySummary ? (
                     <>
                       <div className="mt-4 grid grid-cols-2 gap-3">
-                        <div className="rounded-xl bg-white p-3 dark:bg-slate-900">
-                          <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                        <div className="rounded-xl border border-line bg-surface p-3">
+                          <p className="text-[11px] font-bold text-ink-muted">
                             المركز النهائي
                           </p>
-                          <p className="tabular-nums font-display mt-1 text-2xl font-black text-indigo-600 dark:text-indigo-400">
+                          <p className="tabular-nums font-display mt-1 text-2xl font-black text-accent">
                             #{finalSummary.mySummary.rankPosition}
                           </p>
                         </div>
-                        <div className="rounded-xl bg-white p-3 dark:bg-slate-900">
-                          <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                        <div className="rounded-xl border border-line bg-surface p-3">
+                          <p className="text-[11px] font-bold text-ink-muted">
                             مجموع النقاط
                           </p>
-                          <p className="tabular-nums font-display mt-1 text-2xl font-black text-slate-900 dark:text-white">
+                          <p className="tabular-nums font-display mt-1 text-2xl font-black text-ink">
                             {finalSummary.mySummary.totalScore}
                           </p>
                         </div>
                       </div>
 
                       <div className="mt-3 flex items-center justify-center gap-4 text-xs font-bold">
-                        <span className="tabular-nums text-emerald-700 dark:text-emerald-300">
+                        <span className="tabular-nums text-success-ink">
                           صحيح: {finalSummary.mySummary.correctCount}
                         </span>
-                        <span className="tabular-nums text-red-700 dark:text-red-300">
+                        <span className="tabular-nums text-danger-ink">
                           خطأ: {finalSummary.mySummary.wrongCount}
                         </span>
-                        <span className="tabular-nums text-slate-600 dark:text-slate-400">
+                        <span className="tabular-nums text-ink-muted">
                           لم يجب: {finalSummary.mySummary.unansweredCount}
                         </span>
                       </div>
                     </>
                   ) : (
-                    <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-300">
+                    <p className="mt-1.5 text-xs text-ink-muted">
                       شكراً لمشاركتك يا {liveState.participant.displayName}!
                     </p>
                   )}
                 </div>
 
                 {finalSummary && finalSummary.leaderboard.length > 0 && (
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
-                    <h3 className="font-display text-xs font-extrabold text-slate-800 dark:text-slate-200">
+                  <div className="rounded-2xl border border-line bg-surface-subtle p-4">
+                    <h3 className="font-display text-xs font-extrabold text-ink">
                       الترتيب النهائي ({finalSummary.leaderboard.length} مشاركاً)
                     </h3>
-                    <div className="mt-2.5 divide-y divide-slate-200 dark:divide-slate-800">
+                    <div className="mt-2.5 divide-y divide-line">
                       {finalSummary.leaderboard.slice(0, 10).map((entry) => {
                         const isMe = entry.participantId === liveState.participant.id;
                         return (
                           <div
                             key={entry.participantId}
                             className={`flex items-center justify-between py-2 text-xs ${
-                              isMe ? 'font-extrabold text-indigo-700 dark:text-indigo-300' : 'font-bold text-slate-700 dark:text-slate-300'
+                              isMe ? 'font-extrabold text-accent' : 'font-bold text-ink-muted'
                             }`}
                           >
                             <span className="flex items-center gap-2 truncate">
-                              <span className="tabular-nums inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-white text-[11px] font-black shadow-2xs dark:bg-slate-800">
+                              <span className="tabular-nums inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-line bg-surface text-[11px] font-black text-ink">
                                 {entry.rankPosition}
                               </span>
                               <span className="text-sm">
@@ -948,12 +948,12 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
             )}
 
             {activeStatus === 'cancelled' && (
-              <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-center dark:border-red-900/60 dark:bg-red-950/30">
-                <AlertCircle className="mx-auto h-7 w-7 text-red-600 dark:text-red-400" />
-                <h2 className="font-display mt-2 text-base font-extrabold text-red-900 dark:text-red-200">
+              <div className="rounded-2xl border border-danger-line bg-danger-soft p-5 text-center">
+                <AlertCircle className="mx-auto h-7 w-7 text-danger" />
+                <h2 className="font-display mt-2 text-base font-extrabold text-danger-ink">
                   تم إلغاء الجلسة
                 </h2>
-                <p className="mt-1 text-xs leading-relaxed text-red-700 dark:text-red-300">
+                <p className="mt-1 text-xs leading-relaxed text-danger-ink opacity-90">
                   ألغى المعلم هذه الجلسة المباشرة. يمكنك الانضمام إلى جلسة جديدة باستخدام رمز آخر.
                 </p>
               </div>
@@ -976,7 +976,7 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
                       // Ignore silent refresh error
                     }
                   }}
-                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 text-xs font-bold text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-300"
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-warning-line bg-warning-soft px-4 text-xs font-bold text-warning-ink transition-opacity hover:opacity-90"
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
                   <span>تحديث حالة السؤال</span>
@@ -986,7 +986,7 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
               <button
                 type="button"
                 onClick={handleLeaveSession}
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                className="qc-btn-secondary inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl px-4 text-xs font-bold"
               >
                 <LogOut className="h-4 w-4" />
                 <span>
@@ -998,15 +998,15 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
             </div>
           </section>
         ) : (
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+          <section className="qc-card p-6">
             <div className="text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/70 dark:text-indigo-400">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-selected text-accent">
                 <Radio className="h-6 w-6" />
               </div>
-              <h1 className="font-display mt-3 text-xl font-extrabold text-slate-900 dark:text-white">
+              <h1 className="font-display mt-3 text-xl font-extrabold text-ink">
                 الانضمام إلى المسابقة المباشرة
               </h1>
-              <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+              <p className="mt-1 text-xs leading-relaxed text-ink-muted">
                 أدخل رمز المسابقة واسمك للانضمام فوراً عبر الشبكة المحلية دون الحاجة لحساب.
               </p>
             </div>
@@ -1015,7 +1015,7 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
               <div>
                 <label
                   htmlFor="student-pin-input"
-                  className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-200"
+                  className="mb-1.5 block text-xs font-bold text-ink"
                 >
                   رمز المسابقة (PIN)
                 </label>
@@ -1029,28 +1029,28 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
                   value={pinCode}
                   onChange={(e) => setPinCode(normalizePinDigits(e.target.value))}
                   placeholder="000000"
-                  className="font-display tabular-nums h-14 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-center text-2xl font-black tracking-[0.25em] text-slate-900 placeholder:tracking-normal placeholder:text-slate-300 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-600 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
+                  className="qc-input font-display tabular-nums h-14 w-full rounded-xl px-4 text-center text-2xl font-black tracking-[0.25em] placeholder:tracking-normal"
                 />
               </div>
 
               {isLookingUpPin && (
-                <div className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-600 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300">
-                  <Loader2 className="h-4 w-4 animate-spin text-indigo-600 dark:text-indigo-400" />
+                <div className="flex items-center justify-center gap-2 rounded-xl border border-line bg-surface-subtle px-3 py-2.5 text-xs font-bold text-ink-muted">
+                  <Loader2 className="h-4 w-4 animate-spin text-accent" />
                   <span>جارٍ التحقق من رمز الجلسة...</span>
                 </div>
               )}
 
               {previewSession && !lookupError && (
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 dark:border-emerald-900/60 dark:bg-emerald-950/30">
-                  <p className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                <div className="rounded-xl border border-success-line bg-success-soft p-3.5">
+                  <p className="text-[11px] font-bold text-success-ink">
                     {previewSession.status === 'running'
                       ? 'المسابقة جارية حالياً — يمكنك الانضمام الآن'
                       : 'تم العثور على الجلسة'}
                   </p>
-                  <p className="font-display mt-0.5 text-sm font-extrabold text-slate-900 dark:text-white">
+                  <p className="font-display mt-0.5 text-sm font-extrabold text-ink">
                     {previewSession.quizTitle}
                   </p>
-                  <p className="tabular-nums mt-0.5 text-xs text-slate-600 dark:text-slate-300">
+                  <p className="tabular-nums mt-0.5 text-xs text-ink-muted">
                     {previewSession.questionCount} سؤالاً
                     {previewSession.quizSubject ? ` · ${previewSession.quizSubject}` : ''}
                   </p>
@@ -1060,7 +1060,7 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
               {lookupError && (
                 <div
                   role="alert"
-                  className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-bold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300"
+                  className="flex items-center gap-2 rounded-xl border border-danger-line bg-danger-soft px-3.5 py-2.5 text-xs font-bold text-danger-ink"
                 >
                   <AlertCircle className="h-4 w-4 shrink-0" />
                   <span>{lookupError}</span>
@@ -1070,7 +1070,7 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
               <div>
                 <label
                   htmlFor="student-name-input"
-                  className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-200"
+                  className="mb-1.5 block text-xs font-bold text-ink"
                 >
                   اسم الطالب
                 </label>
@@ -1081,12 +1081,12 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="اكتب اسمك كما سيظهر على الشاشة..."
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-900 placeholder:font-normal placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
+                  className="qc-input h-12 w-full rounded-xl px-4 text-sm font-bold placeholder:font-normal"
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-bold text-slate-700 dark:text-slate-200">
+                <label className="mb-2 block text-xs font-bold text-ink">
                   اختر شخصيتك الرمزية (Avatar)
                 </label>
                 <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 max-h-52 overflow-y-auto p-1">
@@ -1102,8 +1102,8 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
                           av.bgClass
                         } ${
                           isSelected
-                            ? 'border-indigo-600 ring-2 ring-indigo-500/40 scale-105 shadow-xs dark:border-indigo-400'
-                            : 'border-slate-200 hover:border-indigo-300 dark:border-slate-700'
+                            ? 'border-primary ring-2 ring-primary/30 scale-105 shadow-xs'
+                            : 'border-line hover:border-selected-line'
                         }`}
                       >
                         <span className="text-2xl">{av.emoji}</span>
@@ -1119,7 +1119,7 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
               {joinError && (
                 <div
                   role="alert"
-                  className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-bold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300"
+                  className="flex items-center gap-2 rounded-xl border border-danger-line bg-danger-soft px-3.5 py-2.5 text-xs font-bold text-danger-ink"
                 >
                   <AlertCircle className="h-4 w-4 shrink-0" />
                   <span>{joinError}</span>
@@ -1129,7 +1129,7 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
               <button
                 type="submit"
                 disabled={isJoining || Boolean(lookupError)}
-                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-bold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                className="qc-btn-primary inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isJoining ? (
                   <>

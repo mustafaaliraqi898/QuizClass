@@ -1,9 +1,14 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
 import type { DatabaseSync } from 'node:sqlite';
 import type { StoragePaths } from './config/storagePaths.ts';
+import { createInteractiveLearningRouter } from './routes/interactiveLearningRoutes.ts';
 import { createLiveSessionRouter } from './routes/liveSessionRoutes.ts';
 import { createQuestionBankRouter } from './routes/questionBankRoutes.ts';
 import { createQuizRouter } from './routes/quizRoutes.ts';
+import {
+  InteractiveActivityNotFoundError,
+  InteractiveActivityValidationError,
+} from './services/interactiveLearningRepository.ts';
 import {
   LiveSessionNotFoundError,
   LiveSessionValidationError,
@@ -36,6 +41,7 @@ export function createServerApp(
   app.use('/api', createQuestionBankRouter(db, storagePaths));
   app.use('/api', createQuizRouter(db, storagePaths));
   app.use('/api', createLiveSessionRouter(db, storagePaths, liveSocketHub));
+  app.use('/api', createInteractiveLearningRouter(db, storagePaths));
 
   // Global error handler catching JSON parse errors and internal server errors without leaking stack traces
   app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
@@ -51,6 +57,8 @@ export function createServerApp(
       error instanceof QuizNotFoundError ||
       error instanceof LiveSessionValidationError ||
       error instanceof LiveSessionNotFoundError ||
+      error instanceof InteractiveActivityValidationError ||
+      error instanceof InteractiveActivityNotFoundError ||
       error instanceof MediaValidationError
     ) {
       res.status(error.statusCode).json({ error: error.message });

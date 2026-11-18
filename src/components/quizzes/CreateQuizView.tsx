@@ -627,9 +627,9 @@ export function CreateQuizView({
 
   if (isInitialLoading) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center dark:border-slate-800 dark:bg-slate-900">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400" />
-        <p className="mt-3 text-sm font-bold text-slate-700 dark:text-slate-300">
+      <div className="qc-card flex flex-col items-center justify-center px-6 py-16 text-center">
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+        <p className="mt-3 text-sm font-bold text-ink-muted">
           جارٍ تحميل بيانات المسابقة للتعديل...
         </p>
       </div>
@@ -640,22 +640,22 @@ export function CreateQuizView({
     return (
       <div
         role="alert"
-        className="flex flex-col items-center justify-center rounded-2xl border border-red-200 bg-white px-6 py-12 text-center dark:border-red-900/60 dark:bg-slate-900"
+        className="qc-card flex flex-col items-center justify-center border-danger-line px-6 py-12 text-center"
       >
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-400">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-danger-line bg-danger-soft text-danger-ink">
           <AlertCircle className="h-6 w-6" />
         </div>
-        <h3 className="font-display mt-4 text-base font-bold text-slate-900 dark:text-white">
+        <h3 className="font-display mt-4 text-base font-bold text-ink">
           تعذر فتح المسابقة للتعديل
         </h3>
-        <p className="mt-1 max-w-md text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+        <p className="mt-1 max-w-md text-xs leading-relaxed text-ink-muted">
           {initialLoadError}
         </p>
         <div className="mt-5 flex items-center gap-3">
           <button
             type="button"
             onClick={() => void loadEditingQuiz()}
-            className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+            className="qc-btn-primary inline-flex h-10 items-center gap-2 rounded-xl px-4 text-xs font-bold"
           >
             <RefreshCw className="h-4 w-4" />
             <span>إعادة المحاولة</span>
@@ -663,7 +663,7 @@ export function CreateQuizView({
           <button
             type="button"
             onClick={onCancel}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+            className="qc-btn-secondary h-10 rounded-xl px-4 text-xs font-bold"
           >
             العودة للمسابقات
           </button>
@@ -675,13 +675,13 @@ export function CreateQuizView({
   if (isSummaryStep) {
     return (
       <div className="space-y-6">
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800">
+        <section className="qc-card p-6">
+          <div className="flex flex-col gap-4 border-b border-line pb-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="font-display text-xl font-extrabold text-slate-900 dark:text-white">
+              <h2 className="font-display text-xl font-extrabold text-ink">
                 معاينة المسابقة قبل الحفظ
               </h2>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              <p className="mt-1 text-xs text-ink-muted">
                 راجع تفاصيل المسابقة وترتيب الأسئلة والأزمنة قبل حفظ نسخة مستقلة في قاعدة البيانات.
               </p>
             </div>
@@ -689,7 +689,7 @@ export function CreateQuizView({
               type="button"
               disabled={isSaving}
               onClick={() => setIsSummaryStep(false)}
-              className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              className="qc-btn-secondary inline-flex h-10 items-center gap-2 rounded-xl px-4 text-xs font-bold disabled:opacity-50"
             >
               <ArrowRight className="h-4 w-4" />
               <span>العودة للتعديل</span>
@@ -697,37 +697,37 @@ export function CreateQuizView({
           </div>
 
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/50">
-              <p className="text-xs font-bold text-slate-500 dark:text-slate-400">اسم المسابقة</p>
-              <p className="mt-1 font-display text-sm font-extrabold text-slate-900 dark:text-white">
+            <div className="rounded-xl border border-line bg-surface-subtle p-4">
+              <p className="text-xs font-bold text-ink-muted">اسم المسابقة</p>
+              <p className="mt-1 font-display text-sm font-extrabold text-ink">
                 {title.trim()}
               </p>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/50">
-              <p className="text-xs font-bold text-slate-500 dark:text-slate-400">المادة والصف</p>
-              <p className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-200">
+            <div className="rounded-xl border border-line bg-surface-subtle p-4">
+              <p className="text-xs font-bold text-ink-muted">المادة والصف</p>
+              <p className="mt-1 text-sm font-bold text-ink">
                 {subject.trim() || grade.trim()
                   ? [subject.trim(), grade.trim()].filter(Boolean).join(' · ')
                   : 'غير محدد'}
               </p>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/50">
-              <p className="text-xs font-bold text-slate-500 dark:text-slate-400">عدد الأسئلة</p>
-              <p className="tabular-nums mt-1 font-display text-lg font-extrabold text-indigo-600 dark:text-indigo-400">
+            <div className="rounded-xl border border-line bg-surface-subtle p-4">
+              <p className="text-xs font-bold text-ink-muted">عدد الأسئلة</p>
+              <p className="tabular-nums mt-1 font-display text-lg font-extrabold text-accent">
                 {selectedQuestions.length} سؤالاً
               </p>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/50">
-              <p className="text-xs font-bold text-slate-500 dark:text-slate-400">المدة الإجمالية</p>
-              <p className="tabular-nums mt-1 font-display text-lg font-extrabold text-slate-900 dark:text-white">
+            <div className="rounded-xl border border-line bg-surface-subtle p-4">
+              <p className="text-xs font-bold text-ink-muted">المدة الإجمالية</p>
+              <p className="tabular-nums mt-1 font-display text-lg font-extrabold text-ink">
                 {formatDurationArabic(totalQuizDurationSeconds)}
               </p>
             </div>
           </div>
 
           {description.trim() && (
-            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4 text-xs leading-relaxed text-slate-700 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300">
-              <span className="font-bold text-slate-900 dark:text-white">الوصف: </span>
+            <div className="mt-4 rounded-xl border border-line bg-surface-subtle p-4 text-xs leading-relaxed text-ink-muted">
+              <span className="font-bold text-ink">الوصف: </span>
               {description.trim()}
             </div>
           )}
@@ -735,7 +735,7 @@ export function CreateQuizView({
           {saveError && (
             <div
               role="alert"
-              className="mt-5 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-xs font-bold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300"
+              className="mt-5 flex items-center gap-2 rounded-xl border border-danger-line bg-danger-soft p-4 text-xs font-bold text-danger-ink"
             >
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{saveError}</span>
@@ -743,7 +743,7 @@ export function CreateQuizView({
           )}
 
           <div className="mt-6 space-y-3">
-            <h3 className="font-display text-sm font-bold text-slate-900 dark:text-white">
+            <h3 className="font-display text-sm font-bold text-ink">
               قائمة الأسئلة المرتبة ({selectedQuestions.length})
             </h3>
 
@@ -759,11 +759,11 @@ export function CreateQuizView({
               return (
                 <article
                   key={q.clientKey}
-                  className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950/40"
+                  className="rounded-xl border border-line bg-surface-subtle p-4"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
-                      <span className="tabular-nums font-extrabold text-indigo-600 dark:text-indigo-400">
+                    <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-ink-muted">
+                      <span className="tabular-nums font-extrabold text-accent">
                         {index + 1}.
                       </span>
                       {meta.map((part, idx) => (
@@ -773,18 +773,18 @@ export function CreateQuizView({
                         </span>
                       ))}
                     </div>
-                    <span className="tabular-nums inline-flex items-center gap-1 text-xs font-bold text-slate-700 dark:text-slate-300">
-                      <Clock className="h-3.5 w-3.5 text-slate-400" />
+                    <span className="tabular-nums inline-flex items-center gap-1 text-xs font-bold text-ink-muted">
+                      <Clock className="h-3.5 w-3.5" />
                       <span>{q.timeLimitSeconds} ثانية</span>
                     </span>
                   </div>
 
-                  <p className="mt-2 font-display text-sm font-bold text-slate-900 dark:text-white">
+                  <p className="mt-2 font-display text-sm font-bold text-ink">
                     {q.prompt}
                   </p>
 
                   {q.imageUrl && (
-                    <div className="mt-2 overflow-hidden rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900">
+                    <div className="mt-2 overflow-hidden rounded-lg border border-line bg-surface">
                       <img
                         src={q.imageUrl}
                         alt={`صورة السؤال ${index + 1}`}
@@ -795,7 +795,7 @@ export function CreateQuizView({
                   )}
 
                   {q.type === 'true_false' ? (
-                    <p className="mt-2 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                    <p className="mt-2 text-xs font-bold text-success-ink">
                       الإجابة الصحيحة: {q.correctBoolean ? 'صح' : 'خطأ'}
                     </p>
                   ) : (
@@ -805,24 +805,24 @@ export function CreateQuizView({
                           key={opt.id}
                           className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs ${
                             opt.isCorrect
-                              ? 'border-emerald-300 bg-emerald-50 font-bold text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200'
-                              : 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'
+                              ? 'border-success-line bg-success-soft font-bold text-success-ink'
+                              : 'border-line bg-surface text-ink'
                           }`}
                         >
                           <div className="flex min-w-0 items-center gap-2">
-                            <span className="tabular-nums text-slate-400">{optIdx + 1}.</span>
+                            <span className="tabular-nums text-ink-muted">{optIdx + 1}.</span>
                             {opt.optionText && <span className="truncate">{opt.optionText}</span>}
                             {opt.imageUrl && (
                               <img
                                 src={opt.imageUrl}
                                 alt={`صورة الاختيار ${optIdx + 1}`}
                                 referrerPolicy="no-referrer"
-                                className="h-8 w-8 rounded border border-slate-200 object-cover dark:border-slate-700"
+                                className="h-8 w-8 rounded border border-line object-cover"
                               />
                             )}
                           </div>
                           {opt.isCorrect && (
-                            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success-ink" />
                           )}
                         </div>
                       ))}
@@ -833,12 +833,12 @@ export function CreateQuizView({
             })}
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-slate-200 pt-5 dark:border-slate-800">
+          <div className="mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-line pt-5">
             <button
               type="button"
               disabled={isSaving}
               onClick={() => setIsSummaryStep(false)}
-              className="h-11 rounded-xl border border-slate-200 bg-white px-5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              className="qc-btn-secondary h-11 rounded-xl px-5 text-xs font-bold disabled:opacity-50"
             >
               العودة للتعديل
             </button>
@@ -846,7 +846,7 @@ export function CreateQuizView({
               type="button"
               disabled={isSaving}
               onClick={() => void handleSaveQuiz()}
-              className="inline-flex h-11 items-center gap-2 rounded-xl bg-indigo-600 px-6 text-sm font-bold text-white transition-colors hover:bg-indigo-700 disabled:opacity-60 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+              className="qc-btn-primary inline-flex h-11 items-center gap-2 rounded-xl px-6 text-sm font-bold disabled:opacity-60"
             >
               {isSaving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -870,13 +870,13 @@ export function CreateQuizView({
   return (
     <div className="space-y-6">
       {/* Header & Basic Info */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex flex-col gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800">
+      <section className="qc-card p-6">
+        <div className="flex flex-col gap-3 border-b border-line pb-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-display text-xl font-extrabold text-slate-900 dark:text-white">
+            <h2 className="font-display text-xl font-extrabold text-ink">
               {isEditing ? 'تعديل المسابقة' : 'إنشاء مسابقة جديدة'}
             </h2>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-ink-muted">
               {isEditing
                 ? 'عدّل تفاصيل المسابقة أو أضف وأعد ترتيب الأسئلة دون التأثير على بنك الأسئلة الأصلي.'
                 : 'حدّد بيانات المسابقة ثم اختر الأسئلة يدوياً أو عشوائياً أو ادمج بينهما.'}
@@ -886,7 +886,7 @@ export function CreateQuizView({
           <button
             type="button"
             onClick={onCancel}
-            className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 whitespace-nowrap shrink-0 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            className="qc-btn-secondary inline-flex h-10 items-center gap-2 rounded-xl px-4 text-xs font-bold whitespace-nowrap shrink-0"
           >
             <span>إلغاء والعودة للمسابقات</span>
           </button>
@@ -896,9 +896,9 @@ export function CreateQuizView({
           <div className="md:col-span-6">
             <label
               htmlFor="quiz-title-input"
-              className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-200"
+              className="mb-1.5 block text-xs font-bold text-ink"
             >
-              اسم المسابقة <span className="text-red-500">*</span>
+              اسم المسابقة <span className="text-danger">*</span>
             </label>
             <input
               id="quiz-title-input"
@@ -910,16 +910,16 @@ export function CreateQuizView({
               }}
               placeholder="مثال: مراجعة قوانين الحركة والسرعة"
               maxLength={200}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
+              className="qc-input h-11 w-full rounded-xl px-3.5 text-sm"
             />
           </div>
 
           <div className="md:col-span-3">
             <label
               htmlFor="quiz-subject-input"
-              className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-200"
+              className="mb-1.5 block text-xs font-bold text-ink"
             >
-              المادة <span className="font-normal text-slate-400">(اختياري)</span>
+              المادة <span className="font-normal text-ink-muted">(اختياري)</span>
             </label>
             <input
               id="quiz-subject-input"
@@ -928,16 +928,16 @@ export function CreateQuizView({
               onChange={(e) => setSubject(e.target.value)}
               placeholder="مثال: الفيزياء"
               maxLength={120}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
+              className="qc-input h-11 w-full rounded-xl px-3.5 text-sm"
             />
           </div>
 
           <div className="md:col-span-3">
             <label
               htmlFor="quiz-grade-input"
-              className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-200"
+              className="mb-1.5 block text-xs font-bold text-ink"
             >
-              الصف <span className="font-normal text-slate-400">(اختياري)</span>
+              الصف <span className="font-normal text-ink-muted">(اختياري)</span>
             </label>
             <input
               id="quiz-grade-input"
@@ -946,16 +946,16 @@ export function CreateQuizView({
               onChange={(e) => setGrade(e.target.value)}
               placeholder="مثال: الصف العاشر"
               maxLength={120}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
+              className="qc-input h-11 w-full rounded-xl px-3.5 text-sm"
             />
           </div>
 
           <div className="md:col-span-7">
             <label
               htmlFor="quiz-desc-input"
-              className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-200"
+              className="mb-1.5 block text-xs font-bold text-ink"
             >
-              وصف المسابقة <span className="font-normal text-slate-400">(اختياري)</span>
+              وصف المسابقة <span className="font-normal text-ink-muted">(اختياري)</span>
             </label>
             <input
               id="quiz-desc-input"
@@ -964,14 +964,14 @@ export function CreateQuizView({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="ملاحظات مختصرة عن أهداف المسابقة أو محتواها..."
               maxLength={1000}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
+              className="qc-input h-11 w-full rounded-xl px-3.5 text-sm"
             />
           </div>
 
           <div className="md:col-span-5">
             <label
               htmlFor="quiz-default-time-input"
-              className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-200"
+              className="mb-1.5 block text-xs font-bold text-ink"
             >
               الوقت الافتراضي للإجابة (بالثواني)
             </label>
@@ -986,7 +986,7 @@ export function CreateQuizView({
                   const val = Number.parseInt(e.target.value, 10);
                   setDefaultTimeSeconds(Number.isNaN(val) ? 0 : val);
                 }}
-                className="tabular-nums h-11 w-24 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-bold text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
+                className="qc-input tabular-nums h-11 w-24 rounded-xl px-3 text-sm font-bold"
               />
               <div className="flex flex-wrap items-center gap-1">
                 {DEFAULT_TIME_PRESETS.map((preset) => (
@@ -996,8 +996,8 @@ export function CreateQuizView({
                     onClick={() => setDefaultTimeSeconds(preset)}
                     className={`tabular-nums h-8 rounded-lg border px-2.5 text-xs font-bold transition-colors ${
                       defaultTimeSeconds === preset
-                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700 dark:border-indigo-400 dark:bg-indigo-950/60 dark:text-indigo-300'
-                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                        ? 'border-selected-line bg-selected text-accent'
+                        : 'border-line bg-surface-subtle text-ink-muted hover:bg-row-hover hover:text-ink'
                     }`}
                   >
                     {preset}ث
@@ -1010,13 +1010,13 @@ export function CreateQuizView({
       </section>
 
       {/* Question Selection Method */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 lg:flex-row lg:items-center lg:justify-between dark:border-slate-800">
+      <section className="qc-card p-6">
+        <div className="flex flex-col gap-4 border-b border-line pb-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h3 className="font-display text-base font-extrabold text-slate-900 dark:text-white">
+            <h3 className="font-display text-base font-extrabold text-ink">
               إضافة أسئلة من بنك الأسئلة
             </h3>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-ink-muted">
               اختر أسلوب الانتقاء المناسب: يدوي، عشوائي، أو الدمج بينهما دون تكرار.
             </p>
           </div>
@@ -1024,7 +1024,7 @@ export function CreateQuizView({
           <div
             role="tablist"
             aria-label="طريقة اختيار الأسئلة"
-            className="inline-flex flex-wrap items-center gap-1 rounded-xl border border-slate-200 bg-slate-100 p-1 dark:border-slate-800 dark:bg-slate-950"
+            className="inline-flex flex-wrap items-center gap-1 rounded-xl border border-line bg-surface-subtle p-1"
           >
             {(
               [
@@ -1048,8 +1048,8 @@ export function CreateQuizView({
                   }}
                   className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-bold transition-colors whitespace-nowrap shrink-0 ${
                     active
-                      ? 'bg-white text-indigo-600 shadow-xs dark:bg-slate-800 dark:text-indigo-400'
-                      : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
+                      ? 'bg-selected text-accent shadow-xs'
+                      : 'text-ink-muted hover:text-ink'
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
@@ -1064,15 +1064,15 @@ export function CreateQuizView({
         {(selectionMode === 'manual' || selectionMode === 'combined') && (
           <div className="mt-5 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h4 className="font-display text-sm font-bold text-slate-900 dark:text-white">
+              <h4 className="font-display text-sm font-bold text-ink">
                 {selectionMode === 'combined'
                   ? '1. استعراض وتحديد الأسئلة يدوياً'
                   : 'استعراض الأسئلة المحفوظة في بنك الأسئلة'}
               </h4>
-              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
                 <span className="tabular-nums">المتاح في البنك: {bankTotalCount}</span>
                 <span aria-hidden="true">·</span>
-                <span className="tabular-nums font-bold text-indigo-600 dark:text-indigo-400">
+                <span className="tabular-nums font-bold text-accent">
                   المحدد للإضافة: {stagedManualIds.length}
                 </span>
               </div>
@@ -1081,7 +1081,7 @@ export function CreateQuizView({
             {/* Filters */}
             <div className="grid grid-cols-1 gap-2.5 md:grid-cols-12">
               <div className="relative md:col-span-6 lg:col-span-4">
-                <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
                 <input
                   type="search"
                   value={manualFilters.search ?? ''}
@@ -1090,7 +1090,7 @@ export function CreateQuizView({
                   }
                   placeholder="ابحث في نص السؤال أو الموضوع..."
                   aria-label="البحث في أسئلة البنك"
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pe-3 ps-9 text-xs text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
+                  className="qc-input h-10 w-full rounded-xl pe-3 ps-9 text-xs"
                 />
               </div>
 
@@ -1104,7 +1104,7 @@ export function CreateQuizView({
                       type: e.target.value as QuestionType | 'all',
                     }))
                   }
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  className="qc-input h-10 w-full rounded-xl px-3 text-xs font-medium"
                 >
                   <option value="all">كل الأنواع</option>
                   <option value="multiple_choice">اختيار من متعدد</option>
@@ -1119,7 +1119,7 @@ export function CreateQuizView({
                   onChange={(e) =>
                     setManualFilters((prev) => ({ ...prev, subject: e.target.value }))
                   }
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  className="qc-input h-10 w-full rounded-xl px-3 text-xs font-medium"
                 >
                   <option value="all">كل المواد</option>
                   {bankFacets.subjects.map((s) => (
@@ -1137,7 +1137,7 @@ export function CreateQuizView({
                   onChange={(e) =>
                     setManualFilters((prev) => ({ ...prev, grade: e.target.value }))
                   }
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  className="qc-input h-10 w-full rounded-xl px-3 text-xs font-medium"
                 >
                   <option value="all">كل الصفوف</option>
                   {bankFacets.grades.map((g) => (
@@ -1158,7 +1158,7 @@ export function CreateQuizView({
                       difficulty: e.target.value as QuestionDifficulty | 'all',
                     }))
                   }
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  className="qc-input h-10 w-full rounded-xl px-3 text-xs font-medium"
                 >
                   <option value="all">كل المستويات</option>
                   <option value="easy">سهل</option>
@@ -1175,7 +1175,7 @@ export function CreateQuizView({
                     onChange={(e) =>
                       setManualFilters((prev) => ({ ...prev, topic: e.target.value }))
                     }
-                    className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                    className="qc-input h-10 w-full rounded-xl px-3 text-xs font-medium"
                   >
                     <option value="all">كل المواضيع</option>
                     {bankFacets.topics.map((t) => (
@@ -1191,13 +1191,13 @@ export function CreateQuizView({
             {bankError ? (
               <div
                 role="alert"
-                className="flex flex-col items-center justify-center rounded-xl border border-red-200 bg-red-50/70 p-6 text-center dark:border-red-900/60 dark:bg-red-950/30"
+                className="flex flex-col items-center justify-center rounded-xl border border-danger-line bg-danger-soft p-6 text-center"
               >
-                <p className="text-xs font-bold text-red-700 dark:text-red-300">{bankError}</p>
+                <p className="text-xs font-bold text-danger-ink">{bankError}</p>
                 <button
                   type="button"
                   onClick={() => void loadBankQuestions()}
-                  className="mt-3 inline-flex h-9 items-center gap-1.5 rounded-lg bg-red-600 px-3.5 text-xs font-bold text-white hover:bg-red-700"
+                  className="mt-3 inline-flex h-9 items-center gap-1.5 rounded-lg bg-danger px-3.5 text-xs font-bold text-white transition-colors hover:bg-danger-hover"
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
                   <span>إعادة المحاولة</span>
@@ -1208,23 +1208,23 @@ export function CreateQuizView({
                 {[0, 1, 2].map((i) => (
                   <div
                     key={i}
-                    className="h-16 animate-pulse rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/40"
+                    className="h-16 animate-pulse rounded-xl border border-line bg-surface-subtle"
                   />
                 ))}
               </div>
             ) : bankTotalCount === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-slate-50/70 px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950/40">
-                <p className="font-display text-sm font-bold text-slate-900 dark:text-white">
+              <div className="flex flex-col items-center justify-center rounded-xl border border-line bg-surface-subtle px-6 py-10 text-center">
+                <p className="font-display text-sm font-bold text-ink">
                   بنك الأسئلة فارغ حالياً
                 </p>
-                <p className="mt-1 max-w-md text-xs text-slate-500 dark:text-slate-400">
+                <p className="mt-1 max-w-md text-xs text-ink-muted">
                   أضف أسئلة في قسم بنك الأسئلة أولاً لتتمكن من إضافتها إلى مسابقتك.
                 </p>
                 {onOpenQuestionBank && (
                   <button
                     type="button"
                     onClick={onOpenQuestionBank}
-                    className="mt-4 inline-flex h-9 items-center gap-1.5 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white hover:bg-indigo-700 dark:bg-indigo-500"
+                    className="qc-btn-primary mt-4 inline-flex h-9 items-center gap-1.5 rounded-xl px-4 text-xs font-bold"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     <span>الذهاب إلى بنك الأسئلة</span>
@@ -1232,8 +1232,8 @@ export function CreateQuizView({
                 )}
               </div>
             ) : bankQuestions.length === 0 ? (
-              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-6 py-8 text-center dark:border-slate-800 dark:bg-slate-950/40">
-                <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+              <div className="rounded-xl border border-line bg-surface-subtle px-6 py-8 text-center">
+                <p className="text-xs font-bold text-ink-muted">
                   لا توجد أسئلة مطابقة لمعايير البحث الحالية.
                 </p>
               </div>
@@ -1245,7 +1245,7 @@ export function CreateQuizView({
                       type="button"
                       disabled={selectableFilteredBankIds.length === 0}
                       onClick={handleToggleSelectAllVisible}
-                      className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                      className="qc-btn-secondary inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold disabled:opacity-40"
                     >
                       <span>
                         {allSelectableChecked ? 'إلغاء تحديد الظاهر' : 'تحديد الكل الظاهر'}
@@ -1256,7 +1256,7 @@ export function CreateQuizView({
                       <button
                         type="button"
                         onClick={() => setStagedManualIds([])}
-                        className="inline-flex h-9 items-center gap-1 rounded-lg px-2.5 text-xs font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                        className="inline-flex h-9 items-center gap-1 rounded-lg px-2.5 text-xs font-bold text-ink-muted transition-colors hover:text-ink"
                       >
                         <X className="h-3.5 w-3.5" />
                         <span>إلغاء التحديد</span>
@@ -1268,7 +1268,7 @@ export function CreateQuizView({
                     type="button"
                     disabled={stagedManualIds.length === 0}
                     onClick={handleAddStagedManualQuestions}
-                    className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                    className="qc-btn-primary inline-flex h-9 items-center gap-1.5 rounded-xl px-4 text-xs font-bold disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     <span className="tabular-nums">
@@ -1294,10 +1294,10 @@ export function CreateQuizView({
                         key={question.id}
                         className={`flex items-start justify-between gap-3 rounded-xl border p-3.5 transition-colors ${
                           alreadyAdded
-                            ? 'border-emerald-200 bg-emerald-50/40 dark:border-emerald-900/50 dark:bg-emerald-950/20'
+                            ? 'border-success-line bg-success-soft'
                             : isChecked
-                              ? 'border-indigo-300 bg-indigo-50/60 dark:border-indigo-700 dark:bg-indigo-950/40'
-                              : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-950/40 dark:hover:border-slate-700'
+                              ? 'border-selected-line bg-selected'
+                              : 'border-line bg-surface-subtle hover:border-line-strong'
                         }`}
                       >
                         <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-3">
@@ -1307,11 +1307,11 @@ export function CreateQuizView({
                             checked={alreadyAdded || isChecked}
                             onChange={() => toggleManualCheckbox(question.id)}
                             aria-label={`تحديد السؤال: ${question.prompt}`}
-                            className="mt-1 h-4 w-4 shrink-0 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-60"
+                            className="mt-1 h-4 w-4 shrink-0 rounded border-line-strong disabled:opacity-60"
                           />
 
                           <div className="min-w-0 flex-1 space-y-1">
-                            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
                               {meta.map((part, idx) => (
                                 <span
                                   key={`${question.id}-bmeta-${idx}`}
@@ -1333,14 +1333,14 @@ export function CreateQuizView({
                               {alreadyAdded && (
                                 <>
                                   <span aria-hidden="true">·</span>
-                                  <span className="font-bold text-emerald-700 dark:text-emerald-400">
+                                  <span className="font-bold text-success-ink">
                                     مُضاف للمسابقة
                                   </span>
                                 </>
                               )}
                             </div>
 
-                            <p className="text-sm font-bold leading-snug text-slate-900 dark:text-white">
+                            <p className="text-sm font-bold leading-snug text-ink">
                               {question.prompt}
                             </p>
                           </div>
@@ -1350,7 +1350,7 @@ export function CreateQuizView({
                           type="button"
                           onClick={() => setPreviewBankQuestion(question)}
                           aria-label={`معاينة السؤال: ${question.prompt}`}
-                          className="inline-flex h-8 shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                          className="qc-btn-secondary inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-2.5 text-xs font-bold"
                         >
                           <Eye className="h-3.5 w-3.5" />
                           <span>معاينة</span>
@@ -1369,26 +1369,23 @@ export function CreateQuizView({
           <div
             className={`${
               selectionMode === 'combined'
-                ? 'mt-6 border-t border-slate-200 pt-6 dark:border-slate-800'
+                ? 'mt-6 border-t border-line pt-6'
                 : 'mt-5'
             } space-y-4`}
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h4 className="font-display text-sm font-bold text-slate-900 dark:text-white">
+              <h4 className="font-display text-sm font-bold text-ink">
                 {selectionMode === 'combined'
                   ? '2. سحب أسئلة عشوائية إضافية (مع استبعاد الأسئلة المختارة يدوياً)'
                   : 'تحديد شروط السحب العشوائي من بنك الأسئلة'}
               </h4>
-              <div className="tabular-nums text-xs font-bold text-slate-600 dark:text-slate-300">
+              <div className="tabular-nums text-xs font-bold text-ink-muted">
                 {isRandomCountLoading ? (
                   <span>جارٍ حساب الأسئلة المتاحة...</span>
                 ) : randomAvailableCount !== null ? (
                   <span>
                     الأسئلة المتاحة للسحب:{' '}
-                    <strong className="text-indigo-600 dark:text-indigo-400">
-                      {randomAvailableCount}
-                    </strong>{' '}
-                    سؤالاً
+                    <strong className="text-accent">{randomAvailableCount}</strong> سؤالاً
                   </span>
                 ) : null}
               </div>
@@ -1405,7 +1402,7 @@ export function CreateQuizView({
                       type: e.target.value as QuestionType | 'all',
                     }))
                   }
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  className="qc-input h-10 w-full rounded-xl px-3 text-xs font-medium"
                 >
                   <option value="all">كل الأنواع</option>
                   <option value="multiple_choice">اختيار من متعدد</option>
@@ -1420,7 +1417,7 @@ export function CreateQuizView({
                   onChange={(e) =>
                     setRandomFilters((prev) => ({ ...prev, subject: e.target.value }))
                   }
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  className="qc-input h-10 w-full rounded-xl px-3 text-xs font-medium"
                 >
                   <option value="all">كل المواد</option>
                   {bankFacets.subjects.map((s) => (
@@ -1438,7 +1435,7 @@ export function CreateQuizView({
                   onChange={(e) =>
                     setRandomFilters((prev) => ({ ...prev, grade: e.target.value }))
                   }
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  className="qc-input h-10 w-full rounded-xl px-3 text-xs font-medium"
                 >
                   <option value="all">كل الصفوف</option>
                   {bankFacets.grades.map((g) => (
@@ -1456,7 +1453,7 @@ export function CreateQuizView({
                   onChange={(e) =>
                     setRandomFilters((prev) => ({ ...prev, topic: e.target.value }))
                   }
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  className="qc-input h-10 w-full rounded-xl px-3 text-xs font-medium"
                 >
                   <option value="all">كل المواضيع</option>
                   {bankFacets.topics.map((t) => (
@@ -1477,7 +1474,7 @@ export function CreateQuizView({
                       difficulty: e.target.value as QuestionDifficulty | 'all',
                     }))
                   }
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  className="qc-input h-10 w-full rounded-xl px-3 text-xs font-medium"
                 >
                   <option value="all">كل المستويات</option>
                   <option value="easy">سهل</option>
@@ -1499,13 +1496,13 @@ export function CreateQuizView({
                   }}
                   aria-label="عدد الأسئلة العشوائية"
                   placeholder="العدد"
-                  className="tabular-nums h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  className="qc-input tabular-nums h-10 w-full rounded-xl px-3 text-xs font-bold"
                 />
               </div>
             </div>
 
             {randomCountValidationMessage && randomAvailableCount !== null && (
-              <p className="text-xs font-bold text-amber-700 dark:text-amber-400">
+              <p className="text-xs font-bold text-warning-ink">
                 {randomCountValidationMessage}
               </p>
             )}
@@ -1513,7 +1510,7 @@ export function CreateQuizView({
             {randomError && (
               <div
                 role="alert"
-                className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300"
+                className="flex items-center gap-2 rounded-xl border border-danger-line bg-danger-soft p-3 text-xs font-bold text-danger-ink"
               >
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 <span>{randomError}</span>
@@ -1523,7 +1520,7 @@ export function CreateQuizView({
             {randomSuccessNotice && (
               <div
                 role="status"
-                className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-bold text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200"
+                className="flex items-center gap-2 rounded-xl border border-success-line bg-success-soft p-3 text-xs font-bold text-success-ink"
               >
                 <CheckCircle2 className="h-4 w-4 shrink-0" />
                 <span>{randomSuccessNotice}</span>
@@ -1540,7 +1537,7 @@ export function CreateQuizView({
                     Boolean(randomCountValidationMessage)
                   }
                   onClick={() => void handleDrawRandom(true)}
-                  className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-45 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                  className="qc-btn-primary inline-flex h-10 items-center gap-2 rounded-xl px-4 text-xs font-bold disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   {isRandomDrawing ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -1560,7 +1557,7 @@ export function CreateQuizView({
                     Boolean(randomCountValidationMessage)
                   }
                   onClick={() => void handleDrawRandom(false)}
-                  className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-45 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                  className="qc-btn-primary inline-flex h-10 items-center gap-2 rounded-xl px-4 text-xs font-bold disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   {isRandomDrawing ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -1576,16 +1573,16 @@ export function CreateQuizView({
       </section>
 
       {/* Selected Questions Ordered List & Timing */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800">
+      <section className="qc-card p-6">
+        <div className="flex flex-col gap-3 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="font-display text-base font-extrabold text-slate-900 dark:text-white">
+            <h3 className="font-display text-base font-extrabold text-ink">
               أسئلة المسابقة المختارة ({selectedQuestions.length})
             </h3>
-            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-0.5 text-xs text-ink-muted">
               اسحب الأسئلة لإعادة ترتيبها أو عدّل وقت كل سؤال بشكل مستقل.
               {selectedQuestions.length > 0 && (
-                <span className="tabular-nums font-bold text-slate-700 dark:text-slate-300">
+                <span className="tabular-nums font-bold text-ink">
                   {' · '}المدة الكلية: {formatDurationArabic(totalQuizDurationSeconds)}
                 </span>
               )}
@@ -1596,9 +1593,9 @@ export function CreateQuizView({
             <button
               type="button"
               onClick={handleApplyDefaultTimeToAll}
-              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100 whitespace-nowrap shrink-0 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              className="qc-btn-secondary inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold whitespace-nowrap shrink-0"
             >
-              <Clock className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+              <Clock className="h-3.5 w-3.5 text-accent" />
               <span className="tabular-nums">
                 تطبيق الوقت الافتراضي ({safeDefaultTime} ث) على الكل
               </span>
@@ -1607,11 +1604,11 @@ export function CreateQuizView({
         </div>
 
         {selectedQuestions.length === 0 ? (
-          <div className="mt-5 rounded-xl border border-dashed border-slate-300 bg-slate-50/70 px-6 py-10 text-center dark:border-slate-700 dark:bg-slate-950/40">
-            <p className="font-display text-sm font-bold text-slate-700 dark:text-slate-200">
+          <div className="mt-5 rounded-xl border border-dashed border-line-strong bg-surface-subtle px-6 py-10 text-center">
+            <p className="font-display text-sm font-bold text-ink">
               لم تتم إضافة أي أسئلة للمسابقة بعد
             </p>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-ink-muted">
               استخدم قسم «إضافة أسئلة من بنك الأسئلة» أعلاه لاختيار أسئلة يدوياً أو سحبها عشوائياً.
             </p>
           </div>
@@ -1637,18 +1634,18 @@ export function CreateQuizView({
                   onDragEnd={handleDragEnd}
                   className={`rounded-xl border p-4 transition-colors ${
                     isDropTarget
-                      ? 'border-indigo-500 bg-indigo-50/50 dark:border-indigo-400 dark:bg-indigo-950/30'
-                      : 'border-slate-200 bg-slate-50/50 dark:border-slate-800 dark:bg-slate-950/40'
+                      ? 'border-selected-line bg-selected'
+                      : 'border-line bg-surface-subtle'
                   }`}
                 >
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex min-w-0 flex-1 items-start gap-3">
                       <div
-                        className="mt-1 flex cursor-grab items-center gap-1 text-slate-400 active:cursor-grabbing"
+                        className="mt-1 flex cursor-grab items-center gap-1 text-ink-muted active:cursor-grabbing"
                         title="اسحب لإعادة الترتيب"
                       >
                         <GripVertical className="h-4 w-4" />
-                        <span className="tabular-nums font-display text-sm font-extrabold text-indigo-600 dark:text-indigo-400">
+                        <span className="tabular-nums font-display text-sm font-extrabold text-accent">
                           {index + 1}
                         </span>
                       </div>
@@ -1658,12 +1655,12 @@ export function CreateQuizView({
                           src={item.imageUrl}
                           alt={`صورة مصغرة للسؤال ${index + 1}`}
                           referrerPolicy="no-referrer"
-                          className="hidden h-14 w-16 shrink-0 rounded-lg border border-slate-200 object-cover sm:block dark:border-slate-700"
+                          className="hidden h-14 w-16 shrink-0 rounded-lg border border-line object-cover sm:block"
                         />
                       )}
 
                       <div className="min-w-0 flex-1 space-y-1">
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
                           {meta.map((part, idx) => (
                             <span
                               key={`${item.clientKey}-m-${idx}`}
@@ -1674,15 +1671,15 @@ export function CreateQuizView({
                             </span>
                           ))}
                         </div>
-                        <p className="font-display text-sm font-bold text-slate-900 dark:text-white">
+                        <p className="font-display text-sm font-bold text-ink">
                           {item.prompt}
                         </p>
                       </div>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
-                      <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 dark:border-slate-700 dark:bg-slate-900">
-                        <Clock className="h-3.5 w-3.5 text-slate-400" />
+                      <div className="flex items-center gap-1.5 rounded-lg border border-line bg-input px-2.5 py-1">
+                        <Clock className="h-3.5 w-3.5 text-ink-muted" />
                         <input
                           type="number"
                           min={5}
@@ -1692,9 +1689,9 @@ export function CreateQuizView({
                           onChange={(e) =>
                             handleQuestionTimeChange(item.clientKey, e.target.value)
                           }
-                          className="tabular-nums w-14 bg-transparent text-center text-xs font-bold text-slate-900 focus:outline-none dark:text-white"
+                          className="tabular-nums w-14 bg-transparent text-center text-xs font-bold text-ink focus:outline-none"
                         />
-                        <span className="text-xs text-slate-500 dark:text-slate-400">ث</span>
+                        <span className="text-xs text-ink-muted">ث</span>
                       </div>
 
                       <div className="flex items-center gap-1">
@@ -1703,7 +1700,7 @@ export function CreateQuizView({
                           disabled={index === 0}
                           onClick={() => moveQuestion(index, index - 1)}
                           aria-label={`نقل السؤال ${index + 1} للأعلى`}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-35 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                          className="qc-btn-secondary flex h-8 w-8 items-center justify-center rounded-lg disabled:opacity-35"
                         >
                           <ArrowUp className="h-3.5 w-3.5" />
                         </button>
@@ -1712,7 +1709,7 @@ export function CreateQuizView({
                           disabled={index === selectedQuestions.length - 1}
                           onClick={() => moveQuestion(index, index + 1)}
                           aria-label={`نقل السؤال ${index + 1} للأسفل`}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-35 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                          className="qc-btn-secondary flex h-8 w-8 items-center justify-center rounded-lg disabled:opacity-35"
                         >
                           <ArrowDown className="h-3.5 w-3.5" />
                         </button>
@@ -1726,7 +1723,7 @@ export function CreateQuizView({
                             [item.clientKey]: !prev[item.clientKey],
                           }))
                         }
-                        className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                        className="qc-btn-secondary inline-flex h-8 items-center gap-1 rounded-lg px-2.5 text-xs font-bold"
                       >
                         {isExpanded ? (
                           <ChevronUp className="h-3.5 w-3.5" />
@@ -1740,7 +1737,7 @@ export function CreateQuizView({
                         type="button"
                         onClick={() => handleRemoveDraftQuestion(item.clientKey)}
                         aria-label={`إزالة السؤال ${index + 1} من المسابقة`}
-                        className="inline-flex h-8 items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 text-xs font-bold text-red-700 hover:bg-red-100 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300"
+                        className="inline-flex h-8 items-center gap-1 rounded-lg border border-danger-line bg-danger-soft px-2.5 text-xs font-bold text-danger-ink transition-colors hover:brightness-95"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                         <span>إزالة</span>
@@ -1749,17 +1746,17 @@ export function CreateQuizView({
                   </div>
 
                   {isExpanded && (
-                    <div className="mt-3 space-y-2 border-t border-slate-200 pt-3 dark:border-slate-800">
+                    <div className="mt-3 space-y-2 border-t border-line pt-3">
                       {item.imageUrl && (
                         <img
                           src={item.imageUrl}
                           alt={`صورة السؤال ${index + 1}`}
                           referrerPolicy="no-referrer"
-                          className="max-h-48 rounded-lg border border-slate-200 object-contain dark:border-slate-700"
+                          className="max-h-48 rounded-lg border border-line object-contain"
                         />
                       )}
                       {item.type === 'true_false' ? (
-                        <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                        <p className="text-xs font-bold text-success-ink">
                           الإجابة الصحيحة: {item.correctBoolean ? 'صح' : 'خطأ'}
                         </p>
                       ) : (
@@ -1769,24 +1766,24 @@ export function CreateQuizView({
                               key={opt.id}
                               className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs ${
                                 opt.isCorrect
-                                  ? 'border-emerald-300 bg-emerald-50 font-bold text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200'
-                                  : 'border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'
+                                  ? 'border-success-line bg-success-soft font-bold text-success-ink'
+                                  : 'border-line bg-surface text-ink'
                               }`}
                             >
                               <div className="flex min-w-0 items-center gap-2">
-                                <span className="tabular-nums text-slate-400">{optIdx + 1}.</span>
+                                <span className="tabular-nums text-ink-muted">{optIdx + 1}.</span>
                                 {opt.optionText && <span>{opt.optionText}</span>}
                                 {opt.imageUrl && (
                                   <img
                                     src={opt.imageUrl}
                                     alt={`صورة الاختيار ${optIdx + 1}`}
                                     referrerPolicy="no-referrer"
-                                    className="h-8 w-8 rounded border border-slate-200 object-cover dark:border-slate-700"
+                                    className="h-8 w-8 rounded border border-line object-cover"
                                   />
                                 )}
                               </div>
                               {opt.isCorrect && (
-                                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success-ink" />
                               )}
                             </div>
                           ))}
@@ -1803,25 +1800,25 @@ export function CreateQuizView({
         {validationError && (
           <div
             role="alert"
-            className="mt-4 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs font-bold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300"
+            className="mt-4 flex items-center gap-2 rounded-xl border border-danger-line bg-danger-soft p-3.5 text-xs font-bold text-danger-ink"
           >
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{validationError}</span>
           </div>
         )}
 
-        <div className="mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-slate-200 pt-5 dark:border-slate-800">
+        <div className="mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-line pt-5">
           <button
             type="button"
             onClick={onCancel}
-            className="h-11 rounded-xl border border-slate-200 bg-white px-5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            className="qc-btn-secondary h-11 rounded-xl px-5 text-xs font-bold"
           >
             إلغاء
           </button>
           <button
             type="button"
             onClick={handleProceedToSummary}
-            className="inline-flex h-11 items-center gap-2 rounded-xl bg-indigo-600 px-6 text-sm font-bold text-white transition-colors hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+            className="qc-btn-primary inline-flex h-11 items-center gap-2 rounded-xl px-6 text-sm font-bold"
           >
             <Eye className="h-4 w-4" />
             <span>معاينة قبل الحفظ</span>

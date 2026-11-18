@@ -52,26 +52,26 @@ export function QuestionSyncConfirmModal({
       aria-labelledby="sync-quizzes-modal-title"
     >
       <div
-        className="fixed inset-0 bg-slate-950/55 backdrop-blur-xs"
+        className="fixed inset-0 bg-backdrop backdrop-blur-xs"
         onClick={() => {
           if (!isSyncing) onKeepCurrent();
         }}
       />
 
-      <div className="relative z-10 w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+      <div className="relative z-10 w-full max-w-lg rounded-2xl border border-line bg-modal p-6 shadow-2xl">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/70 dark:text-indigo-400">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-selected-line bg-selected text-accent">
               <RefreshCw className="h-5 w-5" />
             </div>
             <div>
               <h3
                 id="sync-quizzes-modal-title"
-                className="font-display text-base font-extrabold text-slate-900 dark:text-white"
+                className="font-display text-base font-extrabold text-ink"
               >
                 تحديث المسابقات المرتبطة
               </h3>
-              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+              <p className="mt-0.5 text-xs text-ink-muted">
                 تحديث اختياري لنسخ السؤال المحفوظة داخل المسابقات
               </p>
             </div>
@@ -82,28 +82,26 @@ export function QuestionSyncConfirmModal({
             disabled={isSyncing}
             onClick={onKeepCurrent}
             aria-label="إغلاق"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-row-hover hover:text-ink disabled:opacity-50"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <p className="mt-4 text-sm font-bold leading-relaxed text-slate-800 dark:text-slate-100">
+        <p className="mt-4 text-sm font-bold leading-relaxed text-ink">
           تم تعديل السؤال بنجاح في بنك الأسئلة. هذا السؤال موجود في{' '}
-          <span className="tabular-nums text-indigo-600 dark:text-indigo-400">
+          <span className="tabular-nums text-accent">
             {formatQuizCountArabic(summary.updatableQuizCount)}
           </span>
           . هل ترغب بتحديث نسخه في المسابقات المرتبطة؟
         </p>
 
-        <div className="mt-3 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-xs dark:border-slate-800 dark:bg-slate-950/60">
-          <p className="line-clamp-2 font-bold text-slate-800 dark:text-slate-200">
-            {question.prompt}
-          </p>
+        <div className="mt-3 space-y-2 rounded-xl border border-line bg-surface-subtle p-3.5 text-xs">
+          <p className="line-clamp-2 font-bold text-ink">{question.prompt}</p>
 
           {visibleQuizzes.length > 0 && (
-            <div className="border-t border-slate-200 pt-2 text-slate-600 dark:border-slate-800 dark:text-slate-400">
-              <p className="font-bold text-slate-700 dark:text-slate-300">المسابقات المرتبطة:</p>
+            <div className="border-t border-line pt-2 text-ink-muted">
+              <p className="font-bold text-ink">المسابقات المرتبطة:</p>
               <ul className="mt-1 space-y-1">
                 {visibleQuizzes.map((qz) => (
                   <li key={qz.id} className="truncate">
@@ -112,7 +110,7 @@ export function QuestionSyncConfirmModal({
                 ))}
               </ul>
               {remainingCount > 0 && (
-                <p className="tabular-nums mt-1 text-slate-500 dark:text-slate-400">
+                <p className="tabular-nums mt-1 text-ink-muted">
                   و {remainingCount} مسابقات أخرى
                 </p>
               )}
@@ -120,7 +118,7 @@ export function QuestionSyncConfirmModal({
           )}
         </div>
 
-        <p className="mt-3 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+        <p className="mt-3 text-xs leading-relaxed text-ink-muted">
           تحديث المسابقات اختياري؛ عند التحديث يتم تحديث نص السؤال ونوعه وخياراته وإجابته
           وصوره وتصنيفاته مع الاحتفاظ بترتيبه ووقته المحدد في كل مسابقة. كما أن اختيار «الاحتفاظ
           بالنسخ الحالية» لا يلغي تعديل السؤال في بنك الأسئلة.
@@ -129,7 +127,7 @@ export function QuestionSyncConfirmModal({
         {errorMessage && (
           <div
             role="alert"
-            className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300"
+            className="mt-3 rounded-xl border border-danger-line bg-danger-soft p-3 text-xs font-bold text-danger-ink"
           >
             {errorMessage}
           </div>
@@ -140,7 +138,7 @@ export function QuestionSyncConfirmModal({
             type="button"
             disabled={isSyncing}
             onClick={onKeepCurrent}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            className="qc-btn-secondary h-10 rounded-xl px-4 text-xs font-bold disabled:opacity-50"
           >
             الاحتفاظ بالنسخ الحالية
           </button>
@@ -149,7 +147,7 @@ export function QuestionSyncConfirmModal({
             type="button"
             disabled={isSyncing}
             onClick={() => void onConfirmSync()}
-            className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white transition-colors hover:bg-indigo-700 disabled:opacity-60 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+            className="qc-btn-primary inline-flex h-10 items-center gap-2 rounded-xl px-4 text-xs font-bold disabled:opacity-60"
           >
             {isSyncing ? (
               <Loader2 className="h-4 w-4 animate-spin" />

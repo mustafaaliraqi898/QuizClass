@@ -15,20 +15,20 @@ const METRIC_ICONS: Record<string, ComponentType<{ className?: string }>> = {
 };
 
 const TONE_CLASSES: Record<DashboardMetric['accentTone'], string> = {
-  indigo: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/70 dark:text-indigo-400',
-  emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/70 dark:text-emerald-400',
-  sky: 'bg-sky-50 text-sky-600 dark:bg-sky-950/70 dark:text-sky-400',
-  amber: 'bg-amber-50 text-amber-600 dark:bg-amber-950/70 dark:text-amber-400',
+  indigo: 'border border-selected-line bg-selected text-accent',
+  emerald: 'border border-success-line bg-success-soft text-success-ink',
+  sky: 'border border-line bg-surface-subtle text-accent',
+  amber: 'border border-warning-line bg-warning-soft text-warning-ink',
 };
 
 export function StatsGrid({ metrics }: StatsGridProps) {
   return (
     <section aria-label="الإحصائيات المختصرة">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h3 className="font-display text-base font-bold text-slate-900 dark:text-white">
+        <h3 className="font-display text-base font-bold text-ink">
           نظرة سريعة على النشاط
         </h3>
-        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+        <span className="text-xs font-medium text-ink-muted">
           إحصائيات مباشرة من قاعدة البيانات المحلية
         </span>
       </div>
@@ -39,25 +39,21 @@ export function StatsGrid({ metrics }: StatsGridProps) {
           return (
             <div
               key={metric.id}
-              className="rounded-2xl border border-slate-200 bg-white p-5 transition-colors hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700"
+              className="qc-card p-5 transition-colors hover:border-line-strong"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 space-y-1">
-                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                    {metric.label}
-                  </p>
+                  <p className="text-xs font-bold text-ink-muted">{metric.label}</p>
                   <div className="flex items-baseline gap-1.5">
                     <span
                       className={`font-display tabular-nums text-3xl font-extrabold tracking-tight ${
-                        metric.hasError
-                          ? 'text-red-600 dark:text-red-400'
-                          : 'text-slate-900 dark:text-white'
+                        metric.hasError ? 'text-danger-ink' : 'text-ink'
                       }`}
                     >
                       {metric.value === null ? '—' : metric.value}
                     </span>
                     {metric.unitLabel && (
-                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                      <span className="text-xs font-medium text-ink-muted">
                         {metric.unitLabel}
                       </span>
                     )}
@@ -76,9 +72,7 @@ export function StatsGrid({ metrics }: StatsGridProps) {
 
               <p
                 className={`mt-3 text-xs ${
-                  metric.hasError
-                    ? 'font-bold text-red-600 dark:text-red-400'
-                    : 'text-slate-500 dark:text-slate-400'
+                  metric.hasError ? 'font-bold text-danger-ink' : 'text-ink-muted'
                 }`}
               >
                 {metric.detailText}

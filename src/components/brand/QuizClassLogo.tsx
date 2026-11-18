@@ -6,7 +6,7 @@ export function QuizClassLogo({ collapsed = false }: QuizClassLogoProps) {
   return (
     <div className="flex items-center gap-3 select-none">
       <div
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm dark:bg-indigo-500"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white shadow-xs"
         aria-hidden="true"
       >
         <svg
@@ -36,10 +36,10 @@ export function QuizClassLogo({ collapsed = false }: QuizClassLogoProps) {
       </div>
       {!collapsed && (
         <div className="min-w-0">
-          <span className="font-display block text-lg font-extrabold tracking-tight text-slate-900 whitespace-nowrap dark:text-white">
+          <span className="font-display block text-lg font-extrabold tracking-tight text-ink whitespace-nowrap">
             QuizClass
           </span>
-          <span className="block text-[11px] font-medium text-slate-500 whitespace-nowrap dark:text-slate-400">
+          <span className="block text-[11px] font-medium text-ink-muted whitespace-nowrap">
             منصة المسابقات الصفية
           </span>
         </div>
