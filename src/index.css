@@ -25,6 +25,474 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ==========================================================================
+   QuizClass Confetti & Podium Entrance Animations
+   ========================================================================== */
+
+@keyframes quizclass-confetti-fall {
+  0% {
+    transform: translate3d(0, -24px, 0) rotate(0deg) scale(0.85);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate3d(18px, 340px, 0) rotate(540deg) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes quizclass-confetti-fall-alt {
+  0% {
+    transform: translate3d(0, -24px, 0) rotate(0deg) scale(0.85);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate3d(-22px, 340px, 0) rotate(-480deg) scale(1);
+    opacity: 0;
+  }
+}
+
+.quizclass-confetti {
+  animation: quizclass-confetti-fall 3.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.quizclass-confetti-alt {
+  animation: quizclass-confetti-fall-alt 3.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+/* Rank 3 entrance: running sprint from the side onto the bronze pedestal */
+@keyframes qc-enter-run-3rd {
+  0% {
+    opacity: 0;
+    transform: translate3d(110px, 12px, 0) scale(0.82);
+  }
+  35% {
+    opacity: 1;
+    transform: translate3d(52px, -14px, 0) scale(0.95);
+  }
+  65% {
+    transform: translate3d(16px, 4px, 0) scale(1.02);
+  }
+  82% {
+    transform: translate3d(0, -18px, 0) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+/* Rank 2 entrance: cheerful bouncy hops from the opposite side */
+@keyframes qc-enter-hop-2nd {
+  0% {
+    opacity: 0;
+    transform: translate3d(-110px, 10px, 0) scale(0.82);
+  }
+  30% {
+    opacity: 1;
+    transform: translate3d(-65px, -34px, 0) rotate(-6deg) scale(0.96);
+  }
+  58% {
+    transform: translate3d(-22px, 4px, 0) rotate(4deg) scale(1.02);
+  }
+  80% {
+    transform: translate3d(0, -24px, 0) rotate(-3deg) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+}
+
+/* Rank 1 entrance: heroic champion leap onto the gold center pedestal */
+@keyframes qc-enter-hero-1st {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -96px, 0) scale(0.5);
+  }
+  45% {
+    opacity: 1;
+    transform: translate3d(0, -28px, 0) scale(1.1);
+  }
+  68% {
+    transform: translate3d(0, 8px, 0) scale(0.96);
+  }
+  84% {
+    transform: translate3d(0, -14px, 0) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.qc-enter-run-in {
+  animation: qc-enter-run-3rd 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.qc-enter-hop-in {
+  animation: qc-enter-hop-2nd 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.qc-enter-hero-leap {
+  animation: qc-enter-hero-1st 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ==========================================================================
+   Full-Body Articulated SVG Character Animations
+   ========================================================================== */
+
+@keyframes qc-body-jump {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scaleY(1);
+  }
+  20% {
+    transform: translate3d(0, 4px, 0) scaleY(0.95);
+  }
+  50% {
+    transform: translate3d(0, -16px, 0) scaleY(1.03);
+  }
+  80% {
+    transform: translate3d(0, 2px, 0) scaleY(0.97);
+  }
+}
+
+@keyframes qc-body-wave {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(0, -5px, 0) rotate(-2.5deg);
+  }
+}
+
+@keyframes qc-body-clap {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  25%, 75% {
+    transform: translate3d(0, -6px, 0) scale(1.02);
+  }
+  50% {
+    transform: translate3d(0, 1px, 0) scale(0.98);
+  }
+}
+
+@keyframes qc-body-dance {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate3d(-4px, -6px, 0) rotate(-5deg);
+  }
+  50% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  75% {
+    transform: translate3d(4px, -6px, 0) rotate(5deg);
+  }
+}
+
+@keyframes qc-body-victory {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  40% {
+    transform: translate3d(0, -11px, 0) scale(1.05);
+  }
+  70% {
+    transform: translate3d(0, -3px, 0) scale(1.01);
+  }
+}
+
+@keyframes qc-arm-wave-right {
+  0%, 100% {
+    transform: rotate(-115deg);
+  }
+  50% {
+    transform: rotate(-155deg);
+  }
+}
+
+@keyframes qc-arm-lift-left {
+  0%, 100% {
+    transform: rotate(15deg);
+  }
+  50% {
+    transform: rotate(35deg);
+  }
+}
+
+@keyframes qc-arm-clap-left {
+  0%, 100% {
+    transform: rotate(-15deg);
+  }
+  50% {
+    transform: rotate(-58deg);
+  }
+}
+
+@keyframes qc-arm-clap-right {
+  0%, 100% {
+    transform: rotate(15deg);
+  }
+  50% {
+    transform: rotate(58deg);
+  }
+}
+
+@keyframes qc-arm-victory-left {
+  0%, 100% {
+    transform: rotate(130deg);
+  }
+  50% {
+    transform: rotate(152deg);
+  }
+}
+
+@keyframes qc-arm-victory-right {
+  0%, 100% {
+    transform: rotate(-130deg);
+  }
+  50% {
+    transform: rotate(-152deg);
+  }
+}
+
+@keyframes qc-arm-dance-left {
+  0%, 100% {
+    transform: rotate(25deg);
+  }
+  50% {
+    transform: rotate(125deg);
+  }
+}
+
+@keyframes qc-arm-dance-right {
+  0%, 100% {
+    transform: rotate(-125deg);
+  }
+  50% {
+    transform: rotate(-25deg);
+  }
+}
+
+@keyframes qc-leg-jump-left {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(16deg);
+  }
+}
+
+@keyframes qc-leg-jump-right {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-16deg);
+  }
+}
+
+@keyframes qc-leg-dance-left {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(14deg);
+  }
+  75% {
+    transform: rotate(-6deg);
+  }
+}
+
+@keyframes qc-leg-dance-right {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(6deg);
+  }
+  75% {
+    transform: rotate(-14deg);
+  }
+}
+
+@keyframes qc-tail-wag {
+  0%, 100% {
+    transform: rotate(-10deg);
+  }
+  50% {
+    transform: rotate(14deg);
+  }
+}
+
+@keyframes qc-eye-blink {
+  0%, 92%, 100% {
+    transform: scaleY(1);
+  }
+  96% {
+    transform: scaleY(0.12);
+  }
+}
+
+@keyframes qc-shadow-pulse {
+  0%, 100% {
+    transform: scaleX(1);
+    opacity: 0.25;
+  }
+  50% {
+    transform: scaleX(0.75);
+    opacity: 0.14;
+  }
+}
+
+.qc-avatar-body {
+  transform-origin: 60px 128px;
+}
+.qc-avatar-arm-left {
+  transform-origin: 36px 78px;
+}
+.qc-avatar-arm-right {
+  transform-origin: 84px 78px;
+}
+.qc-avatar-leg-left {
+  transform-origin: 47px 114px;
+}
+.qc-avatar-leg-right {
+  transform-origin: 73px 114px;
+}
+.qc-avatar-tail {
+  transform-origin: 34px 106px;
+  animation: qc-tail-wag 0.9s ease-in-out infinite;
+}
+.qc-avatar-eyes {
+  transform-origin: 60px 44px;
+  animation: qc-eye-blink 3.8s ease-in-out infinite;
+}
+.qc-avatar-shadow {
+  transform-origin: 60px 140px;
+}
+
+/* Jump celebration */
+.qc-cel-jump .qc-avatar-body {
+  animation: qc-body-jump 1.05s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+.qc-cel-jump .qc-avatar-arm-left {
+  animation: qc-arm-victory-left 1.05s ease-in-out infinite;
+}
+.qc-cel-jump .qc-avatar-arm-right {
+  animation: qc-arm-victory-right 1.05s ease-in-out infinite;
+}
+.qc-cel-jump .qc-avatar-leg-left {
+  animation: qc-leg-jump-left 1.05s ease-in-out infinite;
+}
+.qc-cel-jump .qc-avatar-leg-right {
+  animation: qc-leg-jump-right 1.05s ease-in-out infinite;
+}
+.qc-cel-jump .qc-avatar-shadow {
+  animation: qc-shadow-pulse 1.05s ease-in-out infinite;
+}
+
+/* Wave celebration */
+.qc-cel-wave .qc-avatar-body {
+  animation: qc-body-wave 1.1s ease-in-out infinite;
+}
+.qc-cel-wave .qc-avatar-arm-left {
+  animation: qc-arm-lift-left 1.1s ease-in-out infinite;
+}
+.qc-cel-wave .qc-avatar-arm-right {
+  animation: qc-arm-wave-right 0.65s ease-in-out infinite;
+}
+
+/* Clap celebration */
+.qc-cel-clap .qc-avatar-body {
+  animation: qc-body-clap 0.85s ease-in-out infinite;
+}
+.qc-cel-clap .qc-avatar-arm-left {
+  animation: qc-arm-clap-left 0.45s ease-in-out infinite;
+}
+.qc-cel-clap .qc-avatar-arm-right {
+  animation: qc-arm-clap-right 0.45s ease-in-out infinite;
+}
+
+/* Dance celebration */
+.qc-cel-dance .qc-avatar-body {
+  animation: qc-body-dance 1.15s ease-in-out infinite;
+}
+.qc-cel-dance .qc-avatar-arm-left {
+  animation: qc-arm-dance-left 1.15s ease-in-out infinite;
+}
+.qc-cel-dance .qc-avatar-arm-right {
+  animation: qc-arm-dance-right 1.15s ease-in-out infinite;
+}
+.qc-cel-dance .qc-avatar-leg-left {
+  animation: qc-leg-dance-left 1.15s ease-in-out infinite;
+}
+.qc-cel-dance .qc-avatar-leg-right {
+  animation: qc-leg-dance-right 1.15s ease-in-out infinite;
+}
+
+/* Victory pose celebration */
+.qc-cel-victory .qc-avatar-body {
+  animation: qc-body-victory 1.2s ease-in-out infinite;
+}
+.qc-cel-victory .qc-avatar-arm-left {
+  animation: qc-arm-victory-left 1.2s ease-in-out infinite;
+}
+.qc-cel-victory .qc-avatar-arm-right {
+  animation: qc-arm-victory-right 1.2s ease-in-out infinite;
+}
+.qc-cel-victory .qc-avatar-shadow {
+  animation: qc-shadow-pulse 1.2s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   Student Answer Feedback Banner Slide-In / Slide-Out (RTL: Right -> Left)
+   ========================================================================== */
+
+@keyframes qc-banner-slide-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(115%, 0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes qc-banner-slide-out {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-115%, 0, 0);
+  }
+}
+
+.qc-feedback-slide-in {
+  animation: qc-banner-slide-in 0.36s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.qc-feedback-slide-out {
+  animation: qc-banner-slide-out 0.34s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

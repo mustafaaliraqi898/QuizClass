@@ -106,6 +106,7 @@ export function initializeDatabase(dbFilePath: string): DatabaseSync {
       allow_answer_change INTEGER NOT NULL DEFAULT 0 CHECK (allow_answer_change IN (0, 1)),
       allow_late_join INTEGER NOT NULL DEFAULT 1 CHECK (allow_late_join IN (0, 1)),
       scoring_mode TEXT NOT NULL DEFAULT 'speed_and_accuracy' CHECK (scoring_mode IN ('speed_and_accuracy', 'accuracy_only')),
+      full_screen_mode INTEGER NOT NULL DEFAULT 0 CHECK (full_screen_mode IN (0, 1)),
       question_started_at TEXT,
       created_at TEXT NOT NULL,
       started_at TEXT,
@@ -177,6 +178,7 @@ export function initializeDatabase(dbFilePath: string): DatabaseSync {
       joined_at TEXT NOT NULL,
       last_seen_at TEXT NOT NULL,
       disconnected_at TEXT,
+      avatar_id TEXT NOT NULL DEFAULT 'avatar_cat',
       FOREIGN KEY (session_id) REFERENCES live_sessions(id) ON DELETE CASCADE,
       UNIQUE (session_id, normalized_name)
     );
@@ -258,6 +260,10 @@ export function initializeDatabase(dbFilePath: string): DatabaseSync {
       name: 'scoring_mode',
       sql: `scoring_mode TEXT NOT NULL DEFAULT 'speed_and_accuracy' CHECK (scoring_mode IN ('speed_and_accuracy', 'accuracy_only'))`,
     },
+    {
+      name: 'full_screen_mode',
+      sql: 'full_screen_mode INTEGER NOT NULL DEFAULT 0 CHECK (full_screen_mode IN (0, 1))',
+    },
   ]);
 
   ensureColumns('live_session_questions', [
@@ -270,6 +276,7 @@ export function initializeDatabase(dbFilePath: string): DatabaseSync {
   ensureColumns('live_session_participants', [
     { name: 'wrong_count', sql: 'wrong_count INTEGER NOT NULL DEFAULT 0' },
     { name: 'total_response_time_ms', sql: 'total_response_time_ms INTEGER NOT NULL DEFAULT 0' },
+    { name: 'avatar_id', sql: "avatar_id TEXT NOT NULL DEFAULT 'avatar_cat'" },
   ]);
 
   return db;

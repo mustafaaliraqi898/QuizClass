@@ -8,10 +8,10 @@ import type {
 } from '../types/dashboard';
 
 export const TEACHER_PROFILE: TeacherProfile = {
-  name: 'أ. خالد المنصور',
-  role: 'معلم الفيزياء والعلوم',
-  school: 'ثانوية النهضة النموذجية',
-  avatarPath: '/src/assets/images/avatar_teacher_profile_1794934211001.jpg',
+  name: 'المعلم',
+  role: 'معلم الصف',
+  school: 'المدرسة',
+  avatarPath: '',
 };
 
 export const NAVIGATION_ITEMS: NavItem[] = [
@@ -52,27 +52,9 @@ export const NAVIGATION_ITEMS: NavItem[] = [
   },
 ];
 
-// بيانات عرض تجريبية للأقسام التي لم تُبنَ بعد (الاختبارات الفردية والنتائج)
-export const PREVIEW_METRICS: DashboardMetric[] = [
-  {
-    id: 'total-tests',
-    label: 'عدد الاختبارات',
-    value: 12,
-    unitLabel: 'اختباراً',
-    detailText: 'معاينة تصميم · لم يُنفذ نظام الاختبارات بعد',
-    accentTone: 'sky',
-    dataSource: 'preview',
-  },
-  {
-    id: 'total-students',
-    label: 'عدد الطلاب المشاركين',
-    value: 340,
-    unitLabel: 'طالباً',
-    detailText: 'معاينة تصميم · لم يُنفذ نظام الطلاب بعد',
-    accentTone: 'amber',
-    dataSource: 'preview',
-  },
-];
+// إزالة الإحصائيات الوهمية; تقتصر الإحصائيات على المصادر الحقيقية من قاعدة البيانات
+export const PREVIEW_METRICS: DashboardMetric[] = [];
+
 
 export const QUICK_SHORTCUTS: QuickShortcut[] = [
   {

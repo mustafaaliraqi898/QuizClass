@@ -21,18 +21,16 @@ const TONE_CLASSES: Record<DashboardMetric['accentTone'], string> = {
   amber: 'bg-amber-50 text-amber-600 dark:bg-amber-950/70 dark:text-amber-400',
 };
 
-export function StatsGrid({ metrics, isPreviewData = true }: StatsGridProps) {
+export function StatsGrid({ metrics }: StatsGridProps) {
   return (
     <section aria-label="الإحصائيات المختصرة">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-display text-base font-bold text-slate-900 dark:text-white">
           نظرة سريعة على النشاط
         </h3>
-        {isPreviewData && (
-          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            إجمالي الأسئلة وعدد المسابقات من قاعدة البيانات المحلية · بقية البطاقات لمعاينة التصميم
-          </span>
-        )}
+        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+          إحصائيات مباشرة من قاعدة البيانات المحلية
+        </span>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

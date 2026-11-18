@@ -33,6 +33,7 @@ import { formatQuizDate } from '../quizzes/quizFormatters';
 import { LiveBoardView } from './LiveBoardView';
 import { LiveFinalResultsView } from './LiveFinalResultsView';
 import { LiveSessionSettingsPanel } from './LiveSessionSettingsPanel';
+import { getStudentAvatar } from '../../data/studentAvatars';
 
 interface LiveLobbyViewProps {
   activeSession: TeacherLiveSessionDetails | null;
@@ -730,9 +731,14 @@ export function LiveLobbyView({
                         }`}
                       >
                         <div className="flex min-w-0 items-center gap-3">
-                          <span className="tabular-nums flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-xs font-extrabold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
-                            {index + 1}
-                          </span>
+                          {(() => {
+                            const avatar = getStudentAvatar(participant.avatarId);
+                            return (
+                              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl ${avatar.bgClass}`}>
+                                {avatar.emoji}
+                              </span>
+                            );
+                          })()}
                           <div className="min-w-0">
                             <p className="truncate font-display text-sm font-bold text-slate-900 dark:text-white">
                               {participant.displayName}

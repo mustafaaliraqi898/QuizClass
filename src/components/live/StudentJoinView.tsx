@@ -2,7 +2,6 @@ import {
   AlertCircle,
   CheckCircle2,
   Clock,
-  HelpCircle,
   Loader2,
   Lock,
   LogOut,
@@ -11,12 +10,11 @@ import {
   RefreshCw,
   Sun,
   Trophy,
-  UserCheck,
   Wifi,
   WifiOff,
   XCircle,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import { useServerSyncedCountdown } from '../../hooks/useServerSyncedCountdown';
 import { httpLiveSessionService } from '../../services/liveSessionService';
@@ -27,6 +25,13 @@ import type {
   StudentSubmitAnswerResponse,
 } from '../../types/liveSession';
 import { QuizClassLogo } from '../brand/QuizClassLogo';
+import { getStudentAvatar, STUDENT_AVATARS } from '../../data/studentAvatars';
+import { StudentAnswerFeedbackBanner } from './StudentAnswerFeedbackBanner';
+import {
+  buildStudentFeedbackBannerData,
+  shouldDisplayFeedbackBanner,
+  type StudentFeedbackBannerData,
+} from './studentFeedbackLogic';
 
 interface StudentJoinViewProps {
   theme: ThemeMode;
@@ -43,7 +48,32 @@ interface StoredStudentSession {
 }
 
 const STUDENT_STORAGE_KEY = 'quizclass_student_session_v1';
+const SHOWN_FEEDBACK_KEYS_STORAGE = 'quizclass_shown_feedback_keys_v1';
 const OPTION_LETTERS = ['أ', 'ب', 'ج', 'د', 'هـ', 'و'];
+
+function readShownFeedbackKeys(): Set<string> {
+  try {
+    const raw = window.sessionStorage.getItem(SHOWN_FEEDBACK_KEYS_STORAGE);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return new Set(parsed.filter((item): item is string => typeof item === 'string'));
+    }
+    return new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function persistShownFeedbackKey(shownSet: Set<string>, dedupKey: string): void {
+  shownSet.add(dedupKey);
+  try {
+    const recent = Array.from(shownSet).slice(-100);
+    window.sessionStorage.setItem(SHOWN_FEEDBACK_KEYS_STORAGE, JSON.stringify(recent));
+  } catch {
+    // Ignore storage quota/privacy restrictions
+  }
+}
 
 function normalizePinDigits(raw: string): string {
   return raw
@@ -106,6 +136,7 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
 
   const [pinCode, setPinCode] = useState(initialUrlPin);
   const [displayName, setDisplayName] = useState('');
+  const [selectedAvatarId, setSelectedAvatarId] = useState('avatar_cat');
   const [previewSession, setPreviewSession] = useState<StudentPublicSessionInfo | null>(null);
   const [isLookingUpPin, setIsLookingUpPin] = useState(false);
   const [lookupError, setLookupError] = useState<string | null>(null);
@@ -120,8 +151,13 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
   const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
   const [answerError, setAnswerError] = useState<string | null>(null);
   const [answerFeedback, setAnswerFeedback] = useState<string | null>(null);
+  const [activeFeedback, setActiveFeedback] = useState<StudentFeedbackBannerData | null>(null);
 
   const socketRef = useRef<Socket | null>(null);
+  const shownFeedbackKeysRef = useRef<Set<string> | null>(null);
+  if (!shownFeedbackKeysRef.current) {
+    shownFeedbackKeysRef.current = readShownFeedbackKeys();
+  }
 
   const session = liveState?.session ?? null;
   const { remainingSeconds, progressPercent } = useServerSyncedCountdown(
@@ -232,6 +268,29 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
     }
   }, [session?.currentQuestionIndex, session?.currentPhase]);
 
+  // مزامنة شريط التغذية الراجعة المتحرك حصراً مع مرحلة question_results ومنع التكرار أو التسريب
+  useEffect(() => {
+    if (
+      !liveState ||
+      liveState.session.status !== 'running' ||
+      liveState.session.currentPhase !== 'question_results'
+    ) {
+      setActiveFeedback(null);
+      return;
+    }
+
+    const candidate = buildStudentFeedbackBannerData(liveState);
+    const shownKeys = shownFeedbackKeysRef.current!;
+    if (shouldDisplayFeedbackBanner(candidate, shownKeys, liveState.session.remainingMs)) {
+      persistShownFeedbackKey(shownKeys, candidate.dedupKey);
+      setActiveFeedback(candidate);
+    }
+  }, [liveState]);
+
+  const handleFeedbackDismissed = useCallback((dedupKey: string) => {
+    setActiveFeedback((prev) => (prev?.dedupKey === dedupKey ? null : prev));
+  }, []);
+
   // اتصال Socket.IO الفوري للطالب بعد الانضمام
   useEffect(() => {
     if (!joinedCredentials) {
@@ -330,6 +389,7 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
       const response = await httpLiveSessionService.joinSession({
         pinCode,
         displayName: cleanedName,
+        avatarId: selectedAvatarId,
       });
 
       const creds: StoredStudentSession = {
@@ -431,6 +491,7 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
     setJoinError(null);
     setAnswerError(null);
     setAnswerFeedback(null);
+    setActiveFeedback(null);
     setDisplayName('');
   };
 
@@ -445,6 +506,11 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors duration-150 dark:bg-slate-950 dark:text-slate-100">
+      <StudentAnswerFeedbackBanner
+        banner={activeFeedback}
+        onDismissed={handleFeedbackDismissed}
+      />
+
       {/* شريط علوي مبسط للهواتف */}
       <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
         <div className="mx-auto flex h-16 max-w-md items-center justify-between px-4">
@@ -501,8 +567,8 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
             {/* بطاقة تعريف الطالب والمسابقة */}
             <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3.5 dark:border-slate-800 dark:bg-slate-950/50">
               <div className="flex items-center justify-between gap-2">
-                <span className="inline-flex items-center gap-1.5 text-xs font-extrabold text-indigo-600 dark:text-indigo-400">
-                  <UserCheck className="h-3.5 w-3.5" />
+                <span className="inline-flex items-center gap-2 text-xs font-extrabold text-indigo-600 dark:text-indigo-400">
+                  <span className="text-xl">{getStudentAvatar(liveState.participant.avatarId).emoji}</span>
                   <span>{liveState.participant.displayName}</span>
                 </span>
                 <span className="tabular-nums rounded-lg bg-white px-2.5 py-1 text-xs font-extrabold text-slate-800 shadow-2xs dark:bg-slate-900 dark:text-slate-200">
@@ -517,8 +583,8 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
             {/* 1. انتظار بدء المسابقة */}
             {activeStatus === 'waiting' && (
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-5 text-center dark:border-emerald-900/60 dark:bg-emerald-950/30">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                  <CheckCircle2 className="h-6 w-6" />
+                <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl text-3xl shadow-sm ${getStudentAvatar(liveState.participant.avatarId).bgClass}`}>
+                  <span>{getStudentAvatar(liveState.participant.avatarId).emoji}</span>
                 </div>
                 <h2 className="font-display mt-3 text-base font-extrabold text-emerald-900 dark:text-emerald-200">
                   تم الانضمام بنجاح!
@@ -738,7 +804,7 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
               </div>
             )}
 
-            {/* 6 و7. عرض نتيجة السؤال للطالب + انتظار السؤال التالي */}
+            {/* 6 و7. مرحلة نتيجة السؤال للطالب (تعتمد على الشريط المتحرك المنبثق + انتظار السؤال التالي) */}
             {activeStatus === 'running' && currentPhase === 'question_results' && questionResult && (
               <div className="space-y-4">
                 {questionResult.joinedMidResult ? (
@@ -751,86 +817,16 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
                       انتهى السؤال السابق قبل انضمامك؛ ستبدأ المشاركة الفعلية من السؤال التالي مباشرة.
                     </p>
                   </div>
-                ) : questionResult.myResult.answered ? (
-                  questionResult.myResult.isCorrect ? (
-                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center dark:border-emerald-900/60 dark:bg-emerald-950/40">
-                      <CheckCircle2 className="mx-auto h-8 w-8 text-emerald-600 dark:text-emerald-400" />
-                      <h2 className="font-display mt-2 text-lg font-extrabold text-emerald-900 dark:text-emerald-200">
-                        إجابة صحيحة!
-                      </h2>
-                      <p className="tabular-nums mt-1 text-sm font-black text-emerald-700 dark:text-emerald-300">
-                        +{questionResult.myResult.pointsAwarded} نقطة
-                      </p>
-                      {questionResult.myResult.responseTimeMs !== null && (
-                        <p className="tabular-nums mt-0.5 text-[11px] font-bold text-emerald-700/80 dark:text-emerald-300/80">
-                          زمن الاستجابة:{' '}
-                          {(questionResult.myResult.responseTimeMs / 1000).toFixed(1)} ثانية
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-center dark:border-red-900/60 dark:bg-red-950/40">
-                      <XCircle className="mx-auto h-8 w-8 text-red-600 dark:text-red-400" />
-                      <h2 className="font-display mt-2 text-lg font-extrabold text-red-900 dark:text-red-200">
-                        إجابة غير صحيحة
-                      </h2>
-                      <p className="mt-1 text-xs font-bold text-red-700 dark:text-red-300">
-                        0 نقطة في هذا السؤال — بالتوفيق في السؤال القادم!
-                      </p>
-                    </div>
-                  )
                 ) : (
-                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-center dark:border-amber-900/60 dark:bg-amber-950/40">
-                    <HelpCircle className="mx-auto h-8 w-8 text-amber-600 dark:text-amber-400" />
-                    <h2 className="font-display mt-2 text-base font-extrabold text-amber-900 dark:text-amber-200">
-                      لم ترسل إجابة في الوقت المحدد
-                    </h2>
-                    <p className="mt-1 text-xs font-bold text-amber-800 dark:text-amber-300">
-                      0 نقطة في هذا السؤال
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 text-center dark:border-slate-800 dark:bg-slate-950/40">
+                    <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
+                      السؤال {questionNumber} من {session.questionCount}
                     </p>
+                    <h2 className="font-display mt-1 text-sm font-extrabold text-slate-900 dark:text-white">
+                      {questionResult.prompt}
+                    </h2>
                   </div>
                 )}
-
-                {/* كشف الإجابة الصحيحة للطالب بعد انتهاء الوقت */}
-                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
-                  <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                    الإجابة الصحيحة:
-                  </p>
-                  {questionResult.type === 'multiple_choice' ? (
-                    <div className="mt-2 space-y-2">
-                      {questionResult.options.map((opt, idx) => {
-                        const isMine =
-                          questionResult.myResult.selectedOptionId === opt.id;
-                        return (
-                          <div
-                            key={opt.id}
-                            className={`flex items-center justify-between gap-2 rounded-xl border p-2.5 text-xs font-bold ${
-                              opt.isCorrect
-                                ? 'border-emerald-500 bg-emerald-50 text-emerald-950 dark:border-emerald-400 dark:bg-emerald-950/50 dark:text-emerald-100'
-                                : isMine
-                                  ? 'border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200'
-                                  : 'border-slate-200 bg-white text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400'
-                            }`}
-                          >
-                            <span className="flex items-center gap-2">
-                              <span className="font-display font-black">
-                                {OPTION_LETTERS[idx] ?? idx + 1}.
-                              </span>
-                              <span>{opt.optionText ?? `خيار ${idx + 1}`}</span>
-                            </span>
-                            {opt.isCorrect && (
-                              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="font-display mt-1 text-base font-extrabold text-emerald-700 dark:text-emerald-300">
-                      {questionResult.correctBoolean ? 'صح' : 'خطأ'}
-                    </p>
-                  )}
-                </div>
 
                 {/* الرصيد والترتيب الحالي + حالة انتظار السؤال التالي */}
                 <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-bold dark:border-slate-700 dark:bg-slate-800">
@@ -930,6 +926,9 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
                             <span className="flex items-center gap-2 truncate">
                               <span className="tabular-nums inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-white text-[11px] font-black shadow-2xs dark:bg-slate-800">
                                 {entry.rankPosition}
+                              </span>
+                              <span className="text-sm">
+                                {getStudentAvatar(entry.avatarId).emoji}
                               </span>
                               <span className="truncate">
                                 {entry.displayName}
@@ -1084,6 +1083,37 @@ export function StudentJoinView({ theme, onToggleTheme }: StudentJoinViewProps) 
                   placeholder="اكتب اسمك كما سيظهر على الشاشة..."
                   className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-900 placeholder:font-normal placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
                 />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-bold text-slate-700 dark:text-slate-200">
+                  اختر شخصيتك الرمزية (Avatar)
+                </label>
+                <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 max-h-52 overflow-y-auto p-1">
+                  {STUDENT_AVATARS.map((av) => {
+                    const isSelected = selectedAvatarId === av.id;
+                    return (
+                      <button
+                        key={av.id}
+                        type="button"
+                        onClick={() => setSelectedAvatarId(av.id)}
+                        title={av.label}
+                        className={`flex flex-col items-center justify-center rounded-xl border-2 p-2 transition-all ${
+                          av.bgClass
+                        } ${
+                          isSelected
+                            ? 'border-indigo-600 ring-2 ring-indigo-500/40 scale-105 shadow-xs dark:border-indigo-400'
+                            : 'border-slate-200 hover:border-indigo-300 dark:border-slate-700'
+                        }`}
+                      >
+                        <span className="text-2xl">{av.emoji}</span>
+                        <span className={`mt-1 text-[10px] font-bold truncate w-full text-center ${av.textClass}`}>
+                          {av.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {joinError && (

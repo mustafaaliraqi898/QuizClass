@@ -254,6 +254,26 @@ export function LiveSessionSettingsPanel({
               className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
             />
           </label>
+
+          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
+            <div>
+              <p className="text-xs font-extrabold text-slate-900 dark:text-white">
+                تشغيل وضع ملء الشاشة تلقائياً
+              </p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                عرض السبورة على كامل الشاشة عند بدء المسابقة لتركيز عرض العارض
+              </p>
+            </div>
+            <input
+              type="checkbox"
+              disabled={disabled || isSaving}
+              checked={draft.fullScreenMode}
+              onChange={(e) =>
+                void commitChange({ ...draft, fullScreenMode: e.target.checked })
+              }
+              className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+            />
+          </label>
         </div>
       </div>
     </section>

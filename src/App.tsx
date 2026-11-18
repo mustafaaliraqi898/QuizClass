@@ -221,7 +221,7 @@ export default function App() {
             {activeSection === 'dashboard' && (
               <>
                 <WelcomeBanner teacher={teacher} onNavigate={(section) => handleNavigate(section)} />
-                <StatsGrid metrics={metrics} isPreviewData={isPreviewData} />
+                <StatsGrid metrics={metrics} />
                 <QuickShortcuts shortcuts={QUICK_SHORTCUTS} onNavigate={handleNavigate} />
                 <RecentQuizzesSection
                   quizzes={recentQuizzes}

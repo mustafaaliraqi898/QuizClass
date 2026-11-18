@@ -20,6 +20,7 @@ export interface LiveSessionSettings {
   allowAnswerChange: boolean;
   allowLateJoin: boolean;
   scoringMode: LiveScoringMode;
+  fullScreenMode: boolean;
 }
 
 export interface NetworkAddressOption {
@@ -37,6 +38,7 @@ export interface LiveSessionParticipant {
   id: string;
   sessionId: string;
   displayName: string;
+  avatarId: string;
   connectionStatus: ParticipantConnectionStatus;
   totalScore: number;
   correctCount: number;
@@ -118,6 +120,7 @@ export interface TeacherQuestionResultsView {
 export interface FinalLeaderboardEntry {
   participantId: string;
   displayName: string;
+  avatarId?: string;
   rankPosition: number;
   totalScore: number;
   correctCount: number;
@@ -207,6 +210,7 @@ export interface StudentLiveSessionState {
     id: string;
     sessionId: string;
     displayName: string;
+    avatarId: string;
     connectionStatus: ParticipantConnectionStatus;
     totalScore: number;
     correctCount: number;
@@ -242,6 +246,7 @@ export interface StudentSubmitAnswerResponse {
 export interface StudentJoinRequest {
   pinCode: string;
   displayName: string;
+  avatarId?: string;
   existingParticipantId?: string;
   reconnectToken?: string;
 }
@@ -252,6 +257,7 @@ export interface StudentJoinResponse {
     id: string;
     sessionId: string;
     displayName: string;
+    avatarId: string;
     connectionStatus: ParticipantConnectionStatus;
     totalScore: number;
     correctCount: number;

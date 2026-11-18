@@ -48,6 +48,7 @@ interface LiveSessionRow {
   allow_answer_change: number;
   allow_late_join: number;
   scoring_mode: LiveScoringMode;
+  full_screen_mode?: number;
   question_started_at: string | null;
   created_at: string;
   started_at: string | null;
@@ -101,6 +102,7 @@ interface ParticipantRow {
   joined_at: string;
   last_seen_at: string;
   disconnected_at: string | null;
+  avatar_id?: string;
 }
 
 interface AnswerRow {
@@ -154,6 +156,7 @@ export const DEFAULT_LIVE_SESSION_SETTINGS: LiveSessionSettings = {
   allowAnswerChange: false,
   allowLateJoin: true,
   scoringMode: 'speed_and_accuracy',
+  fullScreenMode: false,
 };
 
 const MIN_PARTICIPANT_NAME_LENGTH = 2;
@@ -196,6 +199,7 @@ function mapSettingsFromRow(row: LiveSessionRow): LiveSessionSettings {
     allowAnswerChange: row.allow_answer_change === 1,
     allowLateJoin: row.allow_late_join === 1,
     scoringMode: row.scoring_mode === 'accuracy_only' ? 'accuracy_only' : 'speed_and_accuracy',
+    fullScreenMode: (row.full_screen_mode ?? 0) === 1,
   };
 }
 
@@ -261,6 +265,13 @@ export function validateLiveSessionSettings(
     next.scoringMode = raw.scoringMode;
   }
 
+  if (raw.fullScreenMode !== undefined) {
+    if (typeof raw.fullScreenMode !== 'boolean') {
+      throw new LiveSessionValidationError('قيمة إعداد وضع ملء الشاشة غير صالحة.');
+    }
+    next.fullScreenMode = raw.fullScreenMode;
+  }
+
   return next;
 }
 
@@ -293,6 +304,7 @@ function mapParticipantRow(
     id: row.id,
     sessionId: row.session_id,
     displayName: row.display_name,
+    avatarId: row.avatar_id ?? 'avatar_cat',
     connectionStatus: row.connection_status,
     totalScore: row.total_score ?? 0,
     correctCount: row.correct_count ?? 0,
@@ -454,6 +466,7 @@ export class SqliteLiveSessionRepository {
       return {
         participantId: row.id,
         displayName: row.display_name,
+        avatarId: row.avatar_id ?? 'avatar_cat',
         rankPosition: row.rank_position ?? idx + 1,
         totalScore: row.total_score ?? 0,
         correctCount: row.correct_count ?? 0,
@@ -890,9 +903,9 @@ export class SqliteLiveSessionRepository {
             pin_code, host_token, status, current_question_index,
             current_phase, phase_started_at, phase_ends_at,
             question_intro_seconds, advance_mode, auto_advance_seconds,
-            allow_answer_change, allow_late_join, scoring_mode,
+            allow_answer_change, allow_late_join, scoring_mode, full_screen_mode,
             question_started_at, created_at, started_at, ended_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, 'waiting', -1, 'lobby', NULL, NULL, ?, ?, ?, ?, ?, ?, NULL, ?, NULL, NULL, ?)
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, 'waiting', -1, 'lobby', NULL, NULL, ?, ?, ?, ?, ?, ?, ?, NULL, ?, NULL, NULL, ?)
         `
         )
         .run(
@@ -909,6 +922,7 @@ export class SqliteLiveSessionRepository {
           validatedSettings.allowAnswerChange ? 1 : 0,
           validatedSettings.allowLateJoin ? 1 : 0,
           validatedSettings.scoringMode,
+          validatedSettings.fullScreenMode ? 1 : 0,
           now,
           now
         );
@@ -975,6 +989,7 @@ export class SqliteLiveSessionRepository {
             allow_answer_change = ?,
             allow_late_join = ?,
             scoring_mode = ?,
+            full_screen_mode = ?,
             updated_at = ?
         WHERE id = ? AND status = 'waiting'
       `
@@ -986,6 +1001,7 @@ export class SqliteLiveSessionRepository {
         nextSettings.allowAnswerChange ? 1 : 0,
         nextSettings.allowLateJoin ? 1 : 0,
         nextSettings.scoringMode,
+        nextSettings.fullScreenMode ? 1 : 0,
         now,
         sessionId
       );
@@ -1065,6 +1081,7 @@ export class SqliteLiveSessionRepository {
               allow_answer_change = ?,
               allow_late_join = ?,
               scoring_mode = ?,
+              full_screen_mode = ?,
               question_started_at = NULL,
               started_at = ?,
               updated_at = ?
@@ -1083,6 +1100,7 @@ export class SqliteLiveSessionRepository {
           settings.allowAnswerChange ? 1 : 0,
           settings.allowLateJoin ? 1 : 0,
           settings.scoringMode,
+          settings.fullScreenMode ? 1 : 0,
           nowIso,
           nowIso,
           sessionId
@@ -1661,6 +1679,7 @@ export class SqliteLiveSessionRepository {
         id: participantRow.id,
         sessionId: participantRow.session_id,
         displayName: participantRow.display_name,
+        avatarId: participantRow.avatar_id ?? 'avatar_cat',
         connectionStatus: participantRow.connection_status,
         totalScore: participantRow.total_score ?? 0,
         correctCount: participantRow.correct_count ?? 0,
@@ -1986,6 +2005,26 @@ export class SqliteLiveSessionRepository {
       );
     }
 
+    const VALID_AVATAR_IDS = new Set([
+      'avatar_cat',
+      'avatar_robot',
+      'avatar_fox',
+      'avatar_bear',
+      'avatar_penguin',
+      'avatar_lion',
+      'avatar_owl',
+      'avatar_alien',
+      'avatar_koala',
+      'avatar_panda',
+      'avatar_tiger',
+      'avatar_bunny',
+    ]);
+    const requestedAvatarId =
+      typeof input.avatarId === 'string' ? input.avatarId.trim() : '';
+    const avatarId = VALID_AVATAR_IDS.has(requestedAvatarId)
+      ? requestedAvatarId
+      : 'avatar_cat';
+
     const participantId = crypto.randomUUID();
     const reconnectToken = crypto.randomBytes(24).toString('hex');
 
@@ -1998,8 +2037,8 @@ export class SqliteLiveSessionRepository {
             id, session_id, display_name, normalized_name, reconnect_token,
             connection_status, total_score, correct_count, wrong_count,
             total_response_time_ms, rank_position,
-            joined_at, last_seen_at, disconnected_at
-          ) VALUES (?, ?, ?, ?, ?, 'connected', 0, 0, 0, 0, NULL, ?, ?, NULL)
+            joined_at, last_seen_at, disconnected_at, avatar_id
+          ) VALUES (?, ?, ?, ?, ?, 'connected', 0, 0, 0, 0, NULL, ?, ?, NULL, ?)
         `
         )
         .run(
@@ -2009,7 +2048,8 @@ export class SqliteLiveSessionRepository {
           normalizedName,
           reconnectToken,
           now,
-          now
+          now,
+          avatarId
         );
       this.db.exec('COMMIT');
     } catch (error) {

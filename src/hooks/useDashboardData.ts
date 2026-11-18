@@ -4,10 +4,10 @@ import {
   type DashboardRepository,
 } from '../services/dashboardRepository';
 import type { DashboardSnapshot } from '../types/dashboard';
-import { PREVIEW_METRICS, TEACHER_PROFILE } from '../data/previewDashboardData';
+import { TEACHER_PROFILE } from '../data/previewDashboardData';
 
 const INITIAL_SNAPSHOT: DashboardSnapshot = {
-  isPreviewData: true,
+  isPreviewData: false,
   teacher: TEACHER_PROFILE,
   metrics: [
     {
@@ -28,7 +28,6 @@ const INITIAL_SNAPSHOT: DashboardSnapshot = {
       accentTone: 'emerald',
       dataSource: 'database',
     },
-    ...PREVIEW_METRICS,
   ],
   recentQuizzes: [],
   quizzesError: null,

@@ -132,12 +132,18 @@ export function SettingsPreviewView({
           </p>
 
           <div className="mt-5 flex items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/60">
-            <img
-              src={teacher.avatarPath}
-              alt={teacher.name}
-              referrerPolicy="no-referrer"
-              className="h-12 w-12 shrink-0 rounded-full border border-slate-200 object-cover dark:border-slate-700"
-            />
+            {teacher.avatarPath ? (
+              <img
+                src={teacher.avatarPath}
+                alt={teacher.name}
+                referrerPolicy="no-referrer"
+                className="h-12 w-12 shrink-0 rounded-full border border-slate-200 object-cover dark:border-slate-700"
+              />
+            ) : (
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-indigo-50 text-base font-bold text-indigo-700 dark:border-slate-700 dark:bg-indigo-950 dark:text-indigo-300">
+                <span>{teacher.name ? teacher.name.charAt(0) : 'م'}</span>
+              </div>
+            )}
             <div className="min-w-0">
               <p className="truncate text-sm font-bold text-slate-900 dark:text-white">
                 {teacher.name}

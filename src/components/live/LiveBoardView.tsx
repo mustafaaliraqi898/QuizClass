@@ -4,6 +4,8 @@ import {
   Clock,
   HelpCircle,
   Loader2,
+  Maximize2,
+  Minimize2,
   Radio,
   StopCircle,
   Trophy,
@@ -12,7 +14,8 @@ import {
   WifiOff,
   XCircle,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { getStudentAvatar } from '../../data/studentAvatars';
 import { useServerSyncedCountdown } from '../../hooks/useServerSyncedCountdown';
 import type { TeacherLiveSessionDetails } from '../../types/liveSession';
 
@@ -40,6 +43,30 @@ export function LiveBoardView({
   onCompleteSession,
 }: LiveBoardViewProps) {
   const [confirmEndOpen, setConfirmEndOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  useEffect(() => {
+    if (session.settings.fullScreenMode && !document.fullscreenElement) {
+      containerRef.current?.requestFullscreen?.().catch(() => {});
+    }
+  }, [session.settings.fullScreenMode]);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      containerRef.current?.requestFullscreen?.().catch(() => {});
+    } else {
+      document.exitFullscreen?.().catch(() => {});
+    }
+  };
 
   const { remainingSeconds, progressPercent } = useServerSyncedCountdown(
     session.phaseStartedAt,
@@ -83,7 +110,14 @@ export function LiveBoardView({
   })();
 
   return (
-    <div className="space-y-5">
+    <div
+      ref={containerRef}
+      className={`space-y-5 ${
+        isFullscreen
+          ? 'min-h-screen overflow-y-auto bg-slate-50 p-4 sm:p-8 dark:bg-slate-950'
+          : 'rounded-3xl bg-slate-50/50 p-2 sm:p-4 dark:bg-slate-950/50'
+      }`}
+    >
       {/* شريط الحالة والتحكم العلوي */}
       <section className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -141,11 +175,21 @@ export function LiveBoardView({
 
             <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-bold dark:border-emerald-900/60 dark:bg-emerald-950/40">
               <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              <span className="text-emerald-700 dark:text-emerald-300">الإجابات المستلمة:</span>
+              <span className="text-emerald-700 dark:text-emerald-300">الإجابات:</span>
               <span className="tabular-nums font-extrabold text-emerald-900 dark:text-emerald-200">
                 {session.answeredCount}/{session.participantCount}
               </span>
             </div>
+
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              aria-label={isFullscreen ? 'تصغير الشاشة' : 'ملء الشاشة'}
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            >
+              {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+              <span>{isFullscreen ? 'تصغير' : 'ملء الشاشة'}</span>
+            </button>
 
             {!confirmEndOpen ? (
               <button
@@ -257,7 +301,6 @@ export function LiveBoardView({
             )}
           </div>
 
-          {/* المرحلة الأولى: لا تظهر الاختيارات بعد */}
           {session.currentPhase === 'question_intro' && (
             <div className="mx-auto max-w-xl rounded-2xl border border-amber-200 bg-amber-50/70 p-5 text-center dark:border-amber-900/60 dark:bg-amber-950/30">
               <Clock className="mx-auto h-7 w-7 text-amber-600 dark:text-amber-400" />
@@ -270,7 +313,6 @@ export function LiveBoardView({
             </div>
           )}
 
-          {/* المرحلة الثانية: ظهور الاختيارات للسبورة (دون كشف الإجابة الصحيحة) */}
           {session.currentPhase === 'answering' && (
             <div className="mt-2">
               {currentQuestion.type === 'multiple_choice' ? (
@@ -323,7 +365,7 @@ export function LiveBoardView({
         </section>
       )}
 
-      {/* المرحلة الثالثة والرابعة: نتائج السؤال وكشف الإجابة والتحكم بالانتقال */}
+      {/* نتائج السؤال وكشف الإجابة والتحكم بالانتقال */}
       {session.currentPhase === 'question_results' && results && (
         <section className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-xs sm:p-8 dark:border-slate-800 dark:bg-slate-900">
           <div className="flex flex-col gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between dark:border-slate-800">
@@ -346,7 +388,6 @@ export function LiveBoardView({
             )}
           </div>
 
-          {/* بطاقات إحصائيات الإجابات */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 dark:border-emerald-900/60 dark:bg-emerald-950/30">
               <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-300">
@@ -379,7 +420,6 @@ export function LiveBoardView({
             </div>
           </div>
 
-          {/* الاختيارات مع تمييز الإجابة الصحيحة */}
           <div className="space-y-3">
             <p className="text-xs font-extrabold text-slate-700 dark:text-slate-300">
               الإجابة الصحيحة وتوزيع اختيارات الطلاب:
@@ -436,16 +476,8 @@ export function LiveBoardView({
             ) : (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {[
-                  {
-                    value: true,
-                    label: 'صح',
-                    count: results.trueSelectedCount,
-                  },
-                  {
-                    value: false,
-                    label: 'خطأ',
-                    count: results.falseSelectedCount,
-                  },
+                  { value: true, label: 'صح', count: results.trueSelectedCount },
+                  { value: false, label: 'خطأ', count: results.falseSelectedCount },
                 ].map((tf) => {
                   const isCorrect = results.correctBoolean === tf.value;
                   return (
@@ -477,7 +509,6 @@ export function LiveBoardView({
             )}
           </div>
 
-          {/* أسماء الطلاب الذين أجابوا إجابة صحيحة */}
           <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5 dark:border-slate-800 dark:bg-slate-950/40">
             <h4 className="font-display text-sm font-extrabold text-slate-900 dark:text-white">
               الطلاب الذين أجابوا إجابة صحيحة ({results.correctParticipantNames.length})
@@ -488,20 +519,23 @@ export function LiveBoardView({
               </p>
             ) : (
               <div className="mt-3 flex flex-wrap gap-2">
-                {results.correctParticipantNames.map((name, idx) => (
-                  <span
-                    key={`${name}-${idx}`}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-white px-3 py-1.5 text-xs font-extrabold text-emerald-800 shadow-2xs dark:border-emerald-800 dark:bg-slate-900 dark:text-emerald-300"
-                  >
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                    <span>{name}</span>
-                  </span>
-                ))}
+                {results.correctParticipantNames.map((name, idx) => {
+                  const participant = session.participants.find((p) => p.displayName === name);
+                  const avatar = getStudentAvatar(participant?.avatarId);
+                  return (
+                    <span
+                      key={`${name}-${idx}`}
+                      className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-3.5 py-1.5 text-xs font-extrabold text-emerald-800 shadow-2xs dark:border-emerald-800 dark:bg-slate-900 dark:text-emerald-300"
+                    >
+                      <span className="text-base">{avatar.emoji}</span>
+                      <span>{name}</span>
+                    </span>
+                  );
+                })}
               </div>
             )}
           </div>
 
-          {/* شريط الانتقال للسؤال التالي (تلقائي / يدوي) */}
           <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-200 pt-5 sm:flex-row dark:border-slate-800">
             {session.settings.advanceMode === 'auto' ? (
               <div className="flex w-full items-center justify-between gap-4 rounded-2xl border border-indigo-200 bg-indigo-50/70 px-5 py-3.5 dark:border-indigo-900/60 dark:bg-indigo-950/40">

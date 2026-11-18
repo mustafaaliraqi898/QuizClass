@@ -86,11 +86,12 @@ export const hybridDashboardRepository: DashboardRepository = {
     }
 
     return {
-      isPreviewData: true,
+      isPreviewData: false,
       teacher: TEACHER_PROFILE,
-      metrics: [questionMetric, competitionMetric, ...PREVIEW_METRICS],
+      metrics: [questionMetric, competitionMetric],
       recentQuizzes,
       quizzesError,
     };
   },
 };
+

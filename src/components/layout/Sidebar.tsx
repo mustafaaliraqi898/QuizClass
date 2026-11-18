@@ -115,16 +115,18 @@ export function Sidebar({
             }`}
           >
             <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-indigo-50 text-sm font-bold text-indigo-700 dark:border-slate-700 dark:bg-indigo-950 dark:text-indigo-300">
-              <span aria-hidden="true">خ</span>
-              <img
-                src={teacher.avatarPath}
-                alt={teacher.name}
-                referrerPolicy="no-referrer"
-                className="absolute inset-0 h-full w-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
+              <span aria-hidden="true">{teacher.name ? teacher.name.charAt(0) : 'م'}</span>
+              {teacher.avatarPath && (
+                <img
+                  src={teacher.avatarPath}
+                  alt={teacher.name}
+                  referrerPolicy="no-referrer"
+                  className="absolute inset-0 h-full w-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              )}
             </div>
             {!isCompact && (
               <div className="min-w-0 flex-1">
