@@ -1,0 +1,53 @@
+name: Android backend bundle check
+
+on:
+  push:
+    branches:
+      - feature/android-apk
+    paths:
+      - "server/**"
+      - "src/**"
+      - "package.json"
+      - "vite.config.ts"
+      - ".github/workflows/android-backend-check.yml"
+  pull_request:
+    branches:
+      - feature/android-apk
+    paths:
+      - "server/**"
+      - "src/**"
+      - "package.json"
+      - "vite.config.ts"
+      - ".github/workflows/android-backend-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-android-backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Android branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/android-apk
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build web frontend
+        run: npm run build
+
+      - name: Bundle Android backend
+        run: npm run build:mobile-server
+
+      - name: Verify generated backend bundle
+        run: test -s android/app/src/main/assets/quizclass/server.cjs
