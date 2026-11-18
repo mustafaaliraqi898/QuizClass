@@ -48,5 +48,8 @@ jobs:
       - name: Bundle Android backend
         run: npm run build:mobile-server
 
-      - name: Verify generated backend bundle
-        run: test -s android/app/src/main/assets/quizclass/server.cjs
+      - name: Prepare Android app assets
+        run: npm run prepare:android-assets
+
+      - name: Verify generated Android assets
+        run: test -s android/app/src/main/assets/quizclass/server.cjs && test -s android/app/src/main/assets/quizclass/dist/index.html
