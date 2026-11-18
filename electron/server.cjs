@@ -5550,9 +5550,10 @@ async function startServer() {
   liveSocketHub = attachLiveSessionSocket(httpServer, db, storagePaths);
   let vite;
   if (IS_PRODUCTION) {
-    const distDir = import_node_path3.default.resolve(process.cwd(), "dist");
+    const appRoot = process.env.QUIZCLASS_APP_ROOT || process.cwd();
+    const distDir = import_node_path3.default.join(appRoot, "dist");
     app.use(import_express7.default.static(distDir));
-    app.get("/{*splat}", (_req, res) => {
+    app.get("*", (_req, res) => {
       const indexFile = import_node_path3.default.join(distDir, "index.html");
       if (import_node_fs3.default.existsSync(indexFile)) {
         res.sendFile(indexFile);
