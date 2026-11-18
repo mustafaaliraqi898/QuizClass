@@ -8,7 +8,6 @@ import {
   Pause,
   Play,
   RotateCcw,
-  ShieldCheck,
   Sparkles,
   Trophy,
   Users,
