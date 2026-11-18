@@ -55,7 +55,7 @@ jobs:
       - name: Download and verify full Node.js Mobile runtime
         run: |
           set -euo pipefail
-          version="24.22.0-0"
+          version="24.22.1-0"
           tag="v${version}"
           archive="nodejs-mobile-android-${version}.zip"
           mkdir -p /tmp/node-mobile
