@@ -18,6 +18,14 @@ permissions:
 
 jobs:
   build-debug-apk:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - abi: arm64-v8a
+            artifact: QuizClass-Android-ARM64
+          - abi: armeabi-v7a
+            artifact: QuizClass-Android-ARM32
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -115,12 +123,12 @@ jobs:
           gradle-version: "8.9"
 
       - name: Assemble debug APK
-        run: gradle -p android assembleDebug --no-daemon
+        run: gradle -p android assembleDebug --no-daemon -PquizclassAbi=${{ matrix.abi }}
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: QuizClass-Android-debug
+          name: ${{ matrix.artifact }}
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
