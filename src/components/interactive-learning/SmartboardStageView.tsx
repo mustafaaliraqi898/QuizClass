@@ -214,6 +214,7 @@ export function SmartboardStageView({
       data-question-index={stageState.currentIndex}
       data-answer-status={stageState.status}
       className={`flex flex-col justify-between gap-5 transition-colors ${
+        isFullscreen ? 'qc-tv-stage qc-tv-smartboard' : ''} ${
         isFullscreen
           ? 'min-h-screen overflow-y-auto bg-canvas p-5 sm:p-8'
           : 'qc-card rounded-3xl p-5 sm:p-8'
