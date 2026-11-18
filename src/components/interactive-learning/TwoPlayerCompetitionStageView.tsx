@@ -687,6 +687,7 @@ export function TwoPlayerCompetitionStageView({
       data-round-phase={roundState.phase}
       data-is-fullscreen={isFullscreen ? 'true' : 'false'}
       className={`flex flex-col justify-between gap-4 sm:gap-5 transition-colors ${
+        isFullscreen ? 'qc-tv-stage qc-tv-competition' : ''} ${
         isFullscreen
           ? 'min-h-screen overflow-y-auto bg-canvas p-4 sm:p-6'
           : 'qc-card rounded-3xl p-4 sm:p-6'
