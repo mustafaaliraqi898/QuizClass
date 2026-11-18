@@ -87,8 +87,9 @@ class MainActivity : Activity() {
                     ready = connection.responseCode == 200
                     connection.disconnect()
                 } catch (_: Exception) {
-                    Thread.sleep(500)
+                    // Server is still starting; retry below.
                 }
+                if (!ready) Thread.sleep(500)
             }
             runOnUiThread {
                 if (ready) webView.loadUrl("http://127.0.0.1:3000")
