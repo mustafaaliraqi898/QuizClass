@@ -14,12 +14,9 @@ This directory is the native Android host for the Android-only branch. It is int
 
 The full Node.js Mobile Android SDK must be downloaded from the pinned release and verified using that release's `SHA256SUMS`. Do not use the lite archive: QuizClass requires `node:sqlite`.
 
-The SDK must provide:
+The SDK must provide `libnode.so`, any adjacent shared-library dependencies, and Node headers. The `Android APK (embedded Node.js)` GitHub Actions workflow downloads the pinned full archive, verifies its archive checksum against the release `SHA256SUMS`, stages the ABI libraries and headers, and assembles a debug APK. Runtime binaries are deliberately not stored in Git.
 
-- `libnode.so` for each packaged ABI under `app/src/main/jniLibs/<abi>/`
-- Node headers under `app/src/main/cpp/libnode/include/node/`
-
-The runtime archive is deliberately not stored in Git.
+The current app scaffold sets Android-specific `TMPDIR`, `HOME`, persistent database/media storage under `noBackupFilesDir`, a cache directory for the V8 compile cache, and the Node working directory before calling `node::Start()`.
 
 ## Prepare app assets
 
@@ -35,4 +32,4 @@ This stages the Vite build and bundled backend under `app/src/main/assets/quizcl
 
 ## Current validation status
 
-This is an initial native host scaffold, not a validated Android app yet. A complete APK build requires the verified full Node SDK, Android SDK/NDK, Gradle build, and device/emulator checks for JNI startup, SQLite, HTTP, Socket.IO, and image uploads. Do not distribute an APK until those checks pass.
+This is an initial native host scaffold. The automated APK workflow has been added but has not yet been observed completing successfully. Even if Gradle assembles an APK, runtime behavior still requires device/emulator checks for JNI startup, SQLite, HTTP, Socket.IO, and image uploads. Do not distribute an APK until those checks pass.
