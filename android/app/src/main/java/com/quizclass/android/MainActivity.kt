@@ -57,15 +57,24 @@ class MainActivity : Activity() {
             return
         }
 
-        val dataDir = File(filesDir, "quizclass-data")
+        val dataDir = File(noBackupFilesDir, "quizclass-data")
+        val tempDir = File(cacheDir, "node-tmp")
+        val compileCacheDir = File(cacheDir, "node-compile-cache")
         dataDir.mkdirs()
+        tempDir.mkdirs()
+        compileCacheDir.mkdirs()
         val script = File(appRoot, "server.cjs").absolutePath
 
         nodeExecutor.execute {
             startNodeWithArguments(arrayOf(
                 "node",
+                "--cwd=${appRoot.absolutePath}",
                 "--env=QUIZCLASS_APP_ROOT=${appRoot.absolutePath}",
                 "--env=QUIZCLASS_DATA_DIR=${dataDir.absolutePath}",
+                "--env=TMPDIR=${tempDir.absolutePath}",
+                "--env=HOME=${filesDir.absolutePath}",
+                "--env=NODE_COMPILE_CACHE=${compileCacheDir.absolutePath}",
+                "--env=NODE_COMPILE_CACHE_PORTABLE=1",
                 "--env=PORT=3000",
                 "--env=NODE_ENV=production",
                 script
