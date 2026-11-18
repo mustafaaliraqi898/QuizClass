@@ -13,8 +13,12 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "0.1.0"
+        val targetAbi = providers.gradleProperty("quizclassAbi").orElse("arm64-v8a").get()
+        require(targetAbi == "arm64-v8a" || targetAbi == "armeabi-v7a") {
+            "Unsupported QuizClass Android ABI: $targetAbi"
+        }
         ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+            abiFilters += listOf(targetAbi)
         }
         externalNativeBuild {
             cmake {
