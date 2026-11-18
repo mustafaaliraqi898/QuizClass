@@ -102,6 +102,26 @@ export function Sidebar({
             );
           })}
         </nav>
+
+        {!isCompact && (
+          <footer className="shrink-0 border-t border-line px-4 py-4">
+            <div className="space-y-2 text-center text-xs">
+              <div className="flex items-center justify-center gap-2 whitespace-nowrap">
+                <span className="text-ink-muted">فكرة وإشراف</span>
+                <span className="text-primary" aria-hidden="true">◆</span>
+                <span className="font-extrabold text-primary">الأستاذ مصطفى</span>
+              </div>
+              <div className="flex items-center justify-center gap-2 whitespace-nowrap">
+                <span className="text-ink-muted">مدرس الرياضيات</span>
+                <span className="text-primary" aria-hidden="true">◆</span>
+                <span className="font-semibold text-ink">إعدادية داقوق للبنين</span>
+              </div>
+              <div className="border-t border-line pt-3 text-[11px] text-ink-muted">
+                جميع الحقوق محفوظة © {new Date().getFullYear()}
+              </div>
+            </div>
+          </footer>
+        )}
       </div>
     );
   };
