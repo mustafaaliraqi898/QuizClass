@@ -51,9 +51,9 @@ export function Sidebar({
 
     return (
       <div className="flex h-full flex-col justify-between bg-white text-slate-800 dark:bg-slate-900 dark:text-slate-100">
-        <div>
+        <div className="flex min-h-0 flex-1 flex-col">
           <div
-            className={`flex h-16 items-center border-b border-slate-200 dark:border-slate-800 ${
+            className={`flex h-16 shrink-0 items-center border-b border-slate-200 dark:border-slate-800 ${
               isCompact ? 'justify-center px-3' : 'justify-between px-5'
             }`}
           >
@@ -70,7 +70,7 @@ export function Sidebar({
             )}
           </div>
 
-          <nav aria-label="التنقل الرئيسي" className="space-y-1.5 p-3">
+          <nav aria-label="التنقل الرئيسي" className="flex-1 space-y-1.5 overflow-y-auto p-3">
             {items.map((item) => {
               const Icon = SECTION_ICONS[item.id];
               const isActive = activeSection === item.id;
@@ -104,7 +104,7 @@ export function Sidebar({
           </nav>
         </div>
 
-        <div className="border-t border-slate-200 p-3 dark:border-slate-800">
+        <div className="shrink-0 border-t border-slate-200 p-3 dark:border-slate-800">
           <button
             type="button"
             onClick={() => handleNavigate('settings')}
@@ -137,6 +137,26 @@ export function Sidebar({
               </div>
             )}
           </button>
+
+          {!isCompact && (
+            <footer className="mt-3 border-t border-slate-200 px-1 pt-4 dark:border-slate-800">
+              <div className="space-y-2 text-center text-xs">
+                <div className="flex items-center justify-center gap-2 whitespace-nowrap">
+                  <span className="text-slate-500 dark:text-slate-400">فكرة وإشراف</span>
+                  <span className="text-indigo-600 dark:text-indigo-400" aria-hidden="true">◆</span>
+                  <span className="font-extrabold text-indigo-700 dark:text-indigo-300">الأستاذ مصطفى</span>
+                </div>
+                <div className="flex items-center justify-center gap-2 whitespace-nowrap">
+                  <span className="text-slate-500 dark:text-slate-400">مدرس الرياضيات</span>
+                  <span className="text-indigo-600 dark:text-indigo-400" aria-hidden="true">◆</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-100">إعدادية داقوق للبنين</span>
+                </div>
+                <div className="border-t border-slate-200 pt-3 text-[11px] text-slate-500 dark:border-slate-800 dark:text-slate-400">
+                  جميع الحقوق محفوظة © {new Date().getFullYear()}
+                </div>
+              </div>
+            </footer>
+          )}
         </div>
       </div>
     );
