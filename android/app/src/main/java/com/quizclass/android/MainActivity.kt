@@ -13,7 +13,6 @@ import android.view.WindowManager
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
-import android.webkit.WebResourceRequest
 import android.widget.FrameLayout
 import android.widget.Toast
 import android.util.Base64
@@ -35,10 +34,6 @@ class MainActivity : Activity() {
     private var fullscreenCallback: WebChromeClient.CustomViewCallback? = null
     private var previousSystemUiVisibility: Int = 0
 
-    companion object {
-        private const val FILE_CHOOSER_REQUEST = 4102
-        private const val FILE_MIME_XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    }
     private val nodeExecutor = Executors.newSingleThreadExecutor()
     private val readinessExecutor = Executors.newSingleThreadExecutor()
 
