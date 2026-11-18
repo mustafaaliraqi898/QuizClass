@@ -76,17 +76,21 @@ jobs:
           curl --fail --show-error --silent --location --retry 3 --retry-delay 2 \
             "https://api.github.com/repos/fogtape/nodejs-mobile/releases/tags/${tag}" \
             --output release.json
-          asset_url="$(jq -r --arg name "${archive}" '.assets[] | select(.name == $name) | .browser_download_url' release.json | head -n 1)"
-          checksum_url="$(jq -r '.assets[] | select(.name == "SHA256SUMS") | .browser_download_url' release.json | head -n 1)"
+          asset_url="$(jq -r --arg name "${archive}" '.assets[] | select(.name == $name) | .url' release.json | head -n 1)"
+          checksum_url="$(jq -r '.assets[] | select(.name == "SHA256SUMS") | .url' release.json | head -n 1)"
           if [ -z "${asset_url}" ] || [ -z "${checksum_url}" ] || [ "${asset_url}" = "null" ] || [ "${checksum_url}" = "null" ]; then
             echo "Required Android runtime or SHA256SUMS asset is missing from release ${tag}" >&2
             jq -r '.assets[].name' release.json >&2
             exit 1
           fi
 
+          echo "Downloading verified Node.js Android runtime asset via GitHub API..."
           curl --fail --show-error --silent --location --retry 3 --retry-delay 2 \
+            -H "Accept: application/octet-stream" -H "X-GitHub-Api-Version: 2022-11-28" \
             "${asset_url}" --output "${archive}"
+          echo "Downloading runtime checksums via GitHub API..."
           curl --fail --show-error --silent --location --retry 3 --retry-delay 2 \
+            -H "Accept: application/octet-stream" -H "X-GitHub-Api-Version: 2022-11-28" \
             "${checksum_url}" --output SHA256SUMS
 
           checksum_line="$(awk -v file="${archive}" '$2 == file || $2 == "*" file { print; found=1; exit } END { if (!found) exit 1 }' SHA256SUMS)" || {
@@ -98,7 +102,7 @@ jobs:
           unzip -q "${archive}" -d extracted
 
           mkdir -p "$GITHUB_WORKSPACE/android/app/src/main/jniLibs"
-          for abi in arm64-v8a armeabi-v7a x86_64; do
+          for abi in arm64-v8a armeabi-v7a; do
             library="$(find extracted -type f -path "*/${abi}/libnode.so" -print -quit)"
             if [ -z "$library" ]; then
               echo "Missing libnode.so for ABI ${abi}" >&2
