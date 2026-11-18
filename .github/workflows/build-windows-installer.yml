@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - 'feature/electron-windows-installer'
+      - 'feature/electron-installer-ci'
     tags:
       - 'v*'
 
@@ -14,6 +15,7 @@ permissions:
 jobs:
   build-windows:
     runs-on: windows-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -24,7 +26,10 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --no-audit --no-fund
+
+      - name: Type-check
+        run: npm run lint
 
       - name: Prepare optional Windows code-signing certificate
         shell: pwsh
