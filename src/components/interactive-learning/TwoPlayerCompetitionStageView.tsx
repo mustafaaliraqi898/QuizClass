@@ -9,6 +9,7 @@ import {
   Play,
   RotateCcw,
   ShieldCheck,
+  Sparkles,
   Trophy,
   Users,
   XCircle,
