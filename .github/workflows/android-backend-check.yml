@@ -9,6 +9,9 @@ on:
       - "src/**"
       - "package.json"
       - "vite.config.ts"
+      - "android/**"
+      - "docs/android-porting-plan.md"
+      - "android/README.md"
       - ".github/workflows/android-backend-check.yml"
   pull_request:
     branches:
