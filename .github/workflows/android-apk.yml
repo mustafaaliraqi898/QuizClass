@@ -1,0 +1,101 @@
+name: Android APK (embedded Node.js)
+
+on:
+  push:
+    branches:
+      - feature/android-apk
+    paths:
+      - "android/**"
+      - "server/**"
+      - "src/**"
+      - "package.json"
+      - "vite.config.ts"
+      - ".github/workflows/android-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout Android branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/android-apk
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android build components
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;27.2.12479018" "cmake;3.22.1"
+
+      - name: Install JavaScript dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build frontend and self-contained backend
+        run: |
+          npm run build
+          npm run build:mobile-server
+          npm run prepare:android-assets
+
+      - name: Download and verify full Node.js Mobile runtime
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="24.22.1-0"
+          archive="nodejs-mobile-android-${version}.zip"
+          mkdir -p /tmp/node-mobile
+          cd /tmp/node-mobile
+          gh release download "v${version}" --repo fogtape/nodejs-mobile --pattern "${archive}" --pattern "SHA256SUMS"
+          grep -E "[[:space:]]${archive//./\\.}$" SHA256SUMS | sha256sum --check -
+          unzip -q "${archive}" -d extracted
+
+          mkdir -p "$GITHUB_WORKSPACE/android/app/src/main/jniLibs"
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            library="$(find extracted -type f -path "*/${abi}/libnode.so" -print -quit)"
+            if [ -z "$library" ]; then
+              echo "Missing libnode.so for ABI ${abi}" >&2
+              exit 1
+            fi
+            mkdir -p "$GITHUB_WORKSPACE/android/app/src/main/jniLibs/${abi}"
+            cp "$library" "$GITHUB_WORKSPACE/android/app/src/main/jniLibs/${abi}/libnode.so"
+          done
+
+          header="$(find extracted -type f -name node.h -print -quit)"
+          if [ -z "$header" ]; then
+            echo "Node headers not found in verified SDK archive" >&2
+            exit 1
+          fi
+          mkdir -p "$GITHUB_WORKSPACE/android/app/src/main/cpp/libnode/include"
+          cp -R "$(dirname "$header")" "$GITHUB_WORKSPACE/android/app/src/main/cpp/libnode/include/node"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Assemble debug APK
+        run: gradle -p android assembleDebug --no-daemon
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: QuizClass-Android-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
