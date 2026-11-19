@@ -22,7 +22,6 @@ import type {
 } from '../../types/interactiveLearning';
 import { AnimatedFullBodyAvatar } from '../live/AnimatedFullBodyAvatar';
 import {
-  extractSmartboardCorrectAnswerText,
   hasActiveSelection,
   type SmartboardSelection,
 } from './interactiveLearningLogic';
@@ -31,6 +30,9 @@ import {
   canRevealTwoPlayerRound,
   createInitialTwoPlayerSession,
   determineTwoPlayerWinner,
+  ensureQuestionOptionOrderInMap,
+  extractTwoPlayerCorrectAnswerText,
+  getPlayerOrderedOptionsForSession,
   navigateTwoPlayerSession,
   POINTS_PER_CORRECT_ANSWER,
   revealTwoPlayerRound,
@@ -153,6 +155,7 @@ interface IndependentPlayerPanelProps {
   outcome: TwoPlayerQuestionOutcome | null;
   phase: TwoPlayerRoundPhase;
   question: InteractiveLearningQuestion;
+  orderedOptions: InteractiveLearningQuestion['options'];
   correctAnswerText: string | null;
   failedImageUrl: string | null;
   onImageError: (url: string) => void;
@@ -171,6 +174,7 @@ function IndependentPlayerPanel({
   outcome,
   phase,
   question,
+  orderedOptions,
   correctAnswerText,
   failedImageUrl,
   onImageError,
@@ -294,7 +298,7 @@ function IndependentPlayerPanel({
         {/* All Answer Options Inside This Player's Panel */}
         {question.type === 'multiple_choice' ? (
           <div className="grid grid-cols-1 gap-2.5">
-            {question.options.map((opt, idx) => {
+            {orderedOptions.map((opt, idx) => {
               const isSelected = selection.selectedOptionId === opt.id;
               const highlightCorrect = isRevealed && opt.isCorrect;
               const highlightWrong = isRevealed && isSelected && !opt.isCorrect;
@@ -327,6 +331,7 @@ function IndependentPlayerPanel({
                   type="button"
                   disabled={!isAnswering}
                   data-testid={`p${playerNumber}-option-${idx}`}
+                  data-option-id={opt.id}
                   data-selected={isSelected ? 'true' : 'false'}
                   onClick={() => onSelectChoice({ selectedOptionId: opt.id })}
                   className={`flex min-h-[64px] w-full items-center gap-3 rounded-2xl border-2 px-4 py-3 text-start transition-all active:scale-[0.99] disabled:cursor-default ${optionClasses}`}
@@ -433,9 +438,22 @@ export function TwoPlayerCompetitionStageView({
   onExitToActivities,
   onBackToSetup,
 }: TwoPlayerCompetitionStageViewProps) {
-  const [session, setSession] = useState<TwoPlayerSessionState>(() =>
-    initialSession ?? createInitialTwoPlayerSession(playerConfig.roundDurationSeconds)
-  );
+  const [session, setSession] = useState<TwoPlayerSessionState>(() => {
+    if (initialSession) {
+      const currentQ = activity.questions[initialSession.currentIndex];
+      return {
+        ...initialSession,
+        optionOrdersByQuestion: ensureQuestionOptionOrderInMap(
+          initialSession.optionOrdersByQuestion,
+          currentQ
+        ),
+      };
+    }
+    return createInitialTwoPlayerSession(
+      playerConfig.roundDurationSeconds,
+      activity.questions
+    );
+  });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenNote, setFullscreenNote] = useState<string | null>(null);
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
@@ -454,6 +472,19 @@ export function TwoPlayerCompetitionStageView({
   const questions = activity.questions;
   const totalQuestions = questions.length;
   const currentQuestion = questions[session.currentIndex] ?? null;
+
+  // ضمان وجود ترتيب اختيارات ثابت ومستقل لكل طالب عند عرض السؤال دون إعادة خلطه
+  useEffect(() => {
+    if (!currentQuestion || currentQuestion.type !== 'multiple_choice') return;
+    setSession((prev) => {
+      const nextMap = ensureQuestionOptionOrderInMap(
+        prev.optionOrdersByQuestion,
+        currentQuestion
+      );
+      if (nextMap === prev.optionOrdersByQuestion) return prev;
+      return { ...prev, optionOrdersByQuestion: nextMap };
+    });
+  }, [currentQuestion]);
 
   // Sync fullscreen state with browser events
   useEffect(() => {
@@ -614,7 +645,7 @@ export function TwoPlayerCompetitionStageView({
     if (progressBarRef.current) {
       progressBarRef.current.style.width = '100%';
     }
-    setSession(createInitialTwoPlayerSession(playerConfig.roundDurationSeconds));
+    setSession(createInitialTwoPlayerSession(playerConfig.roundDurationSeconds, questions));
   };
 
   const handleTogglePause = () => {
@@ -645,7 +676,7 @@ export function TwoPlayerCompetitionStageView({
       progressBarRef.current.style.width = '100%';
     }
     setSession((prev) =>
-      navigateTwoPlayerSession(prev, prev.currentIndex + 1, totalQuestions)
+      navigateTwoPlayerSession(prev, prev.currentIndex + 1, totalQuestions, questions)
     );
   };
 
@@ -675,8 +706,17 @@ export function TwoPlayerCompetitionStageView({
   const isRevealed = roundState.phase === 'revealed';
   const bothAnswered = areBothPlayersAnswered(roundState);
   const canReveal = canRevealTwoPlayerRound(roundState);
-  const correctAnswerText = currentQuestion
-    ? extractSmartboardCorrectAnswerText(currentQuestion)
+  const p1OrderedOptions = currentQuestion
+    ? getPlayerOrderedOptionsForSession(session, currentQuestion, 1)
+    : [];
+  const p2OrderedOptions = currentQuestion
+    ? getPlayerOrderedOptionsForSession(session, currentQuestion, 2)
+    : [];
+  const p1CorrectAnswerText = currentQuestion
+    ? extractTwoPlayerCorrectAnswerText(currentQuestion, p1OrderedOptions)
+    : null;
+  const p2CorrectAnswerText = currentQuestion
+    ? extractTwoPlayerCorrectAnswerText(currentQuestion, p2OrderedOptions)
     : null;
 
   return (
@@ -1075,7 +1115,8 @@ export function TwoPlayerCompetitionStageView({
                 outcome={roundState.p1Outcome}
                 phase={roundState.phase}
                 question={currentQuestion}
-                correctAnswerText={correctAnswerText}
+                orderedOptions={p1OrderedOptions}
+                correctAnswerText={p1CorrectAnswerText}
                 failedImageUrl={failedImageUrl}
                 onImageError={(url) => setFailedImageUrl(url)}
                 onSelectChoice={(choice) =>
@@ -1096,7 +1137,8 @@ export function TwoPlayerCompetitionStageView({
                 outcome={roundState.p2Outcome}
                 phase={roundState.phase}
                 question={currentQuestion}
-                correctAnswerText={correctAnswerText}
+                orderedOptions={p2OrderedOptions}
+                correctAnswerText={p2CorrectAnswerText}
                 failedImageUrl={failedImageUrl}
                 onImageError={(url) => setFailedImageUrl(url)}
                 onSelectChoice={(choice) =>

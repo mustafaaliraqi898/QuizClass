@@ -36,6 +36,11 @@ export interface TwoPlayerRoundState {
   p2UnansweredCount: number;
 }
 
+export interface TwoPlayerQuestionOptionOrder {
+  p1OptionIds: string[];
+  p2OptionIds: string[];
+}
+
 export interface TwoPlayerSessionState {
   currentIndex: number;
   roundState: TwoPlayerRoundState;
@@ -43,10 +48,12 @@ export interface TwoPlayerSessionState {
   timeLeft: number;
   isPaused: boolean;
   roundDurationSeconds: number;
+  optionOrdersByQuestion: Record<string, TwoPlayerQuestionOptionOrder>;
 }
 
 export const POINTS_PER_CORRECT_ANSWER = 10;
 export const DEFAULT_TWO_PLAYER_DURATION_SECONDS = 20;
+const OPTION_LETTERS = ['أ', 'ب', 'ج', 'د', 'هـ', 'و'];
 
 export const DEFAULT_TWO_PLAYER_CONFIG: TwoPlayerConfig = {
   p1Name: 'الطالب الأول',
@@ -63,15 +70,161 @@ function createEmptySelection(): SmartboardSelection {
   };
 }
 
+function shuffleArray<T>(items: readonly T[], rng: () => number = Math.random): T[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    const tmp = copy[i];
+    copy[i] = copy[j];
+    copy[j] = tmp;
+  }
+  return copy;
+}
+
+function arraysEqual(a: readonly string[], b: readonly string[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+function hasSameOptionIds(
+  optionIds: readonly string[],
+  options: InteractiveLearningQuestion['options']
+): boolean {
+  if (optionIds.length !== options.length) return false;
+  const set = new Set(options.map((o) => o.id));
+  return optionIds.every((id) => set.has(id));
+}
+
+export function createQuestionOptionOrder(
+  question: InteractiveLearningQuestion,
+  rng: () => number = Math.random
+): TwoPlayerQuestionOptionOrder {
+  if (question.type !== 'multiple_choice' || question.options.length === 0) {
+    return { p1OptionIds: [], p2OptionIds: [] };
+  }
+
+  const originalIds = question.options.map((opt) => opt.id);
+  if (originalIds.length === 1) {
+    return {
+      p1OptionIds: [...originalIds],
+      p2OptionIds: [...originalIds],
+    };
+  }
+
+  const p1OptionIds = shuffleArray(originalIds, rng);
+  let p2OptionIds = shuffleArray(originalIds, rng);
+
+  // ضمان اختلاف ترتيب الطالب الثاني عن الطالب الأول عندما يكون هناك خياران أو أكثر
+  for (let attempt = 0; attempt < 6 && arraysEqual(p1OptionIds, p2OptionIds); attempt++) {
+    p2OptionIds = shuffleArray(originalIds, rng);
+  }
+
+  if (arraysEqual(p1OptionIds, p2OptionIds)) {
+    p2OptionIds = [...p2OptionIds];
+    const first = p2OptionIds[0];
+    p2OptionIds[0] = p2OptionIds[1];
+    p2OptionIds[1] = first;
+  }
+
+  return { p1OptionIds, p2OptionIds };
+}
+
+export function ensureQuestionOptionOrderInMap(
+  existingMap: Record<string, TwoPlayerQuestionOptionOrder> | undefined,
+  question: InteractiveLearningQuestion | null | undefined,
+  rng: () => number = Math.random
+): Record<string, TwoPlayerQuestionOptionOrder> {
+  const safeMap = existingMap ?? {};
+  if (!question || question.type !== 'multiple_choice' || question.options.length === 0) {
+    return safeMap;
+  }
+
+  const existing = safeMap[question.id];
+  if (
+    existing &&
+    hasSameOptionIds(existing.p1OptionIds, question.options) &&
+    hasSameOptionIds(existing.p2OptionIds, question.options)
+  ) {
+    // الحفاظ على الترتيب المثبت مسبقاً لنفس السؤال دون إعادة خلط
+    return safeMap;
+  }
+
+  return {
+    ...safeMap,
+    [question.id]: createQuestionOptionOrder(question, rng),
+  };
+}
+
+export function getOrderedOptionsForPlayer(
+  question: InteractiveLearningQuestion,
+  optionIds?: readonly string[]
+): InteractiveLearningQuestion['options'] {
+  if (question.type !== 'multiple_choice' || !optionIds || optionIds.length === 0) {
+    return question.options;
+  }
+
+  const optionById = new Map(question.options.map((opt) => [opt.id, opt] as const));
+  const ordered: InteractiveLearningQuestion['options'] = [];
+  const usedIds = new Set<string>();
+
+  for (const id of optionIds) {
+    const found = optionById.get(id);
+    if (found && !usedIds.has(id)) {
+      ordered.push(found);
+      usedIds.add(id);
+    }
+  }
+
+  for (const opt of question.options) {
+    if (!usedIds.has(opt.id)) {
+      ordered.push(opt);
+    }
+  }
+
+  return ordered;
+}
+
+export function extractTwoPlayerCorrectAnswerText(
+  question: InteractiveLearningQuestion,
+  orderedOptions?: InteractiveLearningQuestion['options']
+): string | null {
+  if (question.type === 'true_false') {
+    if (question.correctBoolean === true) return 'صح';
+    if (question.correctBoolean === false) return 'خطأ';
+    return null;
+  }
+
+  if (question.type === 'multiple_choice') {
+    const list = orderedOptions && orderedOptions.length > 0 ? orderedOptions : question.options;
+    const idx = list.findIndex((opt) => opt.isCorrect);
+    if (idx === -1) return null;
+    const opt = list[idx];
+    const cleanText = opt.optionText?.trim();
+    if (cleanText) {
+      return `${OPTION_LETTERS[idx] ?? idx + 1}. ${cleanText}`;
+    }
+    return `الخيار ${OPTION_LETTERS[idx] ?? idx + 1}`;
+  }
+
+  return null;
+}
+
 export function normalizePlayerName(name: string, fallback: string): string {
   const trimmed = name.trim();
   return trimmed.length > 0 ? trimmed : fallback;
 }
 
 export function createInitialTwoPlayerSession(
-  roundDurationSeconds = DEFAULT_TWO_PLAYER_DURATION_SECONDS
+  roundDurationSeconds = DEFAULT_TWO_PLAYER_DURATION_SECONDS,
+  questions?: InteractiveLearningQuestion[],
+  rng: () => number = Math.random
 ): TwoPlayerSessionState {
   const safeDuration = Math.max(5, Math.round(roundDurationSeconds));
+  const optionOrdersByQuestion = ensureQuestionOptionOrderInMap({}, questions?.[0], rng);
+
   return {
     currentIndex: 0,
     roundState: {
@@ -95,6 +248,7 @@ export function createInitialTwoPlayerSession(
     timeLeft: safeDuration,
     isPaused: false,
     roundDurationSeconds: safeDuration,
+    optionOrdersByQuestion,
   };
 }
 
@@ -233,13 +387,30 @@ export function revealTwoPlayerRound(
   };
 }
 
+export function getPlayerOrderedOptionsForSession(
+  session: TwoPlayerSessionState,
+  question: InteractiveLearningQuestion,
+  player: 1 | 2
+): InteractiveLearningQuestion['options'] {
+  const order = session.optionOrdersByQuestion?.[question.id];
+  if (!order) {
+    return question.options;
+  }
+  return getOrderedOptionsForPlayer(
+    question,
+    player === 1 ? order.p1OptionIds : order.p2OptionIds
+  );
+}
+
 export function navigateTwoPlayerSession(
   session: TwoPlayerSessionState,
   targetIndex: number,
-  totalQuestions: number
+  totalQuestions: number,
+  questions?: InteractiveLearningQuestion[],
+  rng: () => number = Math.random
 ): TwoPlayerSessionState {
   if (totalQuestions <= 0) {
-    return createInitialTwoPlayerSession(session.roundDurationSeconds);
+    return createInitialTwoPlayerSession(session.roundDurationSeconds, questions, rng);
   }
 
   if (targetIndex >= totalQuestions) {
@@ -251,6 +422,12 @@ export function navigateTwoPlayerSession(
   }
 
   const clamped = Math.max(0, Math.min(targetIndex, totalQuestions - 1));
+  const nextOptionOrdersByQuestion = ensureQuestionOptionOrderInMap(
+    session.optionOrdersByQuestion,
+    questions?.[clamped],
+    rng
+  );
+
   return {
     currentIndex: clamped,
     roundState: {
@@ -267,6 +444,7 @@ export function navigateTwoPlayerSession(
     timeLeft: session.roundDurationSeconds,
     isPaused: false,
     roundDurationSeconds: session.roundDurationSeconds,
+    optionOrdersByQuestion: nextOptionOrdersByQuestion,
   };
 }
 

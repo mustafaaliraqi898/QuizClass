@@ -3,10 +3,16 @@ import { describe, it } from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ActivityLaunchSetupView } from '../src/components/interactive-learning/ActivityLaunchSetupView.tsx';
+import { SmartboardStageView } from '../src/components/interactive-learning/SmartboardStageView.tsx';
 import {
   canRevealTwoPlayerRound,
   createInitialTwoPlayerSession,
+  createQuestionOptionOrder,
   determineTwoPlayerWinner,
+  ensureQuestionOptionOrderInMap,
+  extractTwoPlayerCorrectAnswerText,
+  getOrderedOptionsForPlayer,
+  getPlayerOrderedOptionsForSession,
   navigateTwoPlayerSession,
   POINTS_PER_CORRECT_ANSWER,
   revealTwoPlayerRound,
@@ -431,5 +437,218 @@ describe('QuizClass Two-Player Competition Mode Complete Suite', () => {
     assert.match(tieHtml, /data-avatar-id="avatar_bunny"/);
     assert.match(tieHtml, /data-testid="celebration-fullscreen-btn"/);
     assert.match(tieHtml, /data-testid="exit-two-player-btn"/);
+  });
+
+  it('9. gives Player 1 and Player 2 identical option sets in two different randomized orders on screen', () => {
+    const qCountry: InteractiveLearningQuestion = {
+      ...sampleQuestion1,
+      id: 'q-country',
+      prompt: 'ما عاصمة العراق؟',
+      options: [
+        { id: 'c-1', questionId: 'q-country', optionOrder: 0, optionText: 'العراق', isCorrect: true, imagePath: null, imageUrl: null },
+        { id: 'c-2', questionId: 'q-country', optionOrder: 1, optionText: 'إيران', isCorrect: false, imagePath: null, imageUrl: null },
+        { id: 'c-3', questionId: 'q-country', optionOrder: 2, optionText: 'السعودية', isCorrect: false, imagePath: null, imageUrl: null },
+        { id: 'c-4', questionId: 'q-country', optionOrder: 3, optionText: 'الكويت', isCorrect: false, imagePath: null, imageUrl: null },
+      ],
+    };
+    const twoPlayerActivity: InteractiveActivityRecord = {
+      ...sampleActivity,
+      questions: [qCountry],
+      questionCount: 1,
+    };
+
+    const html = renderToStaticMarkup(
+      React.createElement(TwoPlayerCompetitionStageView, {
+        activity: twoPlayerActivity,
+        playerConfig,
+        onExitToActivities: () => {},
+      })
+    );
+
+    const p1Matches = [...html.matchAll(/data-testid="p1-option-\d+" data-option-id="([^"]+)"/g)].map(
+      (m) => m[1]
+    );
+    const p2Matches = [...html.matchAll(/data-testid="p2-option-\d+" data-option-id="([^"]+)"/g)].map(
+      (m) => m[1]
+    );
+
+    assert.equal(p1Matches.length, 4);
+    assert.equal(p2Matches.length, 4);
+    assert.deepEqual([...p1Matches].sort(), ['c-1', 'c-2', 'c-3', 'c-4']);
+    assert.deepEqual([...p2Matches].sort(), ['c-1', 'c-2', 'c-3', 'c-4']);
+    assert.notDeepEqual(p1Matches, p2Matches, 'Player 1 and Player 2 option orders must differ');
+
+    // Even with a completely constant RNG (worst-case collision), orders must differ
+    const forcedCollisionOrder = createQuestionOptionOrder(qCountry, () => 0.5);
+    assert.notDeepEqual(forcedCollisionOrder.p1OptionIds, forcedCollisionOrder.p2OptionIds);
+    assert.deepEqual([...forcedCollisionOrder.p1OptionIds].sort(), ['c-1', 'c-2', 'c-3', 'c-4']);
+    assert.deepEqual([...forcedCollisionOrder.p2OptionIds].sort(), ['c-1', 'c-2', 'c-3', 'c-4']);
+  });
+
+  it('10. scores correct & wrong answers accurately by option ID regardless of shuffled position, and keeps feedback letters per-panel', () => {
+    const qCountry: InteractiveLearningQuestion = {
+      ...sampleQuestion1,
+      id: 'q-country-score',
+      prompt: 'اختر الدولة الصحيحة',
+      options: [
+        { id: 'c-1', questionId: 'q-country-score', optionOrder: 0, optionText: 'العراق', isCorrect: true, imagePath: null, imageUrl: null },
+        { id: 'c-2', questionId: 'q-country-score', optionOrder: 1, optionText: 'إيران', isCorrect: false, imagePath: null, imageUrl: null },
+        { id: 'c-3', questionId: 'q-country-score', optionOrder: 2, optionText: 'السعودية', isCorrect: false, imagePath: null, imageUrl: null },
+        { id: 'c-4', questionId: 'q-country-score', optionOrder: 3, optionText: 'الكويت', isCorrect: false, imagePath: null, imageUrl: null },
+      ],
+    };
+
+    // P1 sees correct answer 'c-1' at index 2 (ج); P2 sees correct answer 'c-1' at index 3 (د)
+    let session = createInitialTwoPlayerSession(20, [qCountry]);
+    session = {
+      ...session,
+      optionOrdersByQuestion: {
+        [qCountry.id]: {
+          p1OptionIds: ['c-2', 'c-3', 'c-1', 'c-4'],
+          p2OptionIds: ['c-4', 'c-2', 'c-3', 'c-1'],
+        },
+      },
+    };
+
+    const p1Ordered = getPlayerOrderedOptionsForSession(session, qCountry, 1);
+    const p2Ordered = getPlayerOrderedOptionsForSession(session, qCountry, 2);
+    assert.equal(p1Ordered[2].id, 'c-1');
+    assert.equal(p2Ordered[3].id, 'c-1');
+
+    // Feedback text uses each player's OWN position letter, never leaking the other player's order
+    assert.equal(extractTwoPlayerCorrectAnswerText(qCountry, p1Ordered), 'ج. العراق');
+    assert.equal(extractTwoPlayerCorrectAnswerText(qCountry, p2Ordered), 'د. العراق');
+
+    // P1 picks c-1 (at P1 index 2 -> correct), P2 picks c-4 (at P2 index 0 -> wrong)
+    session = {
+      ...session,
+      roundState: selectPlayerChoiceInRound(session.roundState, 1, { selectedOptionId: p1Ordered[2].id }),
+    };
+    session = {
+      ...session,
+      roundState: selectPlayerChoiceInRound(session.roundState, 2, { selectedOptionId: p2Ordered[0].id }),
+    };
+
+    const revealed = revealTwoPlayerRound(session.roundState, qCountry);
+    assert.equal(revealed.p1Outcome, 'correct');
+    assert.equal(revealed.p2Outcome, 'wrong');
+    assert.equal(revealed.p1Score, POINTS_PER_CORRECT_ANSWER);
+    assert.equal(revealed.p2Score, 0);
+
+    // Now test the reverse: P1 picks wrong at index 0 (c-2), P2 picks correct at index 3 (c-1)
+    let session2 = createInitialTwoPlayerSession(20, [qCountry]);
+    session2 = {
+      ...session2,
+      optionOrdersByQuestion: session.optionOrdersByQuestion,
+      roundState: selectPlayerChoiceInRound(session2.roundState, 1, { selectedOptionId: p1Ordered[0].id }),
+    };
+    session2 = {
+      ...session2,
+      roundState: selectPlayerChoiceInRound(session2.roundState, 2, { selectedOptionId: p2Ordered[3].id }),
+    };
+    const revealed2 = revealTwoPlayerRound(session2.roundState, qCountry);
+    assert.equal(revealed2.p1Outcome, 'wrong');
+    assert.equal(revealed2.p2Outcome, 'correct');
+    assert.equal(revealed2.p1Score, 0);
+    assert.equal(revealed2.p2Score, POINTS_PER_CORRECT_ANSWER);
+  });
+
+  it('11. freezes option order during active question updates (selection, pause, timer tick, reveal)', () => {
+    let session = createInitialTwoPlayerSession(5, [sampleQuestion1, sampleQuestion2]);
+    const initialOrder = session.optionOrdersByQuestion[sampleQuestion1.id];
+    assert.ok(initialOrder);
+
+    // Ensure repeated calls to ensureQuestionOptionOrderInMap with different RNG do NOT reshuffle
+    const preservedMap = ensureQuestionOptionOrderInMap(
+      session.optionOrdersByQuestion,
+      sampleQuestion1,
+      () => 0.99
+    );
+    assert.deepEqual(preservedMap[sampleQuestion1.id], initialOrder);
+
+    // Select, pause, tick, unpause, tick to expiry, reveal -> order never changes
+    session = {
+      ...session,
+      roundState: selectPlayerChoiceInRound(session.roundState, 1, { selectedOptionId: 'opt-2' }),
+    };
+    session = toggleTwoPlayerPause(session);
+    session = tickTwoPlayerTimer(session);
+    session = toggleTwoPlayerPause(session);
+    session = tickTwoPlayerTimer(session);
+    session = {
+      ...session,
+      roundState: selectPlayerChoiceInRound(session.roundState, 2, { selectedOptionId: 'opt-1' }),
+    };
+    session = {
+      ...session,
+      roundState: revealTwoPlayerRound(session.roundState, sampleQuestion1),
+    };
+
+    assert.deepEqual(session.optionOrdersByQuestion[sampleQuestion1.id], initialOrder);
+  });
+
+  it('12. generates a new order when advancing to a new question and restores previous order when returning to an earlier question', () => {
+    const sampleQuestion3: InteractiveLearningQuestion = {
+      ...sampleQuestion1,
+      id: 'q-3',
+      prompt: 'سؤال اختيارات ثاني',
+      options: [
+        { id: 'q3-1', questionId: 'q-3', optionOrder: 0, optionText: 'أ1', isCorrect: true, imagePath: null, imageUrl: null },
+        { id: 'q3-2', questionId: 'q-3', optionOrder: 1, optionText: 'ب2', isCorrect: false, imagePath: null, imageUrl: null },
+        { id: 'q3-3', questionId: 'q-3', optionOrder: 2, optionText: 'ج3', isCorrect: false, imagePath: null, imageUrl: null },
+        { id: 'q3-4', questionId: 'q-3', optionOrder: 3, optionText: 'د4', isCorrect: false, imagePath: null, imageUrl: null },
+      ],
+    };
+
+    const qs = [sampleQuestion1, sampleQuestion3];
+    let step = 0;
+    const seqRng = () => {
+      step = (step + 1) % 7;
+      return (step * 0.13) % 1;
+    };
+
+    let session = createInitialTwoPlayerSession(20, qs, seqRng);
+    const q1InitialOrder = session.optionOrdersByQuestion[sampleQuestion1.id];
+    assert.ok(q1InitialOrder);
+    assert.equal(session.optionOrdersByQuestion[sampleQuestion3.id], undefined);
+
+    // Move forward to Question 2 -> generates new independent order for q-3
+    session = navigateTwoPlayerSession(session, 1, qs.length, qs, seqRng);
+    assert.equal(session.currentIndex, 1);
+    const q3Order = session.optionOrdersByQuestion[sampleQuestion3.id];
+    assert.ok(q3Order);
+    assert.notDeepEqual(q3Order.p1OptionIds, q3Order.p2OptionIds);
+    assert.deepEqual(session.optionOrdersByQuestion[sampleQuestion1.id], q1InitialOrder);
+
+    // Navigate BACK to Question 1 with a completely different RNG -> MUST restore exact q1InitialOrder
+    session = navigateTwoPlayerSession(session, 0, qs.length, qs, () => 0.01);
+    assert.equal(session.currentIndex, 0);
+    assert.deepEqual(session.optionOrdersByQuestion[sampleQuestion1.id], q1InitialOrder);
+
+    // Navigate forward again to Question 2 -> MUST restore exact q3Order
+    session = navigateTwoPlayerSession(session, 1, qs.length, qs, () => 0.95);
+    assert.deepEqual(session.optionOrdersByQuestion[sampleQuestion3.id], q3Order);
+
+    // getOrderedOptionsForPlayer handles missing or partial order gracefully
+    assert.equal(getOrderedOptionsForPlayer(sampleQuestion3, undefined).length, 4);
+  });
+
+  it('13. leaves standard Smartboard mode option order completely unaffected', () => {
+    const standardHtml = renderToStaticMarkup(
+      React.createElement(SmartboardStageView, {
+        activity: sampleActivity,
+        onExitToActivities: () => {},
+      })
+    );
+
+    const optPositions = ['القدس', 'عمان', 'بيروت', 'دمشق'].map((label) =>
+      standardHtml.indexOf(label)
+    );
+    assert.ok(
+      optPositions[0] < optPositions[1] &&
+        optPositions[1] < optPositions[2] &&
+        optPositions[2] < optPositions[3],
+      'Standard Smartboard mode must preserve exact original option order'
+    );
   });
 });
